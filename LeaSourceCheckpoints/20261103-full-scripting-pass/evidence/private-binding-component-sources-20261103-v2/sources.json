@@ -1,0 +1,86 @@
+{
+  "assertionsChanged": false,
+  "verified": true,
+  "pending": [
+    "compile five probe hosts",
+    "rebind probe manifest binary hashes and main dispatcher",
+    "fresh candidate/full suite"
+  ],
+  "selectedWorkerSha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0",
+  "compiled": false,
+  "runnerSha256": "B6E7A504619A8D1BD25EA3FEBB0B2271E0788233AF126789AAD9324CDF6BD507",
+  "files": [
+    {
+      "negativeControls": 3,
+      "identityReplacements": 2,
+      "origin": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\bootstrap-descriptor-batches-v1\\source-cross-module-probes-v1\\production-markers\\MarkerHost.cs",
+      "path": "I:\\LeaBuildStorage\\private-binding-component-sources-20261103-v2\\markers\\MarkerHost.cs",
+      "sha256": "8E3C85873BE8C6550D38BACD9B9DC5DC957FE59AE0195A1B72B143D100E666D4",
+      "originalSha256": "4AB41D37A63F904CAB5BC811CA881C820A516A23EC9ECF96EDF408B64890EC9F",
+      "component": "markers",
+      "inverseVerified": true
+    },
+    {
+      "negativeControls": 3,
+      "identityReplacements": 2,
+      "origin": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\bootstrap-descriptor-batches-v1\\source-cross-module-probes-v1\\production-frames\\FrameProtocolHost.cs",
+      "path": "I:\\LeaBuildStorage\\private-binding-component-sources-20261103-v2\\frames\\FrameProtocolHost.cs",
+      "sha256": "9837A4533FD0FC708803CEB3A9348F3C3AE71D29B49EBEDFF5E2BDD8DDA9E055",
+      "originalSha256": "83222D61BC68A94182437F5ED13CB7DEF2683C313818E93C34E8933231C0B3A8",
+      "component": "frames",
+      "inverseVerified": true
+    },
+    {
+      "negativeControls": 3,
+      "identityReplacements": 2,
+      "origin": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\bootstrap-descriptor-batches-v1\\source-cross-module-probes-v1\\production-clock\\ClockCodecHost.cs",
+      "path": "I:\\LeaBuildStorage\\private-binding-component-sources-20261103-v2\\clock\\ClockCodecHost.cs",
+      "sha256": "0FDEE72D6BC78BE54EAEDB52A8393F2B4C97F44B4EAC3DD10704E757CE88E1DA",
+      "originalSha256": "F2A33E570F7325A9E85ED90EFF09D688611473E194E528BB1AE4730AF62DEE7D",
+      "component": "clock",
+      "inverseVerified": true
+    },
+    {
+      "negativeControls": 3,
+      "identityReplacements": 2,
+      "origin": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\bootstrap-descriptor-batches-v1\\source-cross-module-probes-v1\\production-wire\\WireFramesHostV3.cs",
+      "path": "I:\\LeaBuildStorage\\private-binding-component-sources-20261103-v2\\wire\\WireFramesHostV3.cs",
+      "sha256": "410C41ED42689ED8BAEFEB4603008FFF42AC8041ABE2FEA1103CCAFEA6529A79",
+      "originalSha256": "DC9F7F9ACCDDBB2E5FE4BB8ED1C194E6EDDB37E4E9B86A45F94B0F808154680F",
+      "component": "wire",
+      "inverseVerified": true
+    },
+    {
+      "negativeControls": 3,
+      "identityReplacements": 2,
+      "origin": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\bootstrap-descriptor-batches-v1\\source-cross-module-probes-v1\\production-bootstrap\\BootstrapBundleHost.cs",
+      "path": "I:\\LeaBuildStorage\\private-binding-component-sources-20261103-v2\\bootstrap\\BootstrapBundleHost.cs",
+      "sha256": "865383242A31BF9CBEFBBE7746C3A1EE98B6B19DCE5EF2A36F6FFB39E9AE8418",
+      "originalSha256": "55B134B5C98634B5114A82ADE00F907FD98E6AF56528C182B8E946C67A975779",
+      "component": "bootstrap",
+      "inverseVerified": true
+    },
+    {
+      "negativeControls": 3,
+      "identityReplacements": 1,
+      "origin": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\bootstrap-descriptor-batches-v1\\source-cross-module-probes-v1\\production-bootstrap\\OptionsUnit.cs",
+      "path": "I:\\LeaBuildStorage\\private-binding-component-sources-20261103-v2\\bootstrap\\OptionsUnit.cs",
+      "sha256": "6490B69A4A5211CDAEED4C32CEB4925C060180C48FFF21733DF88C01A9DFC2A2",
+      "originalSha256": "932AFC7DBB87E0E22E35577CCB3C6CC528566464D6B55AC8DDC7319BA983CF70",
+      "component": "bootstrap",
+      "inverseVerified": true
+    }
+  ],
+  "executed": false,
+  "oldWorkerSha256": "60FF26D8357FEA52C802BAC562C30C6CE28F72F735E78281D0908E94FAB530D6",
+  "resourceIdentityChange": {
+    "inverseVerified": true,
+    "asset": "I:\\LeaBuildStorage\\private-binding-source-20261102-v1\\Dom.compact.js",
+    "changedSources": 1,
+    "priorProofSha256": "BE90716A9237699ED45E07EC69DC5CCC649E5F9E189C1E78C6C0EF325ABF436F",
+    "verified": true,
+    "old": "EC4B6513A77230C3B8439568CC3FED41B7712CA3779182D38076880DCC83BC8A",
+    "negativeControls": 3,
+    "replacement": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3"
+  }
+}

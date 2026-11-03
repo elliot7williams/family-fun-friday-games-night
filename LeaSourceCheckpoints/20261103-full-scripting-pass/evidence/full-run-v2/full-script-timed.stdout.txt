@@ -1,0 +1,28 @@
+PASS selector observation contract: session polling runs without UI pumping
+PASS selector observation contract: empty session sampler retires
+PASS selector observation contract: session stop remains idempotent
+PASS selector observation contract: empty session restores trace setting
+PASS selector observation contract: session scope retains bounded sampler capacity without claiming view coverage
+PASS selector observation contract: null session is not an observation error or a fabricated sample
+PASS selector observation contract: failed session report preserves original failure and retirement
+PASS selector observation contract: session sampler retains exact supplied worker path
+PASS selector observation contract: direct session snapshot reads the supplied endpoint
+PASS selector observation contract: identity-rejection sampler retires
+PASS selector observation contract: session reports preserve create-new output semantics
+PASS selector observation contract: an unrelated process is rejected before counters or thread enumeration
+PASS selector observation contract: session phase uses the existing latest-line and text bound
+PASS selector observation contract: PID and phase snapshot holds the session lifecycle gate
+PASS selector observation contract: identity failure is not classified as successful sampling
+PASS selector observation contract: expected callback failure is observed
+PASS selector observation contract: failed callback sampler retires
+PASS selector observation contract: callback errors retain existing text/count bounds without fabricated samples
+PASS selector observation contract: failed callback restores trace setting
+PASS ACL baseline: identical descriptors accepted
+PASS ACL baseline: auto-inherited metadata alone accepted before snapshot
+PASS ACL baseline: protection-flag change rejected
+PASS ACL baseline: changed access mask rejected
+PASS ACL baseline: additional permission ACE rejected
+PASS ACL baseline: missing permission ACE rejected
+PASS ACL baseline: reordered permission ACEs rejected
+PASS ACL baseline: missing DACL rejected
+PASS ACL baseline: private NTFS fixture is idempotent without changing permissions or data

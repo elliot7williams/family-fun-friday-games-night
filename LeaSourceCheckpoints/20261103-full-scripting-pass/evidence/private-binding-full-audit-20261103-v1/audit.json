@@ -1,0 +1,43 @@
+{
+  "selectedFiles": 247,
+  "inputsUnchanged": true,
+  "performanceImprovementProven": false,
+  "allOwnedProcessesRetired": true,
+  "releaseQualified": false,
+  "copies": [
+    {
+      "sha256": "FBF61B45F9D8F933B7C57BF44C67F78BA26484098BC5848A7B7754989EA44B55",
+      "copy": "I:\\LeaBuildStorage\\private-binding-full-audit-20261103-v1\\result.json",
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-owned-v3\\result.json"
+    },
+    {
+      "sha256": "9EBB2B57ABFEDAB0275414887CF04115DA24F85D0AF28CDE2C91DEB6806CC846",
+      "copy": "I:\\LeaBuildStorage\\private-binding-full-audit-20261103-v1\\staging.json",
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v3\\staging.json"
+    },
+    {
+      "sha256": "2BDC07FCFC776C02A155F1673A19BB75B454A4462254562943539FD99A780546",
+      "copy": "I:\\LeaBuildStorage\\private-binding-full-audit-20261103-v1\\staging-audit.json",
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v3\\staging-audit.json"
+    },
+    {
+      "sha256": "C4893827B82AC23A0A99075BDE12597549E0759F8B5D71CF61B9071EA83F7710",
+      "copy": "I:\\LeaBuildStorage\\private-binding-full-audit-20261103-v1\\full-script-timed.stdout.txt",
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-owned-v3\\full-script-timed.stdout.txt"
+    },
+    {
+      "sha256": "4F82226C3572756F3F5FBAABDFB5AA21676529E579403CB4FBB85D1B0D90821B",
+      "copy": "I:\\LeaBuildStorage\\private-binding-full-audit-20261103-v1\\full-script-timed.stderr.txt",
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-owned-v3\\full-script-timed.stderr.txt"
+    }
+  ],
+  "hostAdopted": false,
+  "checks": 3412,
+  "verified": true,
+  "runnerSha256": "6D3B7D7B2D0EC2D5F57C467DAE192431A7AF929B9E3275C59D1E5D6B8326A5EA",
+  "phases": 89,
+  "runtimeBytesAndAclsUnchanged": true,
+  "elapsedMs": 296322,
+  "deadlineMarginMs": 3678,
+  "runtimeFiles": 65
+}

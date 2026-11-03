@@ -1,0 +1,248 @@
+{
+  "verified": true,
+  "releaseQualified": false,
+  "scope": "Changed source tools, generated component sources, current product assets and selected full scripting pass/failure evidence; full source ZIP remains local",
+  "hostAdopted": false,
+  "scriptingChecks": 3412,
+  "files": [
+    {
+      "path": "PROJECT_CONTEXT.md",
+      "sha256": "07A48AE322E4411F83664704730337D575C77E29A26B94D45088C64200FDDBCC",
+      "bytes": 11263
+    },
+    {
+      "path": "LeaForge/PRIVATE_BINDINGS.md",
+      "sha256": "904021662795E5A35BD833C5D2D950648BEC865D8B02A15A33D4BF6411484947",
+      "bytes": 17571
+    },
+    {
+      "path": "LeaForge/PROGRESS.md",
+      "sha256": "4A3CED6A6FBDB8CE380DA47CF9DE937503D5F2030F30522B21343E82E7D15A76",
+      "bytes": 406329
+    },
+    {
+      "path": "LeaForge/FINISH_PLAN.md",
+      "sha256": "3E0B056DADC78B06A2D4A8BAD647B7E2B14233BF892E98E930183F5D5CB1FE33",
+      "bytes": 53467
+    },
+    {
+      "path": "LeaForge/history/private-binding-qualification-20261103.md",
+      "sha256": "E5EEFE840A1EF39FDC9C97F4798180DC1244B9681DDE75543C1A1C25E2684F12",
+      "bytes": 30465
+    },
+    {
+      "path": "Lea.Build/Build-PrivateBindingFullEntry.ps1",
+      "sha256": "7AD5444C6B319C3E6D5F2786AD5191E5B34DA4AF32E107194B0814CEECBC4005",
+      "bytes": 9798
+    },
+    {
+      "path": "Lea.Build/Assemble-PrivateBindingFullSuite.ps1",
+      "sha256": "929C5F01E19DAAD949257C16376DC4A62DC446129372B0A3F09C2DDE289C63C5",
+      "bytes": 8777
+    },
+    {
+      "path": "Lea.Build/Build-SdkFullScript.ps1",
+      "sha256": "B6C81B09306291FCBD9CE532BC7E2310A5705F5B36EAAD46117072A047BC42B4",
+      "bytes": 10905
+    },
+    {
+      "path": "Lea.Build/Stage-SdkFullScriptRuntime.ps1",
+      "sha256": "B9AA8E0CA5A9CC04617CBFE89860958F4A2985E7A68E06FB8D5DABDD0E5E9BDA",
+      "bytes": 9052
+    },
+    {
+      "path": "Lea.Build/Audit-SdkFullScriptStaging.ps1",
+      "sha256": "D6F823A58D1FC2A7FF2E61A245A18706E0047D6E6A9F5E6CCC786C4C26AE4C99",
+      "bytes": 5765
+    },
+    {
+      "path": "Lea.Build/Test-OwnedSdkFullScript.ps1",
+      "sha256": "721F083C09E9E6BF188EA7000588C743C4A950C1E83747F3AC37C2D970DD7046",
+      "bytes": 11795
+    },
+    {
+      "path": "Lea.Build/Prepare-PrivateBindingBootstrapAsset.ps1",
+      "sha256": "B6E7A504619A8D1BD25EA3FEBB0B2271E0788233AF126789AAD9324CDF6BD507",
+      "bytes": 3388
+    },
+    {
+      "path": "Lea.Build/Build-SdkComponentProbes.ps1",
+      "sha256": "07F507C2F26F2140B1EA627180D9FCFE7C2EE71FB661AD5E04C45A6F54027F38",
+      "bytes": 13803
+    },
+    {
+      "path": "Lea.Build/Test-SdkComponentProbes.ps1",
+      "sha256": "93F301ED2744069C4ECC6542F9D2910BAA63B97533D9E2E62B1DE4BC3719CEF7",
+      "bytes": 8146
+    },
+    {
+      "path": "Lea.Build/Audit-PrivateBindingFullSuite.ps1",
+      "sha256": "6D3B7D7B2D0EC2D5F57C467DAE192431A7AF929B9E3275C59D1E5D6B8326A5EA",
+      "bytes": 5293
+    },
+    {
+      "path": "evidence/full-run-v2/result.json",
+      "sha256": "58770ED855EDA8FF9D4D55082DD17262B0B056610F560A6EFCF1769B005DDBB6",
+      "bytes": 122344
+    },
+    {
+      "path": "evidence/full-run-v2/full-script-timed.result.json",
+      "sha256": "627685562CB43021244A20D4C9B57469DFD6DBFE0F52AABA16402EC5B1279BFF",
+      "bytes": 1252
+    },
+    {
+      "path": "evidence/full-run-v2/full-script-timed.stdout.txt",
+      "sha256": "C0713B40C10CA7C09B0DC9C842A03DE52161A4A353BDE51BA6E1776CB3202D3F",
+      "bytes": 2192
+    },
+    {
+      "path": "evidence/full-run-v2/full-script-timed.stderr.txt",
+      "sha256": "8BC8903DD943FB7E181A51B0B2C9085613C16C13CC2E0BD378519B1CFB657DD3",
+      "bytes": 2345
+    },
+    {
+      "path": "evidence/full-run-v3/result.json",
+      "sha256": "FBF61B45F9D8F933B7C57BF44C67F78BA26484098BC5848A7B7754989EA44B55",
+      "bytes": 122284
+    },
+    {
+      "path": "evidence/full-run-v3/full-script-timed.result.json",
+      "sha256": "0ACDEB28B781FBE002A971E61812B6E511242B537D5716EDFA781C30C55475D9",
+      "bytes": 1256
+    },
+    {
+      "path": "evidence/full-run-v3/full-script-timed.stdout.txt",
+      "sha256": "C4893827B82AC23A0A99075BDE12597549E0759F8B5D71CF61B9071EA83F7710",
+      "bytes": 310746
+    },
+    {
+      "path": "evidence/full-run-v3/full-script-timed.stderr.txt",
+      "sha256": "4F82226C3572756F3F5FBAABDFB5AA21676529E579403CB4FBB85D1B0D90821B",
+      "bytes": 5645
+    },
+    {
+      "path": "evidence/stage-v3/staging.json",
+      "sha256": "9EBB2B57ABFEDAB0275414887CF04115DA24F85D0AF28CDE2C91DEB6806CC846",
+      "bytes": 76251
+    },
+    {
+      "path": "evidence/stage-v3/staging-audit.json",
+      "sha256": "2BDC07FCFC776C02A155F1673A19BB75B454A4462254562943539FD99A780546",
+      "bytes": 802
+    },
+    {
+      "path": "evidence/private-binding-full-entry-20261103-v3/result.json",
+      "sha256": "1D6568EAB3114AAABBBE403298085A6F6B33E1C02814C9B21CF0E4CAC5221CB6",
+      "bytes": 85120
+    },
+    {
+      "path": "evidence/private-binding-full-entry-20261103-v3/entry-fixture.json",
+      "sha256": "64C6F06B04EF62D6541A6E155943EA14C32824E41F5ADC3DE4D87A668FE4C046",
+      "bytes": 905
+    },
+    {
+      "path": "evidence/private-binding-full-assembly-20261103-v3-assets/assembly.json",
+      "sha256": "C96375575C0453C295CAA2FD08185ABFFCCBD134C463E2E673ADB49F926975F9",
+      "bytes": 179185
+    },
+    {
+      "path": "evidence/private-binding-full-compile-20261103-v3/result.json",
+      "sha256": "A3B9FC0D8C07BE626730455C14E4B806A8DFB2C8665B4767CDCC2F875AF7CD7D",
+      "bytes": 128139
+    },
+    {
+      "path": "evidence/private-binding-component-sources-20261103-v2/sources.json",
+      "sha256": "5F4363CBFCC67D30A57CD3BE98681659809CA67EB2B8496B26A59E5BBABD8C51",
+      "bytes": 4884
+    },
+    {
+      "path": "evidence/private-binding-component-build-20261103-v2/result.json",
+      "sha256": "53BD71693D012AD5F9A0E3D43422DBA7BB6A5AE2808C1170897EB0F3655DE19D",
+      "bytes": 214813
+    },
+    {
+      "path": "evidence/private-binding-full-audit-20261103-v1/audit.json",
+      "sha256": "40C22A07717F2474D6167F3F36FE7B6DA66596BD957FB7509F8FA4902ECC6A61",
+      "bytes": 2257
+    },
+    {
+      "path": "evidence/component-runtime-v2/result.json",
+      "sha256": "94DF2187651E3396357804B2110FD98BA8C3BE2DDEA3F079900AE038D4B7DC06",
+      "bytes": 43726
+    },
+    {
+      "path": "evidence/component-runtime-v2/test-markers.stdout.txt",
+      "sha256": "A8ED87C3A4394541F12A23C7DD600D77B31EFD3BF029314C42AEC9EA300AD364",
+      "bytes": 2105
+    },
+    {
+      "path": "evidence/component-runtime-v2/test-frames.stdout.txt",
+      "sha256": "0BC8C744B3FDE58F6B2C79F1ADC338617DC6EE8849CA35C1B39B4EE694355787",
+      "bytes": 2520
+    },
+    {
+      "path": "evidence/component-runtime-v2/test-clock.stdout.txt",
+      "sha256": "8B3CEDC3DBFEFA9151C656405059C7FE37DE5C526BBB4089373021DB3F12FE4D",
+      "bytes": 1584
+    },
+    {
+      "path": "evidence/component-runtime-v2/test-wire.stdout.txt",
+      "sha256": "7A66646D2CF31881570604F5F73FD002D0C106F1B34FF28E816BA7382D8E7E12",
+      "bytes": 10400
+    },
+    {
+      "path": "evidence/component-runtime-v2/test-bootstrap.stdout.txt",
+      "sha256": "3F9619930D5C51177CB33B7C4CC666BF65D5175E2017ACDBDCA70016A4539536",
+      "bytes": 35154
+    },
+    {
+      "path": "generated/component/markers/MarkerHost.cs",
+      "sha256": "8E3C85873BE8C6550D38BACD9B9DC5DC957FE59AE0195A1B72B143D100E666D4",
+      "bytes": 2711
+    },
+    {
+      "path": "generated/component/frames/FrameProtocolHost.cs",
+      "sha256": "9837A4533FD0FC708803CEB3A9348F3C3AE71D29B49EBEDFF5E2BDD8DDA9E055",
+      "bytes": 2718
+    },
+    {
+      "path": "generated/component/clock/ClockCodecHost.cs",
+      "sha256": "0FDEE72D6BC78BE54EAEDB52A8393F2B4C97F44B4EAC3DD10704E757CE88E1DA",
+      "bytes": 2709
+    },
+    {
+      "path": "generated/component/wire/WireFramesHostV3.cs",
+      "sha256": "410C41ED42689ED8BAEFEB4603008FFF42AC8041ABE2FEA1103CCAFEA6529A79",
+      "bytes": 2861
+    },
+    {
+      "path": "generated/component/bootstrap/BootstrapBundleHost.cs",
+      "sha256": "865383242A31BF9CBEFBBE7746C3A1EE98B6B19DCE5EF2A36F6FFB39E9AE8418",
+      "bytes": 4890
+    },
+    {
+      "path": "generated/component/bootstrap/OptionsUnit.cs",
+      "sha256": "6490B69A4A5211CDAEED4C32CEB4925C060180C48FFF21733DF88C01A9DFC2A2",
+      "bytes": 6394
+    },
+    {
+      "path": "product-assets/Dom.js",
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A",
+      "bytes": 37780
+    },
+    {
+      "path": "product-assets/Dom.compact.js",
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+      "bytes": 21342
+    }
+  ],
+  "focusedComponentChecks": 167,
+  "sourceCheckpoint": {
+    "sha256": "36A8913AF756E58D3B59D029C0B1E03125EA84FC70B9A9B4E5CDE7DC5AE7E5A3",
+    "files": 1635,
+    "version": 140,
+    "archiveLocalOnly": true
+  },
+  "phases": 89,
+  "performanceImprovementProven": false
+}

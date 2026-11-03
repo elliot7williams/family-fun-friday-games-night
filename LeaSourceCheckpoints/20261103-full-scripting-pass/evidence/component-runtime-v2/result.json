@@ -1,0 +1,627 @@
+{
+  "ownerAttention": false,
+  "changedFiles": [],
+  "nativeIsolationTest": false,
+  "runs": [
+    {
+      "stdoutRetainedBytes": 2105,
+      "birthUtc": "2026-11-03T07:45:34.8322433Z",
+      "stderrBytes": 0,
+      "startReturned": true,
+      "childRetirementIndependentlyAudited": true,
+      "stderrComplete": true,
+      "error": null,
+      "startAttempted": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "retirementAndDrainElapsedMs": 424,
+      "retainedForOwner": false,
+      "parentBudgetMs": 30000,
+      "elapsedMs": 1727,
+      "outputDrained": true,
+      "originalHandleCaptured": true,
+      "exitObserved": true,
+      "finishedUtc": "2026-11-03T07:45:36.9336711Z",
+      "started": true,
+      "ownedJob": true,
+      "passed": true,
+      "exitCode": 0,
+      "activeAfterRetirement": 0,
+      "stdout": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-markers.stdout.txt",
+      "stderrRetainedBytes": 0,
+      "stdoutBytes": 2105,
+      "pid": 14168,
+      "captureOverflow": false,
+      "stdoutComplete": true,
+      "timedOut": false,
+      "killRequested": false,
+      "startUnknown": false,
+      "unsafeToContinue": false,
+      "name": "test-markers",
+      "stderr": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-markers.stderr.txt"
+    },
+    {
+      "stdoutRetainedBytes": 2520,
+      "birthUtc": "2026-11-03T07:45:37.1375520Z",
+      "stderrBytes": 0,
+      "startReturned": true,
+      "childRetirementIndependentlyAudited": true,
+      "stderrComplete": true,
+      "error": null,
+      "startAttempted": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "retirementAndDrainElapsedMs": 50,
+      "retainedForOwner": false,
+      "parentBudgetMs": 30000,
+      "elapsedMs": 633,
+      "outputDrained": true,
+      "originalHandleCaptured": true,
+      "exitObserved": true,
+      "finishedUtc": "2026-11-03T07:45:37.8187409Z",
+      "started": true,
+      "ownedJob": true,
+      "passed": true,
+      "exitCode": 0,
+      "activeAfterRetirement": 0,
+      "stdout": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-frames.stdout.txt",
+      "stderrRetainedBytes": 0,
+      "stdoutBytes": 2520,
+      "pid": 17812,
+      "captureOverflow": false,
+      "stdoutComplete": true,
+      "timedOut": false,
+      "killRequested": false,
+      "startUnknown": false,
+      "unsafeToContinue": false,
+      "name": "test-frames",
+      "stderr": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-frames.stderr.txt"
+    },
+    {
+      "stdoutRetainedBytes": 1584,
+      "birthUtc": "2026-11-03T07:45:37.8761259Z",
+      "stderrBytes": 0,
+      "startReturned": true,
+      "childRetirementIndependentlyAudited": true,
+      "stderrComplete": true,
+      "error": null,
+      "startAttempted": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "retirementAndDrainElapsedMs": 25,
+      "retainedForOwner": false,
+      "parentBudgetMs": 30000,
+      "elapsedMs": 711,
+      "outputDrained": true,
+      "originalHandleCaptured": true,
+      "exitObserved": true,
+      "finishedUtc": "2026-11-03T07:45:38.6106132Z",
+      "started": true,
+      "ownedJob": true,
+      "passed": true,
+      "exitCode": 0,
+      "activeAfterRetirement": 0,
+      "stdout": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-clock.stdout.txt",
+      "stderrRetainedBytes": 0,
+      "stdoutBytes": 1584,
+      "pid": 7720,
+      "captureOverflow": false,
+      "stdoutComplete": true,
+      "timedOut": false,
+      "killRequested": false,
+      "startUnknown": false,
+      "unsafeToContinue": false,
+      "name": "test-clock",
+      "stderr": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-clock.stderr.txt"
+    },
+    {
+      "stdoutRetainedBytes": 10400,
+      "birthUtc": "2026-11-03T07:45:38.6757335Z",
+      "stderrBytes": 0,
+      "startReturned": true,
+      "childRetirementIndependentlyAudited": true,
+      "stderrComplete": true,
+      "error": null,
+      "startAttempted": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "retirementAndDrainElapsedMs": 188,
+      "retainedForOwner": false,
+      "parentBudgetMs": 30000,
+      "elapsedMs": 8953,
+      "outputDrained": true,
+      "originalHandleCaptured": true,
+      "exitObserved": true,
+      "finishedUtc": "2026-11-03T07:45:47.8146699Z",
+      "started": true,
+      "ownedJob": true,
+      "passed": true,
+      "exitCode": 0,
+      "activeAfterRetirement": 0,
+      "stdout": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-wire.stdout.txt",
+      "stderrRetainedBytes": 0,
+      "stdoutBytes": 10400,
+      "pid": 9588,
+      "captureOverflow": false,
+      "stdoutComplete": true,
+      "timedOut": false,
+      "killRequested": false,
+      "startUnknown": false,
+      "unsafeToContinue": false,
+      "name": "test-wire",
+      "stderr": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-wire.stderr.txt"
+    },
+    {
+      "stdoutRetainedBytes": 35154,
+      "birthUtc": "2026-11-03T07:45:47.8553704Z",
+      "stderrBytes": 0,
+      "startReturned": true,
+      "childRetirementIndependentlyAudited": true,
+      "stderrComplete": true,
+      "error": null,
+      "startAttempted": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "retirementAndDrainElapsedMs": 52,
+      "retainedForOwner": false,
+      "parentBudgetMs": 30000,
+      "elapsedMs": 850,
+      "outputDrained": true,
+      "originalHandleCaptured": true,
+      "exitObserved": true,
+      "finishedUtc": "2026-11-03T07:45:48.7562946Z",
+      "started": true,
+      "ownedJob": true,
+      "passed": true,
+      "exitCode": 0,
+      "activeAfterRetirement": 0,
+      "stdout": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-bootstrap.stdout.txt",
+      "stderrRetainedBytes": 0,
+      "stdoutBytes": 35154,
+      "pid": 16324,
+      "captureOverflow": false,
+      "stdoutComplete": true,
+      "timedOut": false,
+      "killRequested": false,
+      "startUnknown": false,
+      "unsafeToContinue": false,
+      "name": "test-bootstrap",
+      "stderr": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\test-bootstrap.stderr.txt"
+    }
+  ],
+  "inputsUnchanged": true,
+  "inputs": [
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-SdkComponentProbes.ps1",
+      "sha256": "93F301ED2744069C4ECC6542F9D2910BAA63B97533D9E2E62B1DE4BC3719CEF7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\result.json",
+      "sha256": "53BD71693D012AD5F9A0E3D43422DBA7BB6A5AE2808C1170897EB0F3655DE19D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-worker-build-20261102-v1\\ScriptWorker\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\assembly.json",
+      "sha256": "D1E745E50AFE789D845BB43B27216BF52A555D0A29FF8E65F511AE5874430BCB"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\OwnedTestProcess.cs",
+      "sha256": "D553F33A48B9B7DD5CF97012E6974C4B4054C315B19FD0086C05543844242AFA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Invoke-OwnedTestRun.ps1",
+      "sha256": "E5DD42C23546F58CEF425DE5602CC39D478409A824FDBB4C19F5CB454FC0FC00"
+    },
+    {
+      "path": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "sha256": "A1EF87676086E14B67CC106C232B573C6BB70EBEACA41BF5C9155797022BC55F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\markers\\manifest.json",
+      "sha256": "51D4ED788B02D2F958EC985E584EDB94921E928B40DE0029E05743D94BC6D418"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\markers\\MarkerUnit.dll",
+      "sha256": "C81EED858C22B53485D59DC2CDEC1A3E87F6751E109D19AF216121FBC47E99E4"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\MarkerUnit.dll",
+      "sha256": "C81EED858C22B53485D59DC2CDEC1A3E87F6751E109D19AF216121FBC47E99E4"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\markers\\MarkerUnit.runtimeconfig.json",
+      "sha256": "C80FB1E62549D980FE5E32811E33AA11E860628A7F407401A6EA7C459AAD6526"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\MarkerUnit.runtimeconfig.json",
+      "sha256": "C80FB1E62549D980FE5E32811E33AA11E860628A7F407401A6EA7C459AAD6526"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-worker-build-20261102-v1\\ScriptWorker\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\markers\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\markers\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\frames\\manifest.json",
+      "sha256": "C21021CFAF56EE1AA89ABF11BECCC5355E8761D9CFCB00AF9F5403AE5AD8D5CA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\frames\\FrameProtocolUnit.dll",
+      "sha256": "30FAB65399712DB8F845332E5B1AB0C854E208DE7615570D1767BF44D7E40C09"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\FrameProtocolUnit.dll",
+      "sha256": "30FAB65399712DB8F845332E5B1AB0C854E208DE7615570D1767BF44D7E40C09"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\frames\\FrameProtocolUnit.runtimeconfig.json",
+      "sha256": "526D79A6D1A095BBD0B64D8A252C738793EAECE3CDBA119D0F6934FA86084613"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\FrameProtocolUnit.runtimeconfig.json",
+      "sha256": "526D79A6D1A095BBD0B64D8A252C738793EAECE3CDBA119D0F6934FA86084613"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-worker-build-20261102-v1\\ScriptWorker\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\frames\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\frames\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\clock\\manifest.json",
+      "sha256": "F6705C79A5C9C20D9D9CFA261AE434DDF71C52D2E1BDC5C56B620146B633AC74"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\clock\\ClockCodecUnit.dll",
+      "sha256": "F02B40E37861D1092B197C3BEE8779D24A388EA0D03C817C875A7204EC988A04"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\ClockCodecUnit.dll",
+      "sha256": "F02B40E37861D1092B197C3BEE8779D24A388EA0D03C817C875A7204EC988A04"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\clock\\ClockCodecUnit.runtimeconfig.json",
+      "sha256": "0C05DB77A1DDD19625DB2A7B50F5F862622A4F6F03FEF3428D5447703FFEAB8A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\ClockCodecUnit.runtimeconfig.json",
+      "sha256": "0C05DB77A1DDD19625DB2A7B50F5F862622A4F6F03FEF3428D5447703FFEAB8A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-worker-build-20261102-v1\\ScriptWorker\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\clock\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\clock\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\wire\\manifest.json",
+      "sha256": "E99D2798C465D308ADBF748C1460A5A59B13CA07B526619ABD5303723990D6E6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\wire\\WireFramesUnit.dll",
+      "sha256": "CE3C74CBE84FED9E3F3B872CAD5AEA4C24648AAB74C092639D2619F4862FA868"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\WireFramesUnit.dll",
+      "sha256": "CE3C74CBE84FED9E3F3B872CAD5AEA4C24648AAB74C092639D2619F4862FA868"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\wire\\WireFramesUnit.runtimeconfig.json",
+      "sha256": "E5490BE5ACD620A60187C8415C575AE4A16E6AD606FC26AD541C3B2726479655"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\WireFramesUnit.runtimeconfig.json",
+      "sha256": "E5490BE5ACD620A60187C8415C575AE4A16E6AD606FC26AD541C3B2726479655"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-worker-build-20261102-v1\\ScriptWorker\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\wire\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\wire\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\wire\\WireOracle.exe",
+      "sha256": "4401DF318C642FAB6BD3435A13B895C5921348E37AF91679570C4F85BB174C1C"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\WireOracle.exe",
+      "sha256": "4401DF318C642FAB6BD3435A13B895C5921348E37AF91679570C4F85BB174C1C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\wire\\oracle.sha256",
+      "sha256": "58AD00E5BE539D83C849526CE51426E1A9176CFB902E91B9F55D26A92EBE275D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\oracle.sha256",
+      "sha256": "58AD00E5BE539D83C849526CE51426E1A9176CFB902E91B9F55D26A92EBE275D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\bootstrap\\manifest.json",
+      "sha256": "CAC5DE495DB20E2C7CA3E194914F900D9E0B48CB3ED15C8E84C04004C622EF1B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-component-build-20261103-v2\\bootstrap\\BootstrapBundleUnit.dll",
+      "sha256": "483F190EFC44136435FFD6298FBE04254958365C5AD7EE9CB22E6C34C14F8739"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\BootstrapBundleUnit.dll",
+      "sha256": "483F190EFC44136435FFD6298FBE04254958365C5AD7EE9CB22E6C34C14F8739"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\bootstrap\\BootstrapBundleUnit.runtimeconfig.json",
+      "sha256": "0C05DB77A1DDD19625DB2A7B50F5F862622A4F6F03FEF3428D5447703FFEAB8A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\BootstrapBundleUnit.runtimeconfig.json",
+      "sha256": "0C05DB77A1DDD19625DB2A7B50F5F862622A4F6F03FEF3428D5447703FFEAB8A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-worker-build-20261102-v1\\ScriptWorker\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\bootstrap\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-full-script-assembly-20261101-v8\\runtime\\ComponentProbes\\bootstrap\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    }
+  ],
+  "workerEntryPointExecuted": false,
+  "fullSuitePassed": false,
+  "pageCodeEvaluated": false,
+  "passed": true,
+  "before": [
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\MarkerUnit.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "C81EED858C22B53485D59DC2CDEC1A3E87F6751E109D19AF216121FBC47E99E4"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\MarkerUnit.runtimeconfig.json",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "C80FB1E62549D980FE5E32811E33AA11E860628A7F407401A6EA7C459AAD6526"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\Lea.Script.Worker.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\Jint.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\markers\\Acornima.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\FrameProtocolUnit.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "30FAB65399712DB8F845332E5B1AB0C854E208DE7615570D1767BF44D7E40C09"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\FrameProtocolUnit.runtimeconfig.json",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "526D79A6D1A095BBD0B64D8A252C738793EAECE3CDBA119D0F6934FA86084613"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\Lea.Script.Worker.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\Jint.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\frames\\Acornima.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\ClockCodecUnit.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "F02B40E37861D1092B197C3BEE8779D24A388EA0D03C817C875A7204EC988A04"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\ClockCodecUnit.runtimeconfig.json",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "0C05DB77A1DDD19625DB2A7B50F5F862622A4F6F03FEF3428D5447703FFEAB8A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\Lea.Script.Worker.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\Jint.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\clock\\Acornima.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\WireFramesUnit.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE3C74CBE84FED9E3F3B872CAD5AEA4C24648AAB74C092639D2619F4862FA868"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\WireFramesUnit.runtimeconfig.json",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "E5490BE5ACD620A60187C8415C575AE4A16E6AD606FC26AD541C3B2726479655"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\Lea.Script.Worker.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\Jint.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\Acornima.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\WireOracle.exe",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "4401DF318C642FAB6BD3435A13B895C5921348E37AF91679570C4F85BB174C1C"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\wire\\oracle.sha256",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "58AD00E5BE539D83C849526CE51426E1A9176CFB902E91B9F55D26A92EBE275D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\BootstrapBundleUnit.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "483F190EFC44136435FFD6298FBE04254958365C5AD7EE9CB22E6C34C14F8739"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\BootstrapBundleUnit.runtimeconfig.json",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "0C05DB77A1DDD19625DB2A7B50F5F862622A4F6F03FEF3428D5447703FFEAB8A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\Lea.Script.Worker.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\Jint.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-component-runtime-v2\\bootstrap\\Acornima.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+    }
+  ],
+  "reports": [
+    {
+      "checks": 21,
+      "componentSha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0",
+      "component": "markers",
+      "sourceSuiteSha256": "382B708E532EA36F2E1A66CA3AC4102E12B3133AA2AA89DCAD7C0605B82AD4BD"
+    },
+    {
+      "checks": 24,
+      "componentSha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0",
+      "component": "frames",
+      "sourceSuiteSha256": "58CFD7BA92843B59B1FD064E608DABEC968D9A951E3AFFA135B0B3FCB45198AD"
+    },
+    {
+      "checks": 15,
+      "componentSha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0",
+      "component": "clock",
+      "sourceSuiteSha256": "15172BE2A36E8B2BBE7FA1512329AAB9A09ECC2AB3A885FC00922FA04726DC69"
+    },
+    {
+      "checks": 93,
+      "componentSha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0",
+      "component": "wire",
+      "sourceSuiteSha256": "8270A23339C9CBEF63166430DCE12351CF6B198908AF52ED6F66B52D5B9E1F0E"
+    },
+    {
+      "checks": 14,
+      "componentSha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0",
+      "component": "bootstrap",
+      "sourceSuiteSha256": "E09D86773BA03C5B2A8D32174D719695E481F7B3418CE1ACC83FAE63FE75A12C"
+    }
+  ]
+}
