@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded named CSS counters</title>
+  <style>
+    :root {
+      --reset-pair: variable 6;
+      --increment-pair: variable 4;
+    }
+    #chapter-list { counter-reset: chapter 2; }
+    li { list-style: none; }
+    #chapter-one { counter-increment: chapter; }
+    #chapter-one::marker { content: "Chapter " counter(chapter) ". "; color: #dc2626; }
+    #chapter-set { counter-set: chapter 9; }
+    #chapter-set::marker { content: counter(chapter) ". "; }
+    #chapter-step { counter-increment: chapter 2; }
+    #chapter-step::marker { content: counter(chapter, upper-roman) ". "; }
+    #multiple { counter-reset: figure 4 note -2; counter-increment: figure 2 note; }
+    #multiple::marker { content: counter(figure) "/" counter(note) " "; }
+    #priority { counter-reset: priority 8; counter-reset: priority 1 !important; counter-increment: priority 3; }
+    #priority::marker { content: counter(priority) " "; }
+    #variable { counter-reset: var(--reset-pair); counter-increment: var(--increment-pair); }
+    #variable::marker { content: counter(variable, upper-alpha) " "; }
+    #case { counter-reset: Case 3 case 7; }
+    #case::marker { content: counter(Case) "/" counter(case) " "; }
+    #missing::marker { content: counter(missing) " "; }
+    #duplicate-increment { counter-reset: duplicate 1; counter-increment: duplicate 2 duplicate 3; }
+    #duplicate-increment::marker { content: counter(duplicate) " "; }
+    #duplicate-reset { counter-reset: resetDuplicate 1 resetDuplicate 7; }
+    #duplicate-reset::marker { content: counter(resetDuplicate) " "; }
+    #duplicate-set { counter-reset: duplicateSet 1; counter-set: duplicateSet 8 duplicateSet 9; }
+    #duplicate-set::marker { content: counter(duplicateSet) " "; }
+    #defaults { counter-reset: resetDefault 5 zeroDefault; counter-increment: resetDefault incrementDefault; counter-set: setDefault; }
+    #defaults::marker { content: counter(resetDefault) "/" counter(zeroDefault) "/" counter(incrementDefault) "/" counter(setDefault) " "; }
+    #none { counter-reset: gone 7; counter-reset: none; }
+    #none::marker { content: counter(gone) " "; }
+    #inherit-parent { counter-reset: inheritedCounter 5; }
+    #inherit { counter-reset: inherit; }
+    #inherit::marker { content: counter(inheritedCounter) " "; }
+    #clamp-high { counter-reset: cap 999999; counter-increment: cap 1; }
+    #clamp-high::marker { content: counter(cap) " "; }
+    #clamp-low { counter-reset: floor -999999; counter-increment: floor -2; }
+    #clamp-low::marker { content: counter(floor) " "; }
+    #name-limit { counter-reset: abcdefghijklmnopqrstuvwxyzABCDEF 7; }
+    #name-limit::marker { content: counter(abcdefghijklmnopqrstuvwxyzABCDEF) " "; }
+    #name-long { counter-reset: nameSafe 4; counter-reset: abcdefghijklmnopqrstuvwxyzABCDEFG 8; }
+    #name-long::marker { content: counter(nameSafe) " "; }
+    #eight-operations { counter-reset: ca 1 cb 2 cc 3 cd 4 ce 5 cf 6 cg 7 ch 8; }
+    #eight-operations::marker { content: counter(ch) " "; }
+    #nine-operations { counter-reset: operationSafe 5; counter-reset: ca 1 cb 2 cc 3 cd 4 ce 5 cf 6 cg 7 ch 8 ci 9; }
+    #nine-operations::marker { content: counter(operationSafe) " "; }
+    #invalid-name { counter-reset: invalidSafe 6; counter-reset: none 2; }
+    #invalid-name::marker { content: counter(invalidSafe) " "; }
+    #invalid-number { counter-reset: numberSafe 7; counter-reset: tooLarge 1000000; }
+    #invalid-number::marker { content: counter(numberSafe) " "; }
+    #invalid-reversed { counter-reset: reversedSafe 8; counter-reset: reversed(reverseCount) 4; }
+    #invalid-reversed::marker { content: counter(reversedSafe) " "; }
+    #invalid-list-item { counter-reset: listSafe 9; counter-reset: list-item 3; }
+    #invalid-list-item::marker { content: counter(listSafe) " "; }
+    #invalid-style::marker { content: "Keep "; content: counter(chapter, armenian); }
+    #invalid-content-name::marker { content: "Keep "; content: counter(abcdefghijklmnopqrstuvwxyzABCDEFG); }
+    #tree-root { counter-reset: item; }
+    .tree-item { counter-increment: item; }
+    .tree-item::marker { content: counters(item, ".") ". "; color: #2563eb; }
+    #tree-inner { counter-reset: item; }
+    #tree-inner-set { counter-set: item 5; }
+    #flow-root { counter-reset: flow; }
+    #flow-a { counter-increment: flow; }
+    #flow-child { counter-increment: flow; }
+    #flow-b::marker { content: counter(flow) " "; }
+    #scope-a { counter-reset: scope 3; }
+    #scope-b { counter-reset: scope 8; }
+    .scope-value::marker { content: counter(scope) " "; }
+    #depth-result::marker { content: counters(depthCounter, ".") " "; }
+    #hidden-root { counter-reset: hiddenCount 1; }
+    #hidden-branch { display: none; counter-increment: hiddenCount 5; }
+    #hidden-child { counter-increment: hiddenCount 5; }
+    #hidden-result::marker { content: counter(hiddenCount) " "; }
+    #format { counter-reset: format 27; }
+    #format::marker { content: counter(format, upper-alpha) " "; }
+    #dynamic { counter-reset: dynamicCounter 3; }
+    #dynamic:hover { counter-increment: dynamicCounter 2; }
+    #dynamic::marker { content: counter(dynamicCounter) " "; color: #64748b; }
+    #responsive { counter-reset: responsiveCounter 2; }
+    #responsive::marker { content: counter(responsiveCounter, upper-roman) " "; color: #7c3aed; }
+    #cell-list { counter-reset: cellCounter 3; }
+    #cell { counter-increment: cellCounter; }
+    #cell::marker { content: "T" counter(cellCounter) " "; color: #0f766e; }
+    #command { counter-reset: cmdCounter 1; }
+    #command::marker { content: counter(cmdCounter) " "; }
+    #command-readable { counter-reset: readCounter 1; }
+    #command-readable::marker { content: counter(readCounter) " "; }
+    #command-dom { counter-reset: domCounter 1; }
+    #command-dom::marker { content: counter(domCounter) " "; }
+    #page-counter::marker { content: counter(pageCounter) " "; }
+    @media screen and (max-width: 500px) {
+      #responsive { counter-reset: responsiveCounter 7; }
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <ol id="chapter-list">
+      <li id="chapter-one">Chapter increment</li>
+      <li id="chapter-set">Chapter set</li>
+      <li id="chapter-step">Chapter step</li>
+    </ol>
+  </div>
+  <ol><li id="multiple">Multiple counters</li></ol>
+  <ol><li id="priority">Important cascade</li></ol>
+  <ol><li id="variable">Variable counters</li></ol>
+  <ol><li id="case">Case-sensitive names</li></ol>
+  <ol><li id="missing">Missing counter</li></ol>
+  <ol><li id="duplicate-increment">Duplicate increments</li></ol>
+  <ol><li id="duplicate-reset">Duplicate resets</li></ol>
+  <ol><li id="duplicate-set">Duplicate sets</li></ol>
+  <ol><li id="defaults">Default values</li></ol>
+  <ol><li id="none">None reset</li></ol>
+  <ol><li id="clamp-high">High clamp</li></ol>
+  <ol><li id="clamp-low">Low clamp</li></ol>
+  <ol><li id="name-limit">Name limit</li></ol>
+  <ol><li id="name-long">Long name rejected</li></ol>
+  <ol><li id="eight-operations">Eight operations</li></ol>
+  <ol><li id="nine-operations">Nine operations rejected</li></ol>
+  <ol><li id="invalid-name">Invalid name rejected</li></ol>
+  <ol><li id="invalid-number">Invalid number rejected</li></ol>
+  <ol><li id="invalid-reversed">Reversed counter rejected</li></ol>
+  <ol><li id="invalid-list-item">Implicit list item property rejected</li></ol>
+  <ol><li id="invalid-style">Unsupported style rejected</li></ol>
+  <ol><li id="invalid-content-name">Overlong content name rejected</li></ol>
+  <ol><li id="format">Counter formatting</li></ol>
+  <div><div id="inherit-parent"><ol><li id="inherit">Explicit inherit</li></ol></div></div>
+  <div>
+    <ol id="tree-root">
+      <li id="tree-one" class="tree-item">Outer one</li>
+      <li id="tree-two" class="tree-item">Outer two
+        <ol id="tree-inner">
+          <li id="tree-inner-one" class="tree-item">Inner one</li>
+          <li id="tree-inner-set" class="tree-item">Inner set</li>
+          <li id="tree-inner-next" class="tree-item">Inner next</li>
+        </ol>
+      </li>
+      <li id="tree-three" class="tree-item">Outer three</li>
+    </ol>
+  </div>
+  <div>
+    <div id="flow-root">
+      <div id="flow-a">Flow parent <span id="flow-child">child</span></div>
+      <ol><li id="flow-b">Descendant value reaches sibling</li></ol>
+    </div>
+  </div>
+  <div>
+    <div id="scope-a"><ol><li id="scope-a-value" class="scope-value">First scope</li></ol></div>
+    <div id="scope-b"><ol><li id="scope-b-value" class="scope-value">Later scope</li></ol></div>
+  </div>
+  <div>
+    <div style="counter-reset: depthCounter 1">
+      <div style="counter-reset: depthCounter 2">
+        <div style="counter-reset: depthCounter 3">
+          <div style="counter-reset: depthCounter 4">
+            <div style="counter-reset: depthCounter 5">
+              <div style="counter-reset: depthCounter 6">
+                <div style="counter-reset: depthCounter 7">
+                  <div style="counter-reset: depthCounter 8">
+                    <div style="counter-reset: depthCounter 9"><ol><li id="depth-result">Bounded active depth</li></ol></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div id="hidden-root">
+      <div id="hidden-branch"><span id="hidden-child">Hidden increment</span></div>
+      <ol><li id="hidden-result">Hidden counters ignored</li></ol>
+    </div>
+  </div>
+  <ol>
+    <li id="dynamic">Hover counter</li>
+    <li id="responsive">Responsive counter</li>
+    <li id="command">Compact command</li>
+    <li id="command-readable">Readable command</li>
+    <li id="command-dom">DOM command</li>
+    <li id="page-counter">Page command</li>
+  </ol>
+  <table><tr><td><ol id="cell-list"><li id="cell">Table counter</li></ol></td></tr></table>
+  <input id="css-counter-field" value="Retained CSS counter field">
+  <button id="set-reset" data-lea="cr('command','cmdCounter 7')">Set reset</button>
+  <button id="set-increment" data-lea="ci('command','cmdCounter 2')">Set increment</button>
+  <button id="set-counter" data-lea="cs('command','cmdCounter 4')">Set counter</button>
+  <button id="set-readable" data-lea="counterreset('command-readable','readCounter 8')">Readable reset</button>
+  <button id="set-dom" data-lea="document.getElementById('command-dom').style.counterReset='domCounter 6'">DOM reset</button>
+  <button id="set-page" data-lea="cr('pageCounter 5')">Page reset</button>
+  <button id="clear-page" data-lea="cr('')">Clear page reset</button>
+</body>
+</html>

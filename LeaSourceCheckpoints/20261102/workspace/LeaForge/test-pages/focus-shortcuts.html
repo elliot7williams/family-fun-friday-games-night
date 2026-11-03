@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea focus shortcuts</title>
+  <style>
+    body { margin: 20px; color: #10233f; background: #f7f9fc; font-family: Segoe UI, sans-serif; }
+    h1, h2 { margin: 0 0 14px; }
+    p { margin: 10px 0; }
+    input, button { width: 260px; height: 34px; margin: 0 0 12px; }
+    a, .region { display: block; width: 252px; margin: 0 0 12px; padding: 6px; }
+    [hidden] { display: none; }
+    #auto-field:focus { background: #e5f6ed; color: #0b5337; }
+    .region:focus { color: white; background: #176b4d; }
+    #shortcut-state { color: #123f8c; font-weight: bold; }
+    #target { margin-top: 520px; }
+  </style>
+</head>
+<body>
+  <h1>Lea focus shortcuts</h1>
+  <div id="invalid-auto" autofocus>Non-focusable autofocus candidate</div>
+  <a id="hidden-auto" href="#target" autofocus hidden>Hidden autofocus candidate</a>
+  <input id="auto-field" name="query" value="ready" autofocus accesskey="s 1">
+
+  <h2>Assigned page keys</h2>
+  <button id="run-button" accesskey="b" data-lea="tx('shortcut-state','button shortcut activated')">Run button</button>
+  <a id="jump-link" accesskey="g" href="#target" data-lea="tx('shortcut-state','link shortcut activated')">Jump link</a>
+  <div id="focus-region" class="region" tabindex="-1" accesskey="r">Focus-only region</div>
+  <button id="fallback-button" accesskey="b x" data-lea="tx('shortcut-state','fallback shortcut activated')">Fallback key</button>
+  <button id="token-button" accesskey="long z z" data-lea="tx('shortcut-state','token shortcut activated')">Valid token after invalid token</button>
+  <button id="disabled-key" accesskey="d" disabled>Disabled shortcut</button>
+  <a id="hidden-key" href="#target" accesskey="h" hidden>Hidden shortcut</a>
+  <p id="shortcut-state">ready</p>
+  <p id="target">Shortcut target</p>
+</body>
+</html>

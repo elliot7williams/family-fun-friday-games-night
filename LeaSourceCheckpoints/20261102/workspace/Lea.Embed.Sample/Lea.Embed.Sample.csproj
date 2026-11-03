@@ -1,0 +1,48 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{7B02EAD2-F107-4966-876C-36B18989D341}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>Lea.Embed.Sample</AssemblyName>
+    <RootNamespace>Lea.Embed.Sample</RootNamespace>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <LangVersion>latest</LangVersion>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Lea.Engine"><HintPath>$(LeaRuntime)\Lea.Engine.dll</HintPath></Reference>
+    <Reference Include="Lea.Win"><HintPath>$(LeaRuntime)\Lea.Win.dll</HintPath></Reference>
+    <Reference Include="Lea.Script"><HintPath>$(LeaRuntime)\Lea.Script.dll</HintPath></Reference>
+    <Reference Include="Lea.Script.Win"><HintPath>$(LeaRuntime)\Lea.Script.Win.dll</HintPath></Reference>
+    <Compile Include="Program.cs" />
+    <Compile Include="BrowserForm.cs" />
+    <None Include="App.config" />
+    <Content Include="sample-page.html;second-page.html"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="RequireLeaRuntime" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(LeaRuntime)' == ''" Text="Set LeaRuntime to an explicitly selected matching Lea runtime directory, including ScriptWorker." />
+    <ItemGroup>
+      <LeaSampleRequired Include="$(LeaRuntime)\Lea.Engine.dll;$(LeaRuntime)\Lea.Win.dll;$(LeaRuntime)\Lea.Script.dll;$(LeaRuntime)\Lea.Script.Win.dll;$(LeaRuntime)\Lea.Image.exe;$(LeaRuntime)\ScriptWorker\Lea.Script.Worker.exe;$(LeaRuntime)\ScriptWorker\Jint.dll;$(LeaRuntime)\ScriptWorker\Acornima.dll" />
+      <LeaSampleRequired Include="$(LeaRuntime)\ScriptWorker\Lea.Script.Worker.deps.json;$(LeaRuntime)\ScriptWorker\Lea.Script.Worker.runtimeconfig.json" Condition="Exists('$(LeaRuntime)\ScriptWorker\Lea.Script.Worker.dll')" />
+    </ItemGroup>
+    <Error Condition="!Exists('%(LeaSampleRequired.Identity)')" Text="Incomplete Lea sample runtime: missing %(LeaSampleRequired.Identity). Use a complete matching runtime package." />
+  </Target>
+  <Target Name="CopyLeaRuntime" AfterTargets="Build">
+    <ItemGroup>
+      <LeaFiles Include="$(LeaRuntime)\*.dll;$(LeaRuntime)\Lea.Image.exe" />
+      <LeaFiles Include="$(LeaRuntime)\Lea.Image.exe.config" Condition="Exists('$(LeaRuntime)\Lea.Image.exe.config')" />
+      <LeaWorkers Include="$(LeaRuntime)\ScriptWorker\*.dll;$(LeaRuntime)\ScriptWorker\*.exe;$(LeaRuntime)\ScriptWorker\*.config" />
+      <LeaWorkers Include="$(LeaRuntime)\ScriptWorker\Lea.Script.Worker.deps.json;$(LeaRuntime)\ScriptWorker\Lea.Script.Worker.runtimeconfig.json" Condition="Exists('$(LeaRuntime)\ScriptWorker\Lea.Script.Worker.dll')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(LeaFiles)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(LeaWorkers)" DestinationFolder="$(TargetDir)ScriptWorker" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

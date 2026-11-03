@@ -1,0 +1,70 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Lea.Print</RootNamespace>
+    <AssemblyName>Lea.Print</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <OutputPath>..\bin\$(Configuration)\</OutputPath>
+    <Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+    <LangVersion>12.0</LangVersion>
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <EnableWpfPrint Condition="'$(EnableWpfPrint)' == ''">true</EnableWpfPrint>
+    <EnableDocumentSelection Condition="'$(EnableDocumentSelection)' == ''">true</EnableDocumentSelection>
+    <LeaCorePath Condition="'$(LeaCorePath)' == ''">..\bin\$(Configuration)\Lea.Engine.dll</LeaCorePath>
+    <LeaViewPath Condition="'$(LeaViewPath)' == ''">..\bin\$(Configuration)\Lea.Win.dll</LeaViewPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Lea.Engine">
+      <HintPath>$(LeaCorePath)</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Compile Include="Ps.cs" />
+    <Compile Include="Ht.cs" />
+    <Compile Include="Pi.cs" />
+    <Compile Include="Py.cs" />
+    <Compile Include="Po.cs" />
+    <Compile Include="Pt.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup Condition="'$(EnableWpfPrint)' == 'true'">
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="ReachFramework" />
+    <Reference Include="System.Printing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="WindowsFormsIntegration" />
+    <Compile Include="Pw.cs" />
+    <Compile Include="Pf.cs" />
+    <Compile Include="Pp.cs" />
+    <Compile Include="Pr.cs" />
+    <Compile Include="Pd.cs" />
+    <Compile Include="Pj.cs" />
+    <Compile Include="Pk.cs" />
+    <Compile Include="Px.cs" />
+    <Compile Include="Pv.cs" />
+    <Compile Include="Ph.cs" />
+    <Compile Include="Pm.cs" />
+    <Compile Include="Mi.cs" />
+    <Compile Include="Pz.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(LeaViewPath)' != ''">
+    <Reference Include="Lea.Win">
+      <HintPath>$(LeaViewPath)</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Compile Include="Pc.cs" />
+    <Compile Include="Ci.cs" />
+    <Compile Include="Ds.cs" Condition="'$(EnableDocumentSelection)' == 'true'" />
+  </ItemGroup>
+  <Target Name="RequireExplicitCore" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(LeaCorePath)' == '' Or !Exists('$(LeaCorePath)')" Text="Set LeaCorePath to the matching mature Lea.Engine.dll; do not silently use a prototype." />
+  </Target>
+</Project>

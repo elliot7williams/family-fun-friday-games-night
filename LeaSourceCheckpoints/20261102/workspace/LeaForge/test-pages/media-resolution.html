@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea resolution media queries</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .probe { display: none; width: 96px; height: 24px; margin: 4px; }
+    #base { display: block; background: #e2e8f0; }
+    #responsive { display: block; width: 180px; height: 40px; margin: 8px; background: #dc2626; }
+    input { display: block; width: 180px; height: 30px; margin: 8px; }
+
+    @media (resolution) { #boolean { display: block; width: 101px; } }
+    @media (resolution: 96dpi) { #exact-dpi { display: block; width: 102px; } }
+    @media (resolution: 1dppx) { #exact-dppx { display: block; width: 103px; } }
+    @media (resolution: 37.7953dpcm) { #exact-dpcm { display: block; width: 104px; } }
+    @media (min-resolution: 96dpi) { #legacy-min { display: block; width: 105px; } }
+    @media (max-resolution: 1dppx) { #legacy-max { display: block; width: 106px; } }
+    @media (resolution >= 1dppx) { #feature-first { display: block; width: 107px; } }
+    @media (96dpi <= resolution) { #value-first { display: block; width: 108px; } }
+    @media (.5dppx < resolution <= 1dppx) { #range { display: block; width: 109px; } }
+    @media (0dpi < resolution) { #positive { display: block; width: 110px; } }
+    @media (resolution > -1dpi) { #negative-lower { display: block; width: 111px; } }
+    @media screen and (min-width: 700px) and (resolution >= 1dppx) { #combined { display: block; width: 112px; } }
+    @media (resolution: 192dpi), (max-width: 800px) { #alternative { display: block; width: 113px; } }
+    @media (resolution <= 1dppx) { #low { display: block; width: 114px; } }
+
+    @media (resolution: 192dpi) { #high-dpi { display: block; width: 201px; } }
+    @media (resolution: 2dppx) { #high-dppx { display: block; width: 202px; } }
+    @media (resolution: 75.5906dpcm) { #high-dpcm { display: block; width: 203px; } }
+    @media (min-resolution: 2dppx) { #high-min { display: block; width: 204px; } }
+    @media (resolution > 1dppx) { #high-strict { display: block; width: 205px; } }
+    @media (1dppx < resolution <= 2dppx) { #high-range { display: block; width: 206px; } }
+    @media (resolution >= 2dppx) {
+      #responsive { width: 240px; background: #2563eb; }
+      input { width: 240px; }
+    }
+
+    @media (min-width: 700px) {
+      @media (resolution >= 1dppx) { #nested { display: block; width: 115px; } }
+    }
+
+    @media (resolution: 0dpi) { #zero-exact { display: block; } }
+    @media (max-resolution: 0dpi) { #zero-max { display: block; } }
+    @media (resolution < 0dpi) { #negative-upper { display: block; } }
+    @media (2dppx < resolution < 1dppx) { #empty-range { display: block; } }
+    @media (1dppx < resolution > 2dppx) { #bad-chain { display: block; } }
+    @media (resolution: 1foo) { #bad-unit { display: block; } }
+    @media (resolution: infinite) { #unsupported-infinite { display: block; } }
+    @media (resolution >= calc(1dppx)) { #bad-function { display: block; } }
+    @media (resolution: 1dppx) trailing { #bad-trailing { display: block; } }
+  </style>
+</head>
+<body>
+  <p id="base" class="probe">Base</p>
+  <p id="boolean" class="probe">Boolean</p>
+  <p id="exact-dpi" class="probe">96 dpi</p>
+  <p id="exact-dppx" class="probe">1 dppx</p>
+  <p id="exact-dpcm" class="probe">37.7953 dpcm</p>
+  <p id="legacy-min" class="probe">Legacy minimum</p>
+  <p id="legacy-max" class="probe">Legacy maximum</p>
+  <p id="feature-first" class="probe">Feature first</p>
+  <p id="value-first" class="probe">Value first</p>
+  <p id="range" class="probe">Range</p>
+  <p id="positive" class="probe">Positive</p>
+  <p id="negative-lower" class="probe">Negative lower bound</p>
+  <p id="combined" class="probe">Combined</p>
+  <p id="alternative" class="probe">Alternative</p>
+  <p id="low" class="probe">Low density</p>
+  <p id="high-dpi" class="probe">192 dpi</p>
+  <p id="high-dppx" class="probe">2 dppx</p>
+  <p id="high-dpcm" class="probe">75.5906 dpcm</p>
+  <p id="high-min" class="probe">High minimum</p>
+  <p id="high-strict" class="probe">High strict</p>
+  <p id="high-range" class="probe">High range</p>
+  <p id="nested" class="probe">Nested</p>
+  <p id="zero-exact" class="probe">Zero exact</p>
+  <p id="zero-max" class="probe">Zero maximum</p>
+  <p id="negative-upper" class="probe">Negative upper</p>
+  <p id="empty-range" class="probe">Empty range</p>
+  <p id="bad-chain" class="probe">Bad chain</p>
+  <p id="bad-unit" class="probe">Bad unit</p>
+  <p id="unsupported-infinite" class="probe">Infinite</p>
+  <p id="bad-function" class="probe">Function</p>
+  <p id="bad-trailing" class="probe">Trailing</p>
+  <p id="responsive">Resolution responsive paint</p>
+  <input id="field" value="Retained resolution value">
+</body>
+</html>

@@ -1,0 +1,31 @@
+Firespider + Lea preview development build, 2026-10-27
+
+Extract the entire ZIP into a new folder and run Firespider Internet 19.exe.
+Keep all DLLs and ScriptWorker together. Requires Windows .NET Framework4.8 and
+exact .NET Runtime8.0.33 x64. This ZIP installs neither runtime, changes no default
+browser and does not replace your installed project.
+
+The Print Preview command now uses Lea styled detached capture and a modal
+preview. Default paper is portrait Letter, .75in margins,100% scale with header
+and footer. Local filesystem paths are omitted from preview headers. Pages with
+unresolved images are rejected rather than silently losing images. Ordinary
+document selection, configurable preview options and full CSS fidelity remain
+unfinished. Known heading/details layout gaps remain.
+
+Physical Print, silent Print, PDF-via-print, Page Setup and printer-friendly
+commands are not yet migrated and may fail on Lea tabs. This is NOT a printing-
+ready or finished browser release. Remote HTTP/HTTPS/UNC scripting remainsOFF.
+Earlier intermittent startup failures, broad website compatibility, confinement/
+lifecycle/recovery, clean-PC installation and complete Visual Studio SDK remain
+open. No security certification or speed improvement is claimed.
+
+This exact F5/coreA85/view568/printFC/normal worker60FF/Jint67F3 pairing passed its
+own15-stage current-machine host campaign. Separate focused checks cover the
+preview route/modal lifetime/guards. Original deadlines/ownership were retained;
+one metadata-only decoder grant was classified by existing unchanged policy.
+The Boot EXE is diagnostic; ordinary use starts Firespider Internet 19.exe.
+
+Runtime-only development ZIP, not the source SDK. Exact local source/recipe/
+evidence checkpoints are pinned in the manifest; they are not off-device backups.
+ZIP readback and fresh extraction tests are separate; their own receipts define
+the verification boundary. Not all15 cases are repeated in an extraction smoke.

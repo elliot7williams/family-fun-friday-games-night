@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Align Shorthand</title>
+  <style>
+    :root { --lea-align: center; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    .sample { width: 320px; margin: 10px 0; padding: 8px 12px; background: #eef4f7; font-size: 20px; }
+    #left { text-align: left; }
+    #center { text-align: center; }
+    #right { text-align: right; }
+    #start-ltr { direction: ltr; text-align: start; }
+    #end-ltr { direction: ltr; text-align: end; }
+    #start-rtl { direction: rtl; text-align: start; }
+    #end-rtl { direction: rtl; text-align: end; }
+    #inherit-source { direction: ltr; text-align: end; }
+    #inherited { direction: rtl; }
+    #match-parent { direction: rtl; text-align: match-parent; }
+    #cascade-parent { text-align: center; }
+    #explicit-inherit { text-align: right; text-align: inherit; }
+    #unset { text-align: unset; }
+    #initial { direction: rtl; text-align: left; text-align: initial; }
+    #invalid { text-align: left; text-align: middle; text-align: auto; }
+    #variable { text-align: var(--lea-align); }
+    #important { text-align: right !important; }
+    #justify-normal { text-align: justify; }
+    #justify-all { text-align: justify-all; }
+    #reset-last { text-align-last: right; text-align: center; }
+    #last-after { text-align: justify-all; text-align-last: center; }
+    #all-after { width: 180px; text-align-last: right; text-align-all: center; }
+    #cell { width: 260px; margin: 0; text-align-all: center; text-align-last: right; }
+    #dynamic { direction: rtl; text-align: right; }
+    #dynamic:hover { text-align: end; }
+    #responsive { direction: rtl; text-align: center; }
+    #command-ta { text-align: left; text-align-last: right; }
+    #command-taa { width: 180px; text-align: left; text-align-last: right; }
+    #command-dom { direction: rtl; text-align: left; text-align-last: right; }
+    @media (max-width: 420px) {
+      #responsive { text-align: end; }
+    }
+  </style>
+</head>
+<body>
+  <p id="left" class="sample">LeftAlign</p>
+  <p id="center" class="sample">CenterAlign</p>
+  <p id="right" class="sample">RightAlign</p>
+  <p id="start-ltr" class="sample">StartLTR</p>
+  <p id="end-ltr" class="sample">EndLTR</p>
+  <p id="start-rtl" class="sample">StartRTL</p>
+  <p id="end-rtl" class="sample">EndRTL</p>
+  <section id="inherit-source">
+    <p id="inherited" class="sample">InheritedLogicalEnd</p>
+    <p id="match-parent" class="sample">MatchParentPhysicalEnd</p>
+  </section>
+  <section id="cascade-parent">
+    <p id="explicit-inherit" class="sample">ExplicitInherit</p>
+    <p id="unset" class="sample">UnsetInherit</p>
+  </section>
+  <p id="initial" class="sample">InitialStartRTL</p>
+  <p id="invalid" class="sample">InvalidPreserved</p>
+  <p id="variable" class="sample">VariableCenter</p>
+  <p id="important" class="sample" style="text-align:left">ImportantRight</p>
+  <p id="justify-normal" class="sample">One Two Three</p>
+  <p id="justify-all" class="sample">One Two Three</p>
+  <p id="reset-last" class="sample">ShorthandReset</p>
+  <p id="last-after" class="sample">LastAfter</p>
+  <p id="all-after" class="sample">FirstLine alpha beta gamma delta epsilon LastLine</p>
+  <table><tr><td><p id="cell" class="sample">CellAllAndLast</p></td></tr></table>
+  <p id="dynamic" class="sample">DynamicLogicalEnd</p>
+  <p id="responsive" class="sample">ResponsiveLogicalEnd</p>
+  <p id="command-ta" class="sample">Command Shorthand Words</p>
+  <p id="command-taa" class="sample">Command all first line alpha beta gamma last line</p>
+  <p id="command-dom" class="sample">CommandDOM</p>
+  <button id="set-ta" data-lea="ta('command-ta','justify-all')">Set shorthand</button>
+  <button id="set-readable" data-lea="textalign('command-ta','center')">Set readable</button>
+  <button id="set-taa" data-lea="taa('command-taa','center')">Set all</button>
+  <button id="set-readable-all" data-lea="textalignall('command-taa','left')">Set readable all</button>
+  <button id="set-dom" data-lea="document.getElementById('command-dom').style.textAlign='end'">Set DOM</button>
+  <button id="clear-dom" data-lea="document.getElementById('command-dom').style.textAlign=''">Clear DOM</button>
+  <button id="set-dom-all" data-lea="document.getElementById('command-dom').style.textAlignAll='center'">Set DOM all</button>
+</body>
+</html>

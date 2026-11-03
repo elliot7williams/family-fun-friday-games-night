@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Lab colors</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .swatch { display: block; width: 190px; height: 36px; margin: 12px; padding: 0; }
+    #lab-purple { background-color: lab(44.36% 36.05 -58.99); }
+    #lab-percent { background-color: lab(44.36 28.84% -47.192%); }
+    #lch-purple { background-color: lch(44.36 69.1333682095701 301.429958490306); }
+    #lch-percent { background-color: lch(44.36% 46.0889121397134% 301.429958490306); }
+    #alpha { background-color: lab(44.36% 36.05 -58.99 / 50%); }
+    #units {
+      background-color: lch(44.36 69.1333682095701 0.83730544025085turn);
+      border: 4px solid lch(44.36 69.1333682095701 334.92217610034grad);
+      outline: 3px solid lch(44.36 69.1333682095701 5.26094523980568rad);
+      outline-offset: 2px;
+    }
+    #wrapped { background-color: lch(44.36 69.1333682095701 661.429958490306deg); }
+    #white-clamp { background-color: lab(120% 1250 -1250); }
+    #black-clamp { background-color: lab(-20% -1250 1250); }
+    #chroma-clamp { background-color: lch(50 -1 20); }
+    #gamut { background-color: lch(70 230 40); }
+    #mix { background-color: color-mix(in srgb, lab(29.567% 68.298 -112.0294), lab(97.607% -15.753 93.388)); }
+    #shadow { background: white; box-shadow: 10px 0 0 lab(44.36% 36.05 -58.99); }
+    #shadow-atomic {
+      background: white;
+      box-shadow: 4px 0 0 lch(44.36 69.1333682095701 301.429958490306);
+      box-shadow: 8px 0 0 lab(44.36, 36.05, -58.99);
+    }
+    #gradient {
+      background-image: linear-gradient(90deg, lab(29.567% 68.298 -112.0294) 0%, lab(97.607% -15.753 93.388) 100%);
+    }
+    #gradient-atomic {
+      background-image: linear-gradient(90deg, lab(97.607% -15.753 93.388), lab(44.36% 36.05 -58.99));
+      background-image: linear-gradient(90deg, lab(44.36 36.05 -58.99 / 50% / 25%), blue);
+    }
+    #decor {
+      color: lab(29.567% 68.298 -112.0294);
+      text-decoration: underline solid lab(44.36% 36.05 -58.99) 3px;
+      text-shadow: 2px 2px 0 lab(97.607% -15.753 93.388);
+    }
+    :root { --tone: lch(29.567 131.206719600636 301.368303737467); }
+    #variable { background-color: var(--tone); }
+    @layer lab-base { #layered { background-color: lab(44.36% 36.05 -58.99); } }
+    @layer lab-theme { #layered { background-color: lab(97.607% -15.753 93.388); } }
+    #generated::before { content: "LZX "; color: lab(29.567% 68.298 -112.0294); text-shadow: 1px 1px 0 lab(97.607% -15.753 93.388); }
+    #responsive { background-color: lab(44.36% 36.05 -58.99); }
+    @media (max-width: 600px) { #responsive { background-color: lab(29.567% 68.298 -112.0294); } }
+    #supported-lab, #supported-lch, #unsupported-comma, #unsupported-slash, #unsupported-none, #unsupported-nested, #unsupported-missing { display: none; }
+    @supports (color: lab(50 20 -30)) { #supported-lab { display: block; background-color: lab(50 20 -30); } }
+    @supports (color: lch(50 40 270)) { #supported-lch { display: block; background-color: lch(50 40 270); } }
+    @supports (color: lab(50, 20, -30)) { #unsupported-comma { display: block; } }
+    @supports (color: lch(50 40 270 / 50% / 25%)) { #unsupported-slash { display: block; } }
+    @supports (color: lab(none 20 -30)) { #unsupported-none { display: block; } }
+    @supports (color: lch(calc(50) 40 270)) { #unsupported-nested { display: block; } }
+    @supports (color: lab(50 20)) { #unsupported-missing { display: block; } }
+    input { width: 190px; height: 32px; margin: 12px; color: lab(29.567% 68.298 -112.0294); background-color: lab(97.607% -15.753 93.388 / 20%); border: 3px solid lab(44.36% 36.05 -58.99); }
+    svg { width: 190px; height: 70px; margin: 12px; }
+    #svg-fill { fill: lab(44.36% 36.05 -58.99); stroke: lab(29.567% 68.298 -112.0294); stroke-width: 4; }
+    #svg-stop-a { stop-color: lab(97.607% -15.753 93.388); }
+    #svg-stop-b { stop-color: lch(29.567 131.206719600636 301.368303737467); }
+  </style>
+</head>
+<body>
+  <p id="lab-purple" class="swatch">Lab purple</p>
+  <p id="lab-percent" class="swatch">Lab percentages</p>
+  <p id="lch-purple" class="swatch">LCH purple</p>
+  <p id="lch-percent" class="swatch">LCH percentages</p>
+  <p id="alpha" class="swatch">Alpha</p>
+  <p id="units" class="swatch">Hue units</p>
+  <p id="wrapped" class="swatch">Wrapped hue</p>
+  <p id="white-clamp" class="swatch">White clamp</p>
+  <p id="black-clamp" class="swatch">Black clamp</p>
+  <p id="chroma-clamp" class="swatch">Chroma clamp</p>
+  <p id="gamut" class="swatch">Gamut mapped</p>
+  <p id="mix" class="swatch">Mixed Lab stops</p>
+  <p id="shadow" class="swatch">Shadow</p>
+  <p id="shadow-atomic" class="swatch">Atomic shadow</p>
+  <p id="gradient" class="swatch">Gradient</p>
+  <p id="gradient-atomic" class="swatch">Atomic gradient</p>
+  <p id="decor" class="swatch">Decoration</p>
+  <p id="variable" class="swatch">Variable</p>
+  <p id="layered" class="swatch">Layered</p>
+  <p id="generated" class="swatch">Generated</p>
+  <p id="responsive" class="swatch">Responsive</p>
+  <p id="supported-lab" class="swatch">Lab supported</p>
+  <p id="supported-lch" class="swatch">LCH supported</p>
+  <p id="unsupported-comma" class="swatch">Unsupported comma syntax</p>
+  <p id="unsupported-slash" class="swatch">Unsupported duplicate slash</p>
+  <p id="unsupported-none" class="swatch">Unsupported none channel</p>
+  <p id="unsupported-nested" class="swatch">Unsupported nested function</p>
+  <p id="unsupported-missing" class="swatch">Unsupported missing channel</p>
+  <input id="field" value="Retained Lab field">
+  <svg id="svg" viewBox="0 0 190 70" role="img" aria-label="Lab vector">
+    <defs>
+      <linearGradient id="lab-gradient"><stop id="svg-stop-a" offset="0%"></stop><stop id="svg-stop-b" offset="100%"></stop></linearGradient>
+    </defs>
+    <rect id="svg-fill" x="4" y="4" width="80" height="62"></rect>
+    <rect id="svg-gradient" x="98" y="4" width="88" height="62" fill="url(#lab-gradient)"></rect>
+  </svg>
+</body>
+</html>

@@ -1,0 +1,115 @@
+param([switch]$Apply,[switch]$BootstrapProbes,[switch]$LegacyNativeSuites,[switch]$LegacyNativeTail)
+$ErrorActionPreference='Stop'
+if(@($BootstrapProbes,$LegacyNativeSuites,$LegacyNativeTail|Where-Object {$_}).Count -gt 1){throw 'Select one archive batch'}
+$root=[IO.Path]::GetFullPath((Split-Path $PSScriptRoot -Parent))
+$base=Join-Path $root 'continuity-evidence/temporal-startup-v1'
+$out='I:\LeaBuildStorage\historical-script-dependencies-20261101-v1'
+$cases=@(
+    @('suite-phase-relocated-v2','1DF0860AAEF98A61FDBE997A31889228061A2E30D02E9D705C7F9503CA352A18'),
+    @('origins-lazy-v1','DB754FA7E380A758C3DBC81900BF563BAA18BC35E7330611BD1404425CF1B751'),
+    @('named-references-script-suite-v1','87E291382607C8CACAA716D022D97A1A374B1A44EA2E91A4714AAD4C6CA94F09'),
+    @('numeric-references-script-suite-v1','8992F34CA977FA5DF8F65501E8495342F53D5538EC524682FC826B6B4C192071'),
+    @('rebuilt-core-script-suite-v1','A261868CAA8BE939B4124874FAAF98B6AD921DACB4E26F79855C4C221B4A2127'),
+    @('font-script-suite-v1','E87409ED36E23F7C968490DDF206AAEF2D9D990AC9FAED2E144C1712A72EEF7E'),
+    @('document-selection-script-suite-v1','02356A28411B30ADE710F4ECC4579A32CF9991DB8A30216D3FFFFEA8B348DD4C')
+)
+if($BootstrapProbes){
+    $base=Join-Path $root 'continuity-evidence/bootstrap-descriptor-batches-v1'
+    $out='I:\LeaBuildStorage\historical-script-dependencies-20261101-v2'
+    $cases=@(
+        @('trusted-test-v1','13E5BCF215542B8BCDDEBE1F8E3661DF976DDAD3D62C8C57482E4B295413DC79',14),
+        @('current-options-diagnostic-probes-v1','0CF43D49981762A9583A7E2052A1123E595A93DB1B5BF9B46DED4DEC50E2F396',10),
+        @('paired-probes-v1','0C4205D7DD4B45E3096DA34204A467EC459EB042C4F3F07D5EF1A3A5BB9D35F9',10)
+    )
+}
+if($LegacyNativeSuites){
+    $out='I:\LeaBuildStorage\historical-script-dependencies-20261101-v3'
+    $cases=@(
+        @('current-native-script-suite-v1','916925B96F63ECFE75526F6BCBF742326441FF840FFD137C3CCE9CC56DA6C7CB'),
+        @('current-native-script-suite-v2','0200372EDD91869A82344137C6393D767A6B4019299BF18B3FD6AE9A1CDFCD03'),
+        @('current-native-script-suite-v3','A5B8F08614628C6A39BEC653140BCD0D3F6BB8AF709E2B945FD5F2D6341881CC'),
+        @('current-native-script-suite-v4','098EB9883BB7F406DC1C0FD1EE846E39379595F18EDA8EAFAC4247A2CF8A7FAC'),
+        @('current-native-script-suite-v5','EAC23539FB685DA9234C53CB40ECADC7642EFBED359B2943771174A231BC9698'),
+        @('current-native-script-suite-v6','B04C363A4B7243A647C1A56F7B039E40D55E5414471454D5704540474CD454F4')
+    )
+}
+if($LegacyNativeTail){
+    $out='I:\LeaBuildStorage\historical-script-dependencies-20261101-v4'
+    $cases=@(
+        @('current-native-script-suite-v7','CF5B99D80FF4DFED679B1871AC1D08BD3268BD9BFAC5B142063A2103193AECF9'),
+        @('current-native-script-suite-v8','FC4AD1E5E9249348B6A4A8D70609E3BB90ABD38E3458A52D5E52FDAB2F6543C1'),
+        @('current-native-script-suite-v9','5EE6B967BAF69F336C393F6AED5E90BE8D2C69D203FA1A24B13B64A92BC53537')
+    )
+}
+function SafePath([string]$path){
+    $full=[IO.Path]::GetFullPath($path)
+    if(!$full.StartsWith($base+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Historical target outside explicit workspace'}
+    $item=Get-Item -LiteralPath $full
+    while($item){if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Reparse ancestor refused'};$item=if($item -is [IO.FileInfo]){$item.Directory}else{$item.Parent}}
+}
+$plan=@(foreach($case in $cases){
+    $target=Join-Path $base $case[0];SafePath $target
+    $receipt=Join-Path $target 'result.json'
+    if((Get-FileHash $receipt).Hash -cne $case[1]){throw 'Historical receipt changed'}
+    $r=Get-Content $receipt -Raw|ConvertFrom-Json
+    if(!$r.passed -or !$r.inputsUnchanged -or $r.ownerAttention){throw 'Stable retired historical snapshot required'}
+    $tree=@(Get-ChildItem -LiteralPath $target -Recurse -Force)
+    if(@($tree|Where-Object {$_.Attributes -band [IO.FileAttributes]::ReparsePoint}).Count){throw 'Reparse member refused'}
+    $files=@($tree|Where-Object {!$_.PSIsContainer -and $_.Name -in 'Jint.dll','Acornima.dll'})
+    $expected=if($BootstrapProbes){$case[2]}else{14}
+    if($files.Count -ne $expected){throw 'Inspected historical dependency count changed'}
+    @{name=$case[0];target=$target;receipt=$receipt;receiptSha256=$case[1];files=$files}
+})
+if(!$Apply){$plan|ForEach-Object {[pscustomobject]@{name=$_.name;files=$_.files.Count;bytes=($_.files|Measure-Object Length -Sum).Sum}};return}
+if(Test-Path -LiteralPath $out){throw 'Preserve existing archive evidence'}
+if((Get-PSDrive I).Free -lt 1GB){throw 'External archive reserve required'}
+$processes=@(Get-CimInstance Win32_Process)
+foreach($p in $processes){foreach($entry in $plan){if(($p.ExecutablePath -and $p.ExecutablePath.StartsWith($entry.target+'\',[StringComparison]::OrdinalIgnoreCase)) -or ($p.CommandLine -and $p.CommandLine.Contains($entry.target))){throw 'Historical snapshot in use'}}}
+New-Item -ItemType Directory -Path $out|Out-Null
+$records=[Collections.Generic.List[object]]::new()
+$result=@{verified=$false;records=$records;bytesRemoved=0;freeBefore=(Get-PSDrive C).Free;githubUploaded=$false;sourceRemoved=$false;failureLogsRemoved=$false}
+try{
+    foreach($entry in $plan){
+        $holds=[Collections.Generic.List[IDisposable]]::new()
+        $rows=@()
+        try{
+            foreach($file in $entry.files){
+                SafePath $file.FullName
+                if(@(Get-Item -LiteralPath $file.FullName -Stream *|Where-Object Stream -ne ':$DATA').Count){throw 'Alternate stream preservation requires separate review'}
+                $holds.Add([IO.File]::Open($file.FullName,'Open','Read','Read'))
+                $rows+=@{path=$file.FullName;relative=[IO.Path]::GetRelativePath($entry.target,$file.FullName).Replace('\','/');bytes=$file.Length;sha256=(Get-FileHash $file.FullName).Hash;sddl=(Get-Acl $file.FullName).Sddl;lastWriteUtc=$file.LastWriteTimeUtc.ToString('o')}
+            }
+            $zip=Join-Path $out ($entry.name+'.zip')
+            $archive=[IO.Compression.ZipFile]::Open($zip,'Create')
+            try{foreach($row in $rows){[IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive,$row.path,$row.relative,[IO.Compression.CompressionLevel]::Optimal)|Out-Null}}finally{$archive.Dispose()}
+            $archive=[IO.Compression.ZipFile]::OpenRead($zip)
+            try{
+                if($archive.Entries.Count -ne $rows.Count){throw 'Archive inventory differs'}
+                foreach($row in $rows){
+                    $matches=@($archive.Entries|Where-Object FullName -ceq $row.relative)
+                    if($matches.Count -ne 1 -or $matches[0].Length -ne $row.bytes){throw 'Archive member differs'}
+                    $s=$matches[0].Open();try{$hash=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($s))}finally{$s.Dispose()}
+                    if($hash -cne $row.sha256){throw 'Archive readback differs'}
+                }
+            }finally{$archive.Dispose()}
+            $record=@{target=$entry.target;receipt=$entry.receipt;receiptSha256=$entry.receiptSha256;archive=$zip;archiveSha256=(Get-FileHash $zip).Hash;files=$rows;removed=$false}
+            $records.Add($record)
+            $record|ConvertTo-Json -Depth 7|Set-Content (Join-Path $out ($entry.name+'-verified.json')) -Encoding utf8
+        }finally{foreach($hold in $holds){$hold.Dispose()}}
+        foreach($row in $rows){
+            SafePath $row.path
+            if((Get-FileHash $row.path).Hash -cne $row.sha256 -or (Get-Acl $row.path).Sddl -cne $row.sddl){throw 'Source changed before removal'}
+            Remove-Item -LiteralPath $row.path
+            $result.bytesRemoved+=$row.bytes
+        }
+        $record.removed=$true
+        $record|ConvertTo-Json -Depth 7|Set-Content (Join-Path $entry.target 'dependency-archive.json') -Encoding utf8
+        if((Get-FileHash $zip).Hash -cne $record.archiveSha256 -or (Get-FileHash $entry.receipt).Hash -cne $entry.receiptSha256){throw 'Post-removal archive/receipt changed'}
+    }
+    $result.verified=$true
+}catch{$result.error=$_.Exception.ToString()}
+finally{
+    $result.freeAfter=(Get-PSDrive C).Free
+    $result|ConvertTo-Json -Depth 8|Set-Content (Join-Path $out 'result.json') -Encoding utf8
+    $result|Select-Object verified,bytesRemoved,freeBefore,freeAfter,error|ConvertTo-Json
+}

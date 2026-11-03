@@ -1,0 +1,6613 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Reflection;
+using System.Text;
+using System.Threading;
+using System.Windows.Automation;
+using System.Windows.Automation.Text;
+using System.Windows.Forms;
+using Lea.Engine;
+using Lea.Win;
+
+namespace Lea.Bench
+{
+    internal static class Program
+    {
+        private const int ViewWidth = 1024;
+        private const int ViewHeight = 720;
+
+        [STAThread]
+        private static int Main(string[] args)
+        {
+            try
+            {
+                var options = Options.Read(args);
+                var root = FindRoot(options.Root);
+                if (options.StartupOnly) return StartupOnly(root);
+                if (options.ClassOnly) return ClassMatch.Run(options.Iterations);
+                var output = Path.GetFullPath(options.Output ?? Path.Combine(root, "LeaForge", "COMPATIBILITY_PERFORMANCE.md"));
+                var fixtures = FixturePaths(root);
+
+                Console.WriteLine("Lea report: warming " + fixtures.Count + " fixtures...");
+                Warm(fixtures);
+
+                Console.WriteLine("Lea report: measuring startup...");
+                var startup = MeasureStartup(root, Math.Max(3, Math.Min(7, options.Iterations / 3)));
+                Console.WriteLine("Lea report: measuring loads...");
+                var loads = fixtures.Select(path => MeasureLoad(path, options.Iterations)).ToList();
+                Console.WriteLine("Lea report: measuring layout and paint...");
+                var render = MeasureRender(fixtures, Math.Max(3, options.Iterations / 3));
+                Console.WriteLine("Lea report: measuring retained memory...");
+                var memory = MeasureMemory(fixtures, Math.Max(4, options.Iterations / 3));
+                Console.WriteLine("Lea report: running compatibility probes...");
+                var probes = RunProbes(root);
+                var artifacts = ArtifactPaths(root, options.Browser);
+                var report = Report(options.Iterations, startup, loads, render, memory, probes, artifacts);
+
+                var folder = Path.GetDirectoryName(output);
+                if (!String.IsNullOrEmpty(folder)) Directory.CreateDirectory(folder);
+                File.WriteAllText(output, report, new UTF8Encoding(false));
+
+                Console.WriteLine("Lea report written: " + output);
+                Console.WriteLine("Clean startup median: " + F(startup) + " ms");
+                Console.WriteLine("Load median: " + F(loads.SelectMany(item => item.Times).ToArray()) + " ms");
+                Console.WriteLine("Render median: " + F(render.Times) + " ms");
+                Console.WriteLine("Compatibility probes: " + probes.Count(item => item.Pass) + "/" + probes.Count + " passed");
+                return probes.All(item => item.Pass) ? 0 : 1;
+            }
+            catch (Exception error)
+            {
+                Console.Error.WriteLine("Lea report failed: " + error.Message);
+                return 1;
+            }
+        }
+
+        private static int StartupOnly(string root)
+        {
+            var path = Path.Combine(Pages(root), "index.html");
+            return new E().Go(path).St == 200 ? 0 : 1;
+        }
+
+        private static double[] MeasureStartup(string root, int rounds)
+        {
+            var times = new double[rounds];
+            var executable = Assembly.GetExecutingAssembly().Location;
+            for (var i = 0; i < rounds; i++)
+            {
+                var start = new ProcessStartInfo
+                {
+                    FileName = executable,
+                    Arguments = "-s -r \"" + root.Replace("\"", "") + "\"",
+                    WorkingDirectory = root,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+                var watch = Stopwatch.StartNew();
+                using (var process = Process.Start(start))
+                {
+                    Need(process != null, "Could not start the Lea startup probe");
+                    if (!process.WaitForExit(30000))
+                    {
+                        process.Kill();
+                        throw new TimeoutException("Lea startup probe exceeded 30 seconds");
+                    }
+                    watch.Stop();
+                    Need(process.ExitCode == 0, "Lea startup probe exited with code " + process.ExitCode);
+                }
+                times[i] = watch.Elapsed.TotalMilliseconds;
+            }
+            return times;
+        }
+
+        private static IList<string> FixturePaths(string root)
+        {
+            var folder = Pages(root);
+            var names = new[]
+            {
+                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "css-supports-script.html", "match-media-script.html", "media-modifiers.html", "media-interaction.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
+                "container-style.html", "container-size.html", "container-features.html", "container-query-lengths.html", "container-query-viewport.html", "container-query-calc.html", "container-units.html",
+                "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
+                "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
+                "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
+                "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-underline-offset.html", "text-wrap.html", "text-align.html", "text-align-last.html", "text-shadow.html", "text-overflow.html", "line-clamp.html"
+            };
+            var paths = names.Select(name => Path.Combine(folder, name)).ToList();
+            foreach (var path in paths)
+                if (!File.Exists(path)) throw new FileNotFoundException("Missing benchmark fixture", path);
+            return paths;
+        }
+
+        private static void Warm(IEnumerable<string> fixtures)
+        {
+            var engine = new E();
+            foreach (var path in fixtures) Need(engine.Go(path).St == 200, "Warm-up failed for " + Path.GetFileName(path));
+            using (var view = NewView())
+            {
+                view.Go(fixtures.First());
+                using (var image = Draw(view)) { }
+            }
+            Console.WriteLine("Lea report: warm-up complete; collecting released objects...");
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            Console.WriteLine("Lea report: warm-up collection complete.");
+        }
+
+        private static LoadResult MeasureLoad(string path, int iterations)
+        {
+            var times = new double[iterations];
+            G snapshot = null;
+            for (var i = 0; i < iterations; i++)
+            {
+                var engine = new E();
+                var watch = Stopwatch.StartNew();
+                var page = engine.Go(path);
+                watch.Stop();
+                Need(page.St == 200, "Load failed for " + Path.GetFileName(path));
+                times[i] = watch.Elapsed.TotalMilliseconds;
+                snapshot = engine.Dg(page);
+            }
+
+            return new LoadResult
+            {
+                Name = Path.GetFileName(path),
+                Bytes = new FileInfo(path).Length,
+                Nodes = snapshot == null ? 0 : snapshot.N,
+                CssRules = snapshot == null ? 0 : snapshot.C,
+                Times = times
+            };
+        }
+
+        private static RenderResult MeasureRender(IList<string> fixtures, int rounds)
+        {
+            var times = new List<double>();
+            var boxes = 0;
+            var height = 0;
+            var colored = 0;
+            for (var round = 0; round < rounds; round++)
+            {
+                foreach (var path in fixtures)
+                {
+                    using (var view = NewView())
+                    {
+                        view.Go(path);
+                        var watch = Stopwatch.StartNew();
+                        using (var image = Draw(view))
+                        {
+                            watch.Stop();
+                            if (round == 0) colored += ColoredSamples(image);
+                        }
+                        times.Add(watch.Elapsed.TotalMilliseconds);
+                        boxes += view.Bc;
+                        height = Math.Max(height, view.Dh);
+                    }
+                }
+            }
+            Need(boxes > 0 && colored > 0, "Rendered output was blank");
+            return new RenderResult { Times = times.ToArray(), Boxes = boxes, Height = height, ColoredSamples = colored };
+        }
+
+        private static MemoryResult MeasureMemory(IList<string> fixtures, int rounds)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            var before = GC.GetTotalMemory(true);
+            var pages = new List<P>();
+            var engine = new E();
+            for (var round = 0; round < rounds; round++)
+                foreach (var path in fixtures) pages.Add(engine.Go(path));
+            var after = GC.GetTotalMemory(true);
+            GC.KeepAlive(engine);
+            GC.KeepAlive(pages);
+            return new MemoryResult
+            {
+                Pages = pages.Count,
+                Bytes = Math.Max(0, after - before)
+            };
+        }
+
+        private static IList<Probe> RunProbes(string root)
+        {
+            var folder = Pages(root);
+            var probes = new List<Probe>();
+            AddProbe(probes, "HTML tree and recovery", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "recovery.html"));
+                var table = engine.Go(Path.Combine(folder, "tables.html"));
+                var tokens = engine.Go(Path.Combine(folder, "html-tokens.html"));
+                Need(engine.Dg(page).N > 8, "document tree is incomplete");
+                Need(table.Bs.Any(block => block.Tb != null), "table model is missing");
+                Need(tokens.T == "Lea & Tokenizer <b>literal</b>" && tokens.Vs["markup"] == "<strong>raw</strong>", "raw-text tokenization changed");
+                return "Recovered tree, structured table, raw text, RCDATA, and entities";
+            });
+            AddProbe(probes, "Bounded list markers", delegate
+            {
+                var page = new E().Go(Path.Combine(folder, "lists.html"));
+                var outer = page.Bs.First(block => block.El != null && block.El.Av("id") == "ten");
+                var nested = page.Bs.First(block => block.El != null && block.El.Av("id") == "minus-ten");
+                var bounded = page.Bs.First(block => block.El != null && block.El.Av("id") == "max-next");
+                Need(outer.Mk == "10." && nested.Mk == "-10." && bounded.Mk == "999999.", "list marker values changed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "lists.html"));
+                    using (var image = Draw(view)) Need(view.Bc > page.Bs.Count && ColoredSamples(image) > 0, "list marker layout is blank");
+                }
+                return "Unordered, start/value, nested negative, saturated, inline, and painted markers";
+            });
+            AddProbe(probes, "Bounded list marker styles", delegate
+            {
+                var path = Path.Combine(folder, "list-style.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("default").Mk == "\u2022" && block("circle").S.Lst == "c" && block("circle").Mk == "\u25e6" &&
+                    block("square").S.Lst == "s" && block("square").Mk == "\u25aa" && block("none").Mk.Length == 0,
+                    "symbolic list marker styles changed");
+                Need(block("zero-eight").S.Lst == "0" && block("zero-eight").Mk == "08." && block("lower-aa").Mk == "aa." &&
+                    block("upper-roman").Mk == "IX." && block("roman-zero").Mk == "0." && block("roman-large").Mk == "4000.",
+                    "numeric, alphabetic, or Roman marker formatting changed");
+                Need(block("html-aa").Mk == "AA." && block("html-item-roman").Mk == "iv." && block("html-css").Mk == "d." &&
+                    block("reverse-three").Mk == "3." && block("reverse-eight").Mk == "8." && block("reverse-seven").Mk == "7.",
+                    "HTML list hints, CSS precedence, or reversed numbering changed");
+                Need(block("invalid").S.Lst == "s" && block("variable").S.Lst == "r" && block("important").S.Lst == "A" &&
+                    block("initial").S.Lst == "d" && block("unset").S.Lst == "A",
+                    "list marker cascade changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(block("dynamic").Mk == "\u25aa", "dynamic list marker changed");
+                engine.Vw = 350;
+                Need(block("responsive").Mk == "\u25aa" && Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                    "responsive list marker or retained field changed");
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").Mk == "B.", "compact list marker command changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 6400);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "lower-aa", "aa.").Right < BlockContent(view, "lower-aa").Left &&
+                            InlineTextRect(view, "rtl", "IV.").Left > BlockContent(view, "rtl").Right &&
+                            !BlockOuter(view, "none").IsEmpty && !ElementHit(view, "rtl-link").IsEmpty && ColoredSamples(image) > 0,
+                            "list marker paint, RTL geometry, or hit target changed");
+                    }
+                    var retained = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                    retained.V = "Retained benchmark marker";
+                    Need(view.Js("lst('command','upper-alpha')") == 1, "list marker view command changed");
+                    view.Size = new Size(350, 6400);
+                    using (var image = Draw(view))
+                    {
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").Mk == "\u25aa" &&
+                            Object.ReferenceEquals(retained, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field")) &&
+                            retained.V == "Retained benchmark marker", "list marker resize or retained value changed");
+                    }
+                }
+                return "S.Lst one-character inherited state, disc/circle/square/none, bounded decimal/zero/alpha/Latin/Roman formatting, HTML type and reversed lists, cascade, lst/DOM commands, RTL paint, hits, and retained resize";
+            });
+            AddProbe(probes, "Bounded list marker position", delegate
+            {
+                var path = Path.Combine(folder, "list-position.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.S.Lp == "o" && block("default-position").S.Lp == "o" && block("inside").S.Lp == "i" &&
+                    block("type-only").S.Lst == "A" && block("type-only").S.Lp == "i" &&
+                    block("position-only").S.Lst == "r" && block("position-only").S.Lp == "i",
+                    "list position defaults or longhand independence changed");
+                Need(block("shorthand-both").S.Lst == "a" && block("shorthand-both").S.Lp == "i" &&
+                    block("shorthand-order").S.Lst == "s" && block("shorthand-order").S.Lp == "i" &&
+                    block("shorthand-type-reset").S.Lst == "A" && block("shorthand-type-reset").S.Lp == "o" &&
+                    block("shorthand-position-reset").S.Lst == "d" && block("shorthand-position-reset").S.Lp == "i",
+                    "list shorthand order or reset changed");
+                Need(block("inherit").S.Lp == "i" && block("initial").S.Lp == "o" && block("unset").S.Lp == "i" &&
+                    block("invalid").S.Lp == "i" && block("invalid-shorthand").S.Lst == "c" && block("invalid-shorthand").S.Lp == "i",
+                    "list position cascade or invalid preservation changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "position-field");
+                Need(engine.Ck(page, ById(page.D, "set-position")) == 1 && block("command-position").S.Lp == "i" &&
+                    engine.Ck(page, ById(page.D, "set-shorthand")) == 1 && block("command-shorthand").S.Lst == "R" && block("command-shorthand").S.Lp == "i",
+                    "compact list position or shorthand command changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "outside-wrap", "8.").Right < BlockContent(view, "outside-wrap").Left &&
+                            InlineTextRect(view, "inside-wrap", "9.").Left == BlockContent(view, "inside-wrap").Left &&
+                            InlineTextRect(view, "rtl-outside", "3.").Left > BlockContent(view, "rtl-outside").Right &&
+                            InlineTextRect(view, "rtl-inside", "4.").Right == BlockContent(view, "rtl-inside").Right && ColoredSamples(image) > 0,
+                            "list position LTR/RTL marker geometry changed");
+                    }
+                    var retained = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "position-field");
+                    retained.V = "Retained benchmark position";
+                    Need(view.Js("lp('command-position','inside');ls('command-shorthand','upper-alpha outside')") == 2,
+                        "list position view commands changed");
+                    view.Size = new Size(350, 5600);
+                    using (var image = Draw(view))
+                    {
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").S.Lp == "i" &&
+                            Object.ReferenceEquals(retained, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "position-field")) &&
+                            retained.V == "Retained benchmark position", "list position resize or retained field changed");
+                    }
+                }
+                Need(Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "position-field")),
+                    "list position headless command replaced field identity");
+                return "S.Lp one-character inherited inside/outside state, independent longhands, atomic list-style composition and reset, lp/ls/readable/DOM commands, LTR/RTL gutters, table/hover/media paths, and retained fields";
+            });
+            AddProbe(probes, "Bounded list marker images", delegate
+            {
+                var path = Path.Combine(folder, "list-image.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var marker = block("outside").S.Li;
+                Need(page.S.Li == null && marker != null && marker.Scheme == "data" && block("inside").S.Lp == "i" &&
+                    block("external").S.Li != null && block("external").S.Li.IsFile && block("external").S.Li.LocalPath.EndsWith("lea.ico", StringComparison.OrdinalIgnoreCase),
+                    "list marker image defaults, data URL, or relative origin changed");
+                Need(block("inherited").S.Li.AbsoluteUri == marker.AbsoluteUri && block("initial").S.Li == null &&
+                    block("unset").S.Li.AbsoluteUri == marker.AbsoluteUri && block("important").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                    block("invalid").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                    "list marker image inheritance or cascade changed");
+                Need(block("shorthand-all").S.Lst == "a" && block("shorthand-all").S.Lp == "i" && block("shorthand-all").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                    block("shorthand-none-url").S.Lst == "n" && block("shorthand-none-url").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                    block("shorthand-type-none").S.Lst == "d" && block("shorthand-type-none").S.Li == null &&
+                    block("invalid-shorthand").S.Lst == "s" && block("invalid-shorthand").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                    "list shorthand image composition, none ambiguity, or atomicity changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "image-field");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(block("dynamic").S.Li != null, "dynamic list image changed");
+                engine.Vw = 350;
+                Need(block("responsive").S.Li != null && Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "image-field")),
+                    "responsive list image or retained field changed");
+                Need(engine.Ck(page, ById(page.D, "set-image")) == 1 && block("command-image").S.Li != null &&
+                    engine.Ck(page, ById(page.D, "set-shorthand")) == 1 && block("command-shorthand").S.Lst == "n" && block("command-shorthand").S.Lp == "i" && block("command-shorthand").S.Li != null,
+                    "compact list image or shorthand command changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 3200);
+                    LoadView(view, path, "list marker image load");
+                    using (var image = Draw(view))
+                    {
+                        var outside = InlineKindRect(view, "outside", "lm");
+                        var inside = InlineKindRect(view, "inside", "lm");
+                        var rtl = InlineKindRect(view, "rtl", "lm");
+                        Need(outside.Size == new Size(20, 10) && outside.Right < BlockContent(view, "outside").Left &&
+                            inside.Left == BlockContent(view, "inside").Left && rtl.Left > BlockContent(view, "rtl").Right &&
+                            ColorDistance(image.GetPixel(outside.Left + 2, outside.Top + outside.Height / 2), Color.FromArgb(220, 38, 38)) < 24 &&
+                            ColorDistance(image.GetPixel(outside.Right - 2, outside.Top + outside.Height / 2), Color.FromArgb(37, 99, 235)) < 24,
+                            "list marker image LTR/RTL geometry or paint changed");
+                        Need(InlineTextRect(view, "missing", view.At.Bs.First(item => item.El != null && item.El.Av("id") == "missing").Mk).Right < BlockContent(view, "missing").Left &&
+                            InlineKindRect(view, "cell-image", "lm").Right < BlockContent(view, "cell-image").Left && ColoredSamples(image) > 0,
+                            "list marker fallback or table geometry changed");
+                    }
+                    var retained = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "image-field");
+                    retained.V = "Retained benchmark image";
+                    Need(view.Js("li('command-image','url(../../assets/lea.ico)')") == 1, "list image view command changed");
+                    view.Size = new Size(350, 3200);
+                    using (var image = Draw(view))
+                    {
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").S.Li != null &&
+                            Object.ReferenceEquals(retained, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "image-field")) &&
+                            retained.V == "Retained benchmark image", "list image resize or retained value changed");
+                    }
+                }
+                return "S.Li inherited URI state, li/ls/readable/DOM commands, URL-aware atomic shorthand and none ambiguity, sandboxed deduplicated image loading, 64px intrinsic cap, text fallback, inside/outside LTR/RTL paint, tables, hover/media, and retained fields";
+            });
+            AddProbe(probes, "Bounded marker pseudo-element styles", delegate
+            {
+                var path = Path.Combine(folder, "marker.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("styled").S.F == "#0f766e" && block("styled").Ms.F == "#dc2626" && block("styled").Ms.Fs == 24 &&
+                    block("styled").Ms.B && block("styled").Ms.I && block("styled").Ms.Ls == 2 && block("styled").Ms.Ts != null,
+                    "marker style isolation or compact typography changed");
+                Need(block("default-transform").Mk == "b." && block("default-transform").Ms.Tt == "n" &&
+                    block("inherit-transform").Mk == "C." && block("specific").Ms.F == "#7c3aed",
+                    "marker transform or pseudo-element specificity changed");
+                Need(block("content").Mk == "Lea " && block("escaped").Mk == "\u2605 " && block("none").Mk.Length == 0 && block("none").Ms.Mn &&
+                    block("variable").Mk == "Var " && block("important").Ms.F == "#dc2626",
+                    "marker content, escape, variable, or important cascade changed");
+                Need(block("image-content").S.Li != null && block("image-content").Mk == "Text " &&
+                    block("image-normal").S.Li != null && block("image-normal").Ms.Mc == null,
+                    "marker content and image precedence changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "marker-field");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(block("dynamic").Mk == "Hot ", "dynamic marker pseudo style changed");
+                engine.Vw = 350;
+                Need(block("responsive").Mk == "Narrow " && Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "marker-field")),
+                    "responsive marker pseudo style or retained field changed");
+                Need(engine.Ck(page, ById(page.D, "set-command")) == 1 && block("command").Mk == "Var " && block("command").Ms.Fs == 25 &&
+                    engine.Js(page, "ms('command','background:red')") == 0,
+                    "compact marker style command or validation changed");
+                Need(engine.Js(page, "ms('content:\"All \"')") == 1 && block("default-transform").Mk == "All " && block("content").Mk == "Lea " &&
+                    engine.Js(page, "ms('')") == 1 && block("default-transform").Mk == "b.",
+                    "page marker default command or authored override changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 4200);
+                    LoadView(view, path, "marker pseudo-element load");
+                    using (var image = Draw(view))
+                    {
+                        var styledMarker = InlineTextRect(view, "styled", "1.");
+                        Need(styledMarker.Right < BlockContent(view, "styled").Left &&
+                            HasColor(image, Rectangle.Inflate(styledMarker, 3, 3), Color.FromArgb(220, 38, 38)) &&
+                            InlineTextRect(view, "inside", "In ").Left == BlockContent(view, "inside").Left &&
+                            InlineTextRect(view, "rtl", "RTL ").Left > BlockContent(view, "rtl").Right,
+                            "marker pseudo-element paint or LTR/RTL geometry changed");
+                        Need(InlineTextRect(view, "image-content", "Text ").Right < BlockContent(view, "image-content").Left &&
+                            InlineKindRect(view, "image-normal", "lm").Width > 0 && ColoredSamples(image) > 0,
+                            "marker content/image paint precedence changed");
+                    }
+                    var retained = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "marker-field");
+                    retained.V = "Retained benchmark marker pseudo";
+                    Need(view.Js("ms('command','color:#dc2626;font-size:25px;content:var(--marker-content)')") == 1,
+                        "marker pseudo-element view command changed");
+                    view.Size = new Size(350, 4200);
+                    using (var image = Draw(view))
+                    {
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").Mk == "Narrow " &&
+                            Object.ReferenceEquals(retained, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "marker-field")) &&
+                            retained.V == "Retained benchmark marker pseudo", "marker pseudo-element resize or retained value changed");
+                    }
+                }
+                return "B.Ms compact marker style, terminal ::marker cascade, inherited text state with UA reset, bounded literal content, image precedence, ms/markerstyle commands, LTR/RTL paint, hover/media rebuilds, and retained fields";
+            });
+            AddProbe(probes, "Bounded marker generated content", delegate
+            {
+                var path = Path.Combine(folder, "marker-content.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = delegate(string id)
+                {
+                    var found = page.Bs.FirstOrDefault(item => item.El != null && item.El.Av("id") == id);
+                    Need(found != null, "missing marker generated-content block " + id);
+                    return found;
+                };
+                Need(block("attribute").Mk == "Attr " && block("raw").Mk == "Raw value " &&
+                    block("fragments").Mk == "[A7] " && block("adjacent").Mk == "AB8 ",
+                    "marker attr or ordered fragment content changed");
+                Need(block("missing").Mk == "M " && block("empty").Mk == "E " &&
+                    block("escaped").Mk == "\u2605 C9 " && block("variable").Mk == "(D10) ",
+                    "marker empty, escaped, or variable fragments changed");
+                Need(block("important").Mk == "Important " && block("invalid-type").Mk == "Keep " &&
+                    block("invalid-fallback").Mk == "Keep " && block("eight").Mk == "12345678" && block("nine").Mk == "Keep ",
+                    "marker generated-content cascade or bounds changed");
+                Need(block("fallback").Mk == "Fallback " && block("fallback-present").Mk == "Present " &&
+                    block("fallback-empty").Mk == "E " && block("fallback-raw").Mk == "Raw fallback " &&
+                    block("fallback-compose").Mk == "[F13] " && block("fallback-variable").Mk == "(" &&
+                    block("fallback-boundary").Mk.Length == 128 && block("fallback-over").Mk == "Keep ",
+                    "marker attr fallback values, priority, variables, or bounds changed");
+                Need(block("markup").Mk == "<safe> " && block("image").S.Li != null && block("image").Mk == "Text " &&
+                    block("inside").Mk == "[IN] " && block("rtl").Mk == "RTL ",
+                    "marker generated-content safety, image priority, or direction changed");
+                var retained = page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field");
+                Need(retained != null, "missing marker generated-content retained field");
+                var bounded = ById(page.D, "bounded");
+                bounded.A["data-marker"] = new String('x', 128);
+                engine.Dy(page, bounded, null);
+                Need(block("bounded").Mk.Length == 128, "marker generated-content exact output ceiling changed");
+                bounded.A["data-marker"] = new String('x', 129);
+                engine.Dy(page, null, null);
+                Need(block("bounded").Mk == "Keep ", "oversized marker generated content changed prior declaration");
+                Need(engine.Ck(page, ById(page.D, "set-command")) == 1 && block("command").Mk == "CMD" &&
+                    engine.Js(page, "ms('command','content:attr(data-code number)')") == 0 && block("command").Mk == "CMD",
+                    "marker generated-content command or validation changed");
+                Need(engine.Js(page, "ms('content:attr(data-code)')") == 1 && block("default").Mk == "PAGE" &&
+                    engine.Js(page, "ms('')") == 1 && block("default").Mk == "21.",
+                    "page marker generated-content default changed");
+                engine.Vw = 350;
+                Need(block("responsive").Mk == "Narrow fallback " && Object.ReferenceEquals(retained,
+                    page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field")),
+                    "responsive marker generated content or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5200);
+                    LoadView(view, path, "marker generated-content load");
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "attribute", "Attr ").Right < BlockContent(view, "attribute").Left &&
+                            InlineTextRect(view, "inside", "[IN] ").Left == BlockContent(view, "inside").Left &&
+                            InlineTextRect(view, "rtl", "RTL ").Left > BlockContent(view, "rtl").Right,
+                            "marker generated-content LTR/RTL geometry changed");
+                        Need(InlineKindCount(view, "image", "lm") == 0 &&
+                            InlineTextRect(view, "image", "Text ").Width > 0 &&
+                            InlineTextRect(view, "cell", "Cell T1 ").Width > 0 && ColoredSamples(image) > 0,
+                            "marker generated-content image priority, table path, or paint changed");
+                    }
+                    var field = view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field");
+                    Need(field != null, "missing marker generated-content view field");
+                    field.V = "Retained benchmark generated marker";
+                    Need(view.Js("ms('command','content:attr(data-code);color:#dc2626;font-size:24px')") == 1,
+                        "marker generated-content view command changed");
+                    view.Size = new Size(350, 5200);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "responsive");
+                        Need(responsive != null && responsive.Mk == "Narrow fallback " && Object.ReferenceEquals(field,
+                            view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field")) &&
+                            field.V == "Retained benchmark generated marker", "marker generated-content resize or retained value changed");
+                    }
+                }
+                return "eight string/attr raw-string/fallback fragments, 128-character output, missing/empty values, variables, priority, commands, image precedence, LTR/RTL paint, tables, hover/media rebuilds, and retained fields";
+            });
+            AddProbe(probes, "Bounded marker list counters", delegate
+            {
+                var path = Path.Combine(folder, "marker-counters.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = delegate(string id)
+                {
+                    var found = page.Bs.FirstOrDefault(item => item.El != null && item.El.Av("id") == id);
+                    Need(found != null, "missing marker counter block " + id);
+                    return found;
+                };
+                Need(block("decimal").Mk == "[7] " && block("zero").Mk == "08. " &&
+                    block("lower-alpha").Mk == "aa) " && block("upper-latin").Mk == "AB) " &&
+                    block("lower-roman").Mk == "iv) " && block("upper-roman").Mk == "V) ",
+                    "marker counter numeric styles changed");
+                Need(block("disc").Mk == "\u2022 " && block("circle").Mk == "\u25e6 " &&
+                    block("square").Mk == "\u25aa " && block("none-style").Mk == "AB ",
+                    "marker counter symbolic styles changed");
+                Need(block("mixed").Mk == "Step Z: " && block("variable").Mk == "VXXVII " &&
+                    block("important").Mk == "28. " && block("invalid-name").Mk == "Keep " &&
+                    block("invalid-style").Mk == "Keep " && block("invalid-counters").Mk == "Keep " &&
+                    block("long-separator").Mk == "Keep ", "marker counter composition or validation changed");
+                Need(block("tree-outer").Mk == "5. " && block("tree-inner").Mk == "5.3. " &&
+                    block("tree-value").Mk == "5.8. " && block("tree-reverse-two").Mk == "5.8.2. " &&
+                    block("tree-reverse-one").Mk == "5.8.1. " && block("separator-escaped").Mk == "E/D " &&
+                    block("separator-close").Mk == "V)V " &&
+                    block("separator-limit").Mk == "5123456789012345678901234567890126 " &&
+                    block("none-path").Mk == "A.B ", "nested marker counter paths changed");
+                Need(block("depth-eight").Mk == "1.1.1.1.1.1.1.1 " && block("depth-output").Mk == "Keep " &&
+                    block("depth-nine").Mk == "Keep " &&
+                    block("image").S.Li != null && block("image").Mk == "11 " && block("inside").Mk == "(L) " &&
+                    block("rtl").Mk == "XIII. ", "marker counter bounds, priority, or direction changed");
+                var retained = page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-counter-field");
+                Need(retained != null, "missing marker counter retained field");
+                Need(engine.Ck(page, ById(page.D, "set-command")) == 1 && block("command").Mk == "Q" &&
+                    engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command-readable").Mk == "XVIII" &&
+                    engine.Js(page, "ms('command','content:counter(none)')") == 0 && block("command").Mk == "Q",
+                    "marker counter command or validation changed");
+                Need(engine.Js(page, "ms('content:counter(list-item)')") == 1 && block("default").Mk == "16" &&
+                    engine.Js(page, "ms('')") == 1 && block("default").Mk == "16.",
+                    "page marker counter default changed");
+                engine.Vw = 350;
+                Need(block("responsive").Mk == "XV. " && Object.ReferenceEquals(retained,
+                    page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-counter-field")),
+                    "responsive marker counter or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 7600);
+                    LoadView(view, path, "marker counter load");
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "decimal", "[7] ").Right < BlockContent(view, "decimal").Left &&
+                            InlineTextRect(view, "inside", "(L) ").Left == BlockContent(view, "inside").Left &&
+                            InlineTextRect(view, "rtl", "XIII. ").Left > BlockContent(view, "rtl").Right,
+                            "marker counter LTR/RTL geometry changed");
+                        Need(InlineKindCount(view, "image", "lm") == 0 &&
+                            InlineTextRect(view, "image", "11 ").Width > 0 &&
+                            InlineTextRect(view, "tree-reverse-one", "5.8.1. ").Width > 0 &&
+                            InlineTextRect(view, "cell", "TT ").Width > 0 && ColoredSamples(image) > 0,
+                            "marker counter image priority, nested/table paint, or pixels changed");
+                    }
+                    var field = view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-counter-field");
+                    Need(field != null, "missing marker counter view field");
+                    field.V = "Retained benchmark marker counter";
+                    Need(view.Js("ms('command','content:counter(list-item,upper-alpha);color:#dc2626;font-size:24px')") == 1,
+                        "marker counter view command changed");
+                    view.Size = new Size(350, 7600);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "responsive");
+                        Need(responsive != null && responsive.Mk == "XV. " && Object.ReferenceEquals(field,
+                            view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-counter-field")) &&
+                            field.V == "Retained benchmark marker counter", "marker counter resize or retained value changed");
+                    }
+                }
+                return "implicit list-item counter/counters output, ten built-in styles, eight nested levels, 32-character separators, HTML start/value/reversed paths, variables, commands, image priority, LTR/RTL paint, tables, media, and retained fields";
+            });
+            AddProbe(probes, "Bounded named CSS counters", delegate
+            {
+                var path = Path.Combine(folder, "css-counters.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = delegate(string id)
+                {
+                    var found = BlockById(page, id);
+                    Need(found != null, "missing named counter block " + id);
+                    return found;
+                };
+                Need(block("chapter-one").Mk == "Chapter 3. " && block("chapter-set").Mk == "9. " &&
+                    block("chapter-step").Mk == "XI. " && block("multiple").Mk == "6/-1 " &&
+                    block("priority").Mk == "4 " && block("variable").Mk == "J ",
+                    "named counter operations or cascade changed");
+                Need(block("case").Mk == "3/7 " && block("missing").Mk == "0 " &&
+                    block("duplicate-increment").Mk == "6 " && block("duplicate-reset").Mk == "7 " &&
+                    block("duplicate-set").Mk == "9 " && block("defaults").Mk == "6/0/1/0 ",
+                    "named counter identity, defaults, or duplicates changed");
+                Need(block("tree-one").Mk == "1. " && block("tree-two").Mk == "2. " &&
+                    block("tree-inner-one").Mk == "2.1. " && block("tree-inner-set").Mk == "2.5. " &&
+                    block("tree-inner-next").Mk == "2.6. " && block("tree-three").Mk == "3. " &&
+                    block("flow-b").Mk == "2 " && block("scope-b-value").Mk == "8 ",
+                    "named counter tree order or scope changed");
+                Need(block("depth-result").Mk == "1.2.3.4.5.6.7.8 " && block("hidden-result").Mk == "1 " &&
+                    block("clamp-high").Mk == "999999 " && block("clamp-low").Mk == "-999999 " &&
+                    block("eight-operations").Mk == "8 " && block("nine-operations").Mk == "5 " &&
+                    block("invalid-content-name").Mk == "Keep " && block("cell").Mk == "T4 ",
+                    "named counter bounds, hidden state, or table output changed");
+                var retained = page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "css-counter-field");
+                Need(retained != null, "missing named counter retained field");
+                Need(engine.Ck(page, ById(page.D, "set-reset")) == 1 && block("command").Mk == "7 " &&
+                    engine.Ck(page, ById(page.D, "set-increment")) == 1 && block("command").Mk == "9 " &&
+                    engine.Ck(page, ById(page.D, "set-counter")) == 1 && block("command").Mk == "4 " &&
+                    engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command-readable").Mk == "8 " &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command-dom").Mk == "6 " &&
+                    engine.Js(page, "cr('command','list-item 3')") == 0,
+                    "named counter command aliases or validation changed");
+                engine.Vw = 350;
+                Need(block("responsive").Mk == "VII " && Object.ReferenceEquals(retained,
+                    page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "css-counter-field")),
+                    "responsive named counter or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 9200);
+                    LoadView(view, path, "named counter load");
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "chapter-one", "Chapter 3. ").Right < BlockContent(view, "chapter-one").Left &&
+                            InlineTextRect(view, "tree-inner-next", "2.6. ").Width > 0 &&
+                            InlineTextRect(view, "cell", "T4 ").Width > 0 && ColoredSamples(image) > 0,
+                            "named counter marker geometry or paint changed");
+                    }
+                    var field = view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "css-counter-field");
+                    Need(field != null, "missing named counter view field");
+                    field.V = "Retained benchmark named counter";
+                    Need(view.Js("cr('command','cmdCounter 7')") == 1, "named counter view command changed");
+                    view.Size = new Size(350, 9200);
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "command", "7 ").Width > 0 &&
+                            InlineTextRect(view, "responsive", "VII ").Width > 0 &&
+                            Object.ReferenceEquals(field, view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "css-counter-field")) &&
+                            field.V == "Retained benchmark named counter", "named counter command, resize, or retained value changed");
+                    }
+                }
+                return "counter-reset/increment/set, case-sensitive names, reset-increment-set order, tree-order sibling flow, self-nesting, eight active entries and operations, fixed integer clamps, short commands, literal style translation, tables, media, paint, and retained fields";
+            });
+            AddProbe(probes, "Bounded before and after generated content", delegate
+            {
+                var path = Path.Combine(folder, "generated-content.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = delegate(string id)
+                {
+                    var found = BlockById(page, id);
+                    Need(found != null, "missing generated-content block " + id);
+                    return found;
+                };
+                var basicBefore = block("basic").Is.FirstOrDefault(item => item.K == "be");
+                var basicAfter = block("basic").Is.FirstOrDefault(item => item.K == "af");
+                Need(block("basic").X == "[BE] Basic text [AF]" && basicBefore != null && basicAfter != null &&
+                    basicBefore.S.F == "#dc2626" && basicBefore.S.Fs == 22 && basicAfter.S.F == "#2563eb",
+                    "generated before/after order or compact style state changed");
+                Need(block("legacy").X == "Legacy Legacy syntax done" && block("attribute").X == "<A7> Attribute content" &&
+                    block("literal").X == "&amp;Literal entity text" && block("markup").X == "<safe> Attribute markup stays text" &&
+                    block("nested").Is.Count(item => item.K == "be" || item.K == "af") == 4,
+                    "generated syntax, attributes, text safety, or nested ownership changed");
+                Need(block("fallback").X == "Fallback before Fallback content" &&
+                    block("fallback-present").X == "Present attribute present value" &&
+                    block("fallback-empty").X == "E Empty attribute" &&
+                    block("fallback-compose").X == "[F14] Composed fallback" &&
+                    block("fallback-variable").X == "Variable fallback Variable fallback" &&
+                    block("fallback-invalid").X.StartsWith("Keep ") && block("fallback-extra").X.StartsWith("Keep ") &&
+                    block("fallback-nested").X.StartsWith("Keep "),
+                    "generated attr fallback values, priority, variables, or invalid preservation changed");
+                Need(block("counter-one").X == "Chapter 3: First counter [C]" && block("counter-two").X == "Chapter 4: Second counter [D]" &&
+                    block("tree-inner-two").X == "1.2. Tree inner two" && block("tree-two").X == "2. Tree two" &&
+                    block("list-item").Mk == "M " && block("list-item").X == "B Marker and generated text A",
+                    "generated counter scope or marker coexistence changed");
+                Need(block("eight").Is.First(item => item.K == "be").X == "12345678" &&
+                    block("nine").Is.First(item => item.K == "be").X == "Keep" &&
+                    block("out128").Is.First(item => item.K == "be").X.Length == 128 &&
+                    block("out129").Is.First(item => item.K == "be").X == "Keep" &&
+                    block("attr64").X.StartsWith("A64") && block("attr65").X.StartsWith("Keep"),
+                    "generated content item, output, or attribute bounds changed");
+                var linkBefore = block("link").Is.First(item => item.K == "be");
+                Need(linkBefore.U != null && block("cell").X == "Cell<T1> Simple cell done" &&
+                    block("cell-inner").X == "Inner Nested cell" && block("cell-link").Is.First(item => item.K == "af").U != null &&
+                    block("value-line").Is.Where(item => item.K == "be" || item.K == "af").All(item => item.Dv != null),
+                    "generated links, tables, or semantic ownership changed");
+                var retained = page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-field");
+                Need(retained != null && engine.Ck(page, ById(page.D, "set-before")) == 1 &&
+                    block("command").X == "CMDCompact command content" &&
+                    engine.Ck(page, ById(page.D, "set-after")) == 1 && block("command-readable").X == "Readable command contentREAD" &&
+                    engine.Js(page, "be('command','content:url(javascript:blocked)')") == 0,
+                    "generated-content commands or validation changed");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(block("dynamic").X == "Hot Hover content", "generated hover state changed");
+                engine.Vw = 350;
+                Need(block("responsive").X == "Responsive content Narrow" && Object.ReferenceEquals(retained,
+                    page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-field")),
+                    "responsive generated content or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5600);
+                    LoadView(view, path, "generated content load");
+                    using (var image = Draw(view))
+                    {
+                        var before = InlineKindRect(view, "basic", "be");
+                        var after = InlineKindRect(view, "basic", "af");
+                        Need(before.Left < after.Left && HasColor(image, Rectangle.Inflate(before, 3, 3), Color.FromArgb(220, 38, 38)) &&
+                            HasColor(image, Rectangle.Inflate(after, 3, 3), Color.FromArgb(37, 99, 235)) &&
+                            InlineKindRect(view, "cell", "be").Width > 0 && InlineKindRect(view, "rtl", "af").Width > 0,
+                            "generated inline/table/RTL layout or paint changed");
+                    }
+                    var field = view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-field");
+                    Need(field != null, "missing generated-content view field");
+                    field.V = "Retained benchmark generated content";
+                    Need(view.Js("be('command','content:attr(data-code);color:#dc2626;font-size:24px')") == 1,
+                        "generated-content view command changed");
+                    view.Size = new Size(350, 7000);
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineKindRect(view, "command", "be").Width > 0 && InlineKindRect(view, "responsive", "af").Width > 0 &&
+                            Object.ReferenceEquals(field, view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-field")) &&
+                            field.V == "Retained benchmark generated content", "generated command, resize, or retained value changed");
+                    }
+                }
+                return "terminal ::before/::after and legacy syntax, compact be/af aliases, bounded string/attr/fallback/counter content, inherited text styles, nested/link/value/table/accessibility ownership, LTR/RTL paint, hover/media rebuilds, replaced-element suppression, and retained fields";
+            });
+            AddProbe(probes, "Bounded generated attr fallbacks", delegate
+            {
+                var markerEngine = new E { Vw = 350 };
+                var markerPage = markerEngine.Go(Path.Combine(folder, "marker-content.html"));
+                Func<string, B> marker = delegate(string id)
+                {
+                    var found = BlockById(markerPage, id);
+                    Need(found != null, "missing marker fallback block " + id);
+                    return found;
+                };
+                Need(marker("fallback").Mk == "Fallback " && marker("fallback-present").Mk == "Present " &&
+                    marker("fallback-empty").Mk == "E " && marker("fallback-variable").Mk == "(" &&
+                    marker("fallback-boundary").Mk.Length == 128 && marker("fallback-over").Mk == "Keep " &&
+                    marker("responsive").Mk == "Narrow fallback " && marker("cell").Mk == "Cell T1 ",
+                    "marker generated attr fallback contract changed");
+                Need(markerEngine.Js(markerPage, "ms('command-readable',\"content:attr(data-missing, 'COMMAND')\")") == 1 &&
+                    marker("command-readable").Mk == "COMMAND" &&
+                    markerEngine.Js(markerPage, "ms('command-readable',\"content:attr(data-missing, bare)\")") == 0,
+                    "marker attr fallback command validation changed");
+
+                var generatedEngine = new E { Vw = 350 };
+                var generatedPage = generatedEngine.Go(Path.Combine(folder, "generated-content.html"));
+                Func<string, B> generated = delegate(string id)
+                {
+                    var found = BlockById(generatedPage, id);
+                    Need(found != null, "missing before/after fallback block " + id);
+                    return found;
+                };
+                Need(generated("fallback").X == "Fallback before Fallback content" &&
+                    generated("fallback-present").X == "Present attribute present value" &&
+                    generated("fallback-empty").X == "E Empty attribute" &&
+                    generated("responsive").X == "Responsive content Narrow" &&
+                    generated("cell-inner").X == "Inner Nested cell" &&
+                    generatedEngine.Ax(generatedPage, ById(generatedPage.D, "link")).N == "Open second page now",
+                    "before/after attr fallback integration changed");
+                Need(generatedEngine.Js(generatedPage, "be('command',\"content:attr(data-missing, 'Fallback command ')\")") == 1 &&
+                    generated("command").X == "Fallback command Compact command content" &&
+                    generatedEngine.Js(generatedPage, "be('command',\"content:attr(data-missing, bare)\")") == 0,
+                    "before attr fallback command validation changed");
+                return "quoted attr(name, fallback) and raw-string fallback, present/empty priority, variables, exact output bounds, invalid preservation, compact commands, markers, before/after, links, accessibility, tables, hover, and media";
+            });
+            AddProbe(probes, "Bounded generated quotes", delegate
+            {
+                var path = Path.Combine(folder, "generated-quotes.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = delegate(string id)
+                {
+                    var found = BlockById(page, id);
+                    Need(found != null, "missing generated-quote block " + id);
+                    return found;
+                };
+                Need(block("default").X == "\u201cDefault quote\u201d" &&
+                    block("outer").X == "\u201cOuter \u2018inner\u2019 tail\u201d" &&
+                    block("explicit").X == "<Explicit [nested] pair>" && block("explicit").S.Qc == 2 &&
+                    block("explicit").S.Qo(0) == "<" && block("explicit").S.Qx(1) == "]",
+                    "generated quote pairs, nesting, or compact model changed");
+                Need(block("none").X == "No visible quotes" && block("zero").X == "Zero-depth close" &&
+                    block("cross-open").X == "\u201cCross open" && block("cross-close").X == "Cross close\u201d" &&
+                    block("silent").X == "A Silent \u2018inner\u2019 Z",
+                    "generated quote depth or silent operations changed");
+                Need(block("variable").X == "{Variable quote}" && block("invalid").X == "(Invalid pair preserves prior value)" &&
+                    block("eight-pairs").S.Qc == 8 && block("nine-pairs").S.Qc == 1 &&
+                    block("pair-boundary").S.Qo(0).Length == 32 && block("pair-over").X == "(Pair text overrun)",
+                    "generated quote variables, validation, or bounds changed");
+                Need(block("marker").Mk == "\u201c" && block("marker").X == "\u2018Marker quote\u2019\u201d" &&
+                    block("cell").X == "[Table quote]" && engine.Ax(page, ById(page.D, "link")).N == "<quote link>",
+                    "generated quote marker, table, or accessibility integration changed");
+                var retained = page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "quote-field");
+                Need(retained != null && engine.Js(page, "qu('command','\"<\" \">\"')") == 1 &&
+                    block("command").X == "<Compact quote command>" &&
+                    engine.Js(page, "document.getElementById('dom').style.quotes='\"{\" \"}\"'") == 1 &&
+                    block("dom").X == "{Literal DOM quote command}",
+                    "generated quote commands or literal DOM bridge changed");
+                engine.Vw = 350;
+                Need(block("responsive").X == "[Responsive quote ]" && Object.ReferenceEquals(retained,
+                    page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "quote-field")),
+                    "responsive generated quote or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 4600);
+                    LoadView(view, path, "generated quote load");
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineKindRect(view, "outer", "be").Width > 0 && InlineKindRect(view, "outer", "af").Width > 0 &&
+                            InlineTextRect(view, "marker", "\u201c").Right < BlockContent(view, "marker").Left &&
+                            InlineKindRect(view, "cell", "be").Width > 0 && ColoredSamples(image) > 0,
+                            "generated quote layout, marker geometry, or paint changed");
+                    }
+                    var field = view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "quote-field");
+                    Need(field != null && view.Js("qu('command','\"<\" \">\"')") == 1,
+                        "generated quote view command changed");
+                    field.V = "Retained benchmark quote";
+                    view.Size = new Size(350, 5200);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockById(view.At, "responsive").X == "[Responsive quote ]" &&
+                            InlineKindRect(view, "responsive", "be").Width > 0 &&
+                            Object.ReferenceEquals(field, view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "quote-field")) &&
+                            field.V == "Retained benchmark quote", "generated quote resize or retained value changed");
+                    }
+                }
+                return "open/close and silent quote keywords, inherited auto/none/eight-pair quotes, eight-depth document order, 32-unit pairs, 128-unit output, variables, invalid preservation, qu and literal DOM commands, markers, links, tables, accessibility, hover/media rebuilds, paint, and retained fields";
+            });
+            AddProbe(probes, "Bounded generated alternatives", delegate
+            {
+                var path = Path.Combine(folder, "generated-alt.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = delegate(string id)
+                {
+                    var found = BlockById(page, id);
+                    Need(found != null, "missing generated-alternative block " + id);
+                    return found;
+                };
+                Func<string, string> name = id => engine.Ax(page, ById(page.D, id)).N;
+                Func<string, Ir> before = id => block(id).Is.First(run => run.K == "be");
+                Need(block("basic").X == "[!] Basic content" && before("basic").S.Ma == "Featured " &&
+                    name("basic") == "Featured Basic content" && block("decorative").X == "* Decorative content" &&
+                    before("decorative").S.Ma == "" && name("decorative") == "Decorative content",
+                    "generated visual and alternative separation changed");
+                Need(block("attribute").X == "ATTR Attribute content" && name("attribute") == "Attribute Attribute content" &&
+                    block("counter").X == "6. Counter content" && name("counter") == "Notice 6: Counter content" &&
+                    block("empty-visual").X == "Alternative-only content" && before("empty-visual").X == "" &&
+                    name("empty-visual") == "Alternative only Alternative-only content",
+                    "generated attribute, counter, or alternative-only behavior changed");
+                Need(before("eight").S.Ma == "12345678" && before("boundary").S.Ma.Length == 128 &&
+                    block("nine").X == "KEEP Nine items rejected" && block("over").X == "KEEP Over-bound content" &&
+                    block("missing-alt").X == "KEEP Missing alternative" && block("extra-slash").X == "KEEP Extra slash" &&
+                    block("quote-alt").X == "KEEP Quote alternative rejection",
+                    "generated alternative bounds or invalid preservation changed");
+                Need(name("link") == "Open destination now" && name("labelled") == "Explicit destination" &&
+                    name("cell") == "Accessible Table content" && block("marker").Ms.Ma == "Important item: " &&
+                    name("marker") == "Important item: Marker content",
+                    "generated alternative accessibility integration changed");
+                var field = page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "alt-field");
+                Need(field != null && engine.Js(page, "be('command',\"content:'CMD ' / 'Command '\")") == 1 &&
+                    block("command").X == "CMD Command content" && name("command") == "Command Command content" &&
+                    engine.Js(page, "ms('marker-command',\"content:'M ' / 'Marker command: '\")") == 1 &&
+                    block("marker-command").Mk == "M " && name("marker-command") == "Marker command: Marker command",
+                    "generated alternative commands changed");
+                engine.Vw = 350;
+                Need(block("responsive").X == "NARROW Responsive content" && name("responsive") == "Narrow Responsive content" &&
+                    Object.ReferenceEquals(field, page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "alt-field")),
+                    "responsive generated alternative or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5200);
+                    LoadView(view, path, "generated alternative load");
+                    using (var image = Draw(view))
+                        Need(InlineKindRect(view, "basic", "be").Width > 0 && InlineKindRect(view, "cell", "be").Width > 0 &&
+                            InlineTextRect(view, "marker", "! ").Right < BlockContent(view, "marker").Left &&
+                            view.Ax(ById(view.At.D, "link")).N == "Open destination now" && ColoredSamples(image) > 0,
+                            "generated alternative layout, accessibility, or paint changed");
+                    field = view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "alt-field");
+                    Need(field != null && view.Js("be('command',\"content:'CMD ' / 'Command '\")") == 1,
+                        "generated alternative view command changed");
+                    field.V = "Retained benchmark alternative";
+                    view.Size = new Size(350, 5200);
+                    using (var image = Draw(view))
+                        Need(BlockById(view.At, "responsive").X == "NARROW Responsive content" &&
+                            view.Ax(ById(view.At.D, "responsive")).N == "Narrow Responsive content" &&
+                            Object.ReferenceEquals(field, view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "alt-field")) &&
+                            field.V == "Retained benchmark alternative", "generated alternative resize or retained field changed");
+                }
+                return "visual/speech separation, empty alternatives, strings, attributes, counters, variables, eight-item and 128-unit bounds, invalid preservation, links, explicit ARIA priority, tables, markers, commands, hover/media rebuilds, accessibility, paint, and retained fields";
+            });
+            AddProbe(probes, "Bounded generated images", delegate
+            {
+                var path = Path.Combine(folder, "generated-images.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => BlockById(page, id);
+                Func<string, string> name = id => engine.Ax(page, ById(page.D, id)).N;
+                Func<string, S> before = id => block(id).Is.First(run => run.K == "be").S;
+                var mixed = before("mixed");
+                Need(mixed.Mf != null && mixed.Mf.Count == 3 && mixed.Mf[1].K == "i" && mixed.Mf[1].U.Scheme == "data" &&
+                    mixed.Mc == "Start  end " && name("mixed") == "Generated picture: Mixed content" &&
+                    before("relative").Mf[0].U.IsFile && before("relative").Mf[0].U.LocalPath.EndsWith("lea.ico", StringComparison.OrdinalIgnoreCase),
+                    "generated image fragments, alternatives, or relative origins changed");
+                Need(name("only") == "Only picture Only content" && name("decorative") == "Decorative content" &&
+                    name("image-link") == "Open generated picture" && name("labelled") == "Explicit picture link" &&
+                    name("cell") == "Cell picture Table content", "generated image accessibility integration changed");
+                Need(block("marker").Ms.Mf.Count == 3 && name("marker") == "Picture marker: Marker content" &&
+                    block("marker-inside").Ms.Mf.Count == 2 && before("eight").Mf.Count == 8 &&
+                    before("nine").Mf == null && before("nine").Mc == "KEEP " && before("bad-scheme").Mf == null &&
+                    before("alt-image").Mf == null, "generated image markers, bounds, or invalid preservation changed");
+                var field = page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-image-field");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(before("dynamic").Mf != null && name("dynamic") == "Hovered picture Dynamic content" &&
+                    engine.Js(page, "be('command',\"content:'<' url(../../assets/lea.ico) '>' / 'Command picture '\")") == 1 &&
+                    before("command").Mf.Count == 3 && engine.Js(page, "ms('marker-command',\"content:url(../../assets/lea.ico) ' M' / 'Command marker: '\")") == 1 &&
+                    block("marker-command").Ms.Mf.Count == 2, "generated image dynamic or command paths changed");
+                engine.Vw = 350;
+                Need(before("responsive").Mf.Count == 1 && name("responsive") == "Narrow picture Responsive content" &&
+                    Object.ReferenceEquals(field, page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-image-field")),
+                    "responsive generated image or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5200);
+                    LoadView(view, path, "generated image load");
+                    using (var image = Draw(view))
+                    {
+                        var inline = InlinePictureRect(view, "mixed", "be");
+                        var marker = InlinePictureRect(view, "marker", "lm");
+                        Need(inline.Size == new Size(20, 10) && marker.Size == new Size(20, 10) &&
+                            marker.Right < BlockContent(view, "marker").Left &&
+                            InlinePictureRect(view, "marker-inside", "lm").Left == BlockContent(view, "marker-inside").Left &&
+                            InlinePictureCount(view, "eight", "be") == 8 &&
+                            ColorDistance(image.GetPixel(inline.Left + 2, inline.Top + inline.Height / 2), Color.FromArgb(220, 38, 38)) < 24,
+                            "generated image geometry or paint changed");
+                    }
+                    field = view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-image-field");
+                    Need(field != null && view.Js("be('command',\"content:url(../../assets/lea.ico) / 'View picture '\")") == 1,
+                        "generated image view command changed");
+                    field.V = "Retained benchmark generated image";
+                    view.Size = new Size(350, 5200);
+                    using (var image = Draw(view))
+                        Need(InlinePictureCount(view, "responsive", "be") == 1 &&
+                            view.Ax(ById(view.At.D, "responsive")).N == "Narrow picture Responsive content" &&
+                            Object.ReferenceEquals(field, view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-image-field")) &&
+                            field.V == "Retained benchmark generated image", "generated image resize or retained value changed");
+                }
+                return "mixed string/image fragments, variables, relative origins, alternatives, links, tables, markers, eight-item bounds, invalid preservation, commands, hover/media rebuilds, sandboxed resources, geometry, paint, and retained fields";
+            });
+            AddProbe(probes, "Bounded disclosures", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "disclosure.html"));
+                var details = ById(page.D, "closed");
+                var summary = ById(page.D, "closed-summary");
+                var content = page.Bs.First(block => block.El != null && block.El.Av("id") == "closed-content");
+                var marker = page.Bs.First(block => block.El != null && block.El.Av("id") == "closed-summary");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "closed-field");
+                field.V = "Retained benchmark value";
+                Need(!details.Op && content.Hd && marker.Mk == ">", "closed disclosure model changed");
+                Need(engine.Ds(page, summary) == 1 && details.Op, "disclosure toggle failed");
+                content = page.Bs.First(block => block.El != null && block.El.Av("id") == "closed-content");
+                Need(!content.Hd, "opened disclosure content stayed hidden");
+                Need(field.V == "Retained benchmark value", "disclosure rebuild replaced mutable field state");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "disclosure.html"));
+                    Need(view.Ds(ById(view.At.D, "closed-summary")) == 1, "view disclosure toggle failed");
+                    using (var image = Draw(view)) Need(view.Bc > 0 && ColoredSamples(image) > 0, "disclosure layout is blank");
+                }
+                return "Nested open state, retained fields, compact markers, host/view toggles, and painted content";
+            });
+            AddProbe(probes, "Retained fragment navigation", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "fragments.html"));
+                var requests = engine.Dg(page).Rs.Count;
+                Need(engine.Ft(page, "#encoded%20target") != null, "encoded fragment lookup failed");
+                Need(Object.ReferenceEquals(page, engine.Go("#target")) && engine.At.U.Fragment == "#target", "fragment navigation replaced the page");
+                Need(engine.Dg(page).Rs.Count == requests, "fragment navigation performed a request");
+                var hidden = engine.Ft(page, "#closed-target");
+                Need(engine.Rv(page, hidden) == 1 && ById(page.D, "closed-details").Op, "hidden fragment was not revealed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "fragments.html"));
+                    Need(view.Fg("#cell-target") == 1 && view.Sy > 0, "view fragment placement failed");
+                    using (var image = Draw(view)) Need(ColoredSamples(image) > 0, "fragment layout is blank");
+                }
+                return "128-entry history, zero-fetch page retention, encoded/named targets, hidden reveal, table placement, and resize coverage";
+            });
+            AddProbe(probes, "Stable initial fragments", delegate
+            {
+                var path = Path.Combine(folder, "fragment-stability.html");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(300, 140);
+                    view.Go(new Uri(new Uri(path).AbsoluteUri + "#resize-target"));
+                    using (var image = Draw(view)) Need(ColoredSamples(image) > 0, "initial fragment layout is blank");
+                    Need(view.Fa && view.Fj >= 2 && view.Fy >= view.Sy && view.Fy < view.Sy + view.ClientSize.Height,
+                        "initial fragment anchor or diagnostics changed");
+                    var narrowTarget = view.Fy;
+                    var narrowJumps = view.Fj;
+                    view.Size = new Size(720, 140);
+                    using (var image = Draw(view)) { }
+                    Need(view.Fj > narrowJumps && view.Fy < narrowTarget && view.Fy >= view.Sy && view.Fy < view.Sy + view.ClientSize.Height,
+                        "initial fragment did not follow settled host geometry");
+                    var settledJumps = view.Fj;
+                    view.Sc(1);
+                    view.Size = new Size(640, 140);
+                    using (var image = Draw(view)) { }
+                    Need(!view.Fa && view.Fj == settledJumps, "manual scroll did not release the initial fragment anchor");
+                }
+                return "Fa/Fj/Fy diagnostics, first-paint retention, responsive host settlement, and manual-scroll release";
+            });
+            AddProbe(probes, "Host navigation guard", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "forms.html"));
+                engine.Ng = url => false;
+                foreach (var action in new Action[] { () => engine.Go(page.U), () => engine.Rl(), () => engine.Fg("#blocked") })
+                {
+                    var rejected = false;
+                    try { action(); } catch (Er error) { rejected = error.K == "blocked" && !error.Rt; }
+                    Need(rejected && engine.At == page && !engine.CanBk && !engine.Busy, "navigation guard changed retained state");
+                }
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "forms.html"));
+                    var retained = view.At;
+                    view.Ng = url => false;
+                    var rejected = false;
+                    try { view.GoA(Path.Combine(folder, "index.html")).GetAwaiter().GetResult(); }
+                    catch (Er error) { rejected = error.K == "blocked"; }
+                    Need(rejected && view.At == retained && !view.Busy, "view guard alias or async rejection failed");
+                    view.Dispose();
+                    Need(view.Ng == null, "disposed view retained host policy");
+                }
+                return "Ng policy, typed rejection, retained page/history, async view alias, and disposal; not a redirect/resource firewall";
+            });
+            AddProbe(probes, "Blocked native input", delegate
+            {
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "focus-shortcuts.html"));
+                    using (var bitmap = Draw(view)) Need(ColoredSamples(bitmap) > 0, "input fixture is blank");
+                    var retained = view.At;
+                    var calls = 0;
+                    view.Ng = url => { calls++; return false; };
+                    var keyDown = typeof(V).GetMethod("OnKeyDown", BindingFlags.Instance | BindingFlags.NonPublic);
+                    foreach (var key in new[] { Keys.Alt | Keys.Shift | Keys.G, Keys.Enter })
+                    {
+                        var args = new KeyEventArgs(key);
+                        keyDown.Invoke(view, new object[] { args });
+                        Application.DoEvents();
+                        Need(args.Handled && args.SuppressKeyPress, "blocked keyboard input was not consumed");
+                    }
+                    Need(calls == 2 && view.At == retained && view.U.Fragment == "", "blocked input changed page/history");
+                    var rejected = false;
+                    try { view.Ka().GetAwaiter().GetResult(); } catch (Er error) { rejected = error.K == "blocked"; }
+                    Need(rejected, "public activation hid its rejection");
+                }
+                return "Expected Ng denials stay out of native keyboard callbacks; public Ka still reports blocked";
+            });
+            AddProbe(probes, "Bounded progress and meter gauges", delegate
+            {
+                var page = new E().Go(Path.Combine(folder, "gauges.html"));
+                var progress = page.Bs.First(block => block.El != null && block.El.Av("id") == "styled-progress");
+                var extreme = page.Bs.First(block => block.El != null && block.El.Av("id") == "extreme-progress");
+                var worst = page.Bs.First(block => block.El != null && block.El.Av("id") == "worst-meter");
+                Need(progress.Vm != null && progress.Vm.R == 0.375D && progress.S.F == "#176b4d", "progress model or inherited style changed");
+                Need(extreme.Vm.Mx == 1000000000000D && extreme.Vm.V == extreme.Vm.Mx, "extreme progress value is unbounded");
+                Need(worst.Vm.Q == 2 && worst.Vm.R == 0.9D, "meter quality model changed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "gauges.html"));
+                    using (var image = Draw(view)) Need(view.Bc > page.Bs.Count && ColoredSamples(image) > 0, "gauge layout is blank");
+                }
+                return "Vm aliases, determinate/indeterminate progress, ordered meter regions, 10^12 numeric ceiling, inherited style, tables, resize, and paint";
+            });
+            AddProbe(probes, "Bounded output and data values", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "values.html"));
+                var output = page.Dvs.First(value => value.El.Av("id") == "total-output");
+                var data = page.Dvs.First(value => value.El.Av("id") == "inline-data");
+                var cell = page.Dvs.First(value => value.El.Av("id") == "cell-data");
+                Need(page.Dvs.Count == 7 && output.K == "o" && output.V == "42 points", "output value collection changed");
+                Need(output.N == "total" && output.Fo == "calc" && output.F.SequenceEqual(new[] { "price", "qty" }), "output ownership aliases changed");
+                Need(data.K == "d" && data.V == "lea-97" && data.X == "Lea compact", "data value aliases changed");
+                Need(cell.El.Up != null && cell.El.Up.K == "td", "table data ownership changed");
+                Need(page.Bs.SelectMany(block => block.Is).Any(run => Object.ReferenceEquals(run.Dv, data)), "inline data run is missing");
+                Need(page.Dvs.First(value => value.El.Av("id") == "many-refs").F.Count == 32, "output reference bound changed");
+                Need(engine.Ck(page, ById(page.D, "update-output")) == 1 && page.Dvs.First(value => value.El.Av("id") == "live-output").V == "Updated total", "safe output rebuild failed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "values.html"));
+                    using (var image = Draw(view)) Need(view.Bc > 0 && ColoredSamples(image) > 0, "value layout is blank");
+                    view.Size = new Size(150, 720);
+                    using (var image = Draw(view)) Need(view.At.Dvs.Count == 7 && view.Bc > 0, "value resize path changed");
+                }
+                return "Dv aliases, 4096-char values, 32 unique references, inline/block/table ownership, 512-char updates, rebuilds, and resize";
+            });
+            AddProbe(probes, "Bounded time and edit metadata", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "time-edits.html"));
+                var release = page.Dvs.First(value => value.El.Av("id") == "release-time");
+                var inserted = page.Dvs.First(value => value.El.Av("id") == "inline-ins");
+                var removed = page.Dvs.First(value => value.El.Av("id") == "inline-del");
+                Need(page.Dvs.Count == 10 && release.K == "t" && release.V == "2026-08-21T19:00-04:00" && release.Dt == release.V, "time aliases changed");
+                Need(inserted.K == "i" && inserted.U == new Uri(page.Bu, "go-target.html#change") && inserted.Dt == "2026-08-21T19:05-04:00", "inserted metadata changed");
+                Need(removed.K == "r" && removed.U == null, "unsafe removed citation was accepted");
+                Need(page.Bs.SelectMany(block => block.Is).Any(run => Object.ReferenceEquals(run.Dv, inserted) && run.S.Td.IndexOf('u') >= 0), "inserted inline ownership or decoration changed");
+                Need(page.Bs.SelectMany(block => block.Is).Any(run => Object.ReferenceEquals(run.Dv, removed) && run.S.Td.IndexOf('s') >= 0), "removed inline ownership or decoration changed");
+                Need(engine.Ck(page, ById(page.D, "update-live")) == 1 && page.Dvs.First(value => value.El.Av("id") == "live-time").Dt == "2026-08-22", "text time rebuild failed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "time-edits.html"));
+                    using (var image = Draw(view)) Need(view.Bc > 0 && ColoredSamples(image) > 0, "time and edit layout is blank");
+                    view.Size = new Size(160, 800);
+                    using (var image = Draw(view)) Need(view.At.Dvs.Count == 10 && view.Bc > 0, "time and edit resize path changed");
+                }
+                return "Dv t/i/r aliases, 128-char datetimes, safe resolved citations, unsafe-scheme rejection, native decoration, ownership, rebuilds, tables, and resize";
+            });
+            AddProbe(probes, "Bounded responsive image maps", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "image-maps.html"));
+                var map = page.Mps.First();
+                var image = page.Bs.First(block => block.El != null && block.El.Av("id") == "mapped");
+                Need(page.Mps.Count == 2 && map.N == "LeaMap" && map.As.Count == 7, "image map collection changed");
+                Need(map.As[0].U == null && map.As[1].K == "r" && map.As[1].Cs.SequenceEqual(new[] { 0D, 0D, 100D, 80D }), "rectangle or dead area model changed");
+                Need(map.As[2].K == "c" && map.As[2].Cs.Count == 3 && map.As[3].K == "p" && map.As[3].Cs.Count == 8, "circle or polygon model changed");
+                Need(map.As[4].Cs.Count == 0 && map.As[5].Cs.Count == 0 && map.As[6].K == "d", "empty/default area model changed");
+                Need(Object.ReferenceEquals(image.Mp, map) && image.Mw == 320 && image.Mh == 160 && page.Ls.Count == 6, "image map ownership or links changed");
+                Need(engine.Ck(page, ById(page.D, "style-map")) == 1 && page.Mps.Count == 2 && page.Bs.First(block => block.El != null && block.El.Av("id") == "mapped").S.W == 240, "image map rebuild failed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "image-maps.html"));
+                    using (var bitmap = Draw(view)) Need(view.Bc > 0 && ColoredSamples(bitmap) > 0, "image map layout is blank");
+                    view.Size = new Size(180, 800);
+                    using (var bitmap = Draw(view)) Need(view.At.Mps.Count == 2 && view.Bc > 0, "image map resize path changed");
+                }
+                return "Mp/Ar aliases, rect/circle/poly/default and dead areas, 32 maps, 64 areas, 128 coordinates, responsive scaling, rebuilds, and paint";
+            });
+            AddProbe(probes, "Bounded keyboard focus", delegate
+            {
+                var path = Path.Combine(folder, "keyboard-focus.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Need(engine.Ti(ById(page.D, "priority-one")) == 1 && engine.Ti(ById(page.D, "negative-link")) == -1 && engine.Ti(ById(page.D, "invalid-link")) == null, "tabindex parsing changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(520, 280);
+                    view.Go(path);
+                    using (var bitmap = Draw(view)) Need(view.Kn == 14 && view.Ki == 0 && view.Ke == null, "keyboard target collection changed");
+                    Need(view.Kf() == 1 && view.Ke.Av("id") == "priority-one" && !view.Kb.IsEmpty, "positive tabindex ordering changed");
+                    Need(view.Kf() == 2 && view.Ke.Av("id") == "priority-area" && view.Kb.Size == new Size(100, 100), "image-map keyboard focus changed");
+                    Need(view.Kf() == 3 && view.Ke.Av("id") == "priority-area" && view.Kb.Size == new Size(50, 50), "shared image-map keyboard slot changed");
+                    Need(view.Ka().GetAwaiter().GetResult() == 1 && view.U.Fragment == "#area-target", "image-map keyboard activation changed");
+                    view.Go(path);
+                    for (var index = 0; index < 14; index++) view.Kf();
+                    Need(view.Ke.Av("id") == "last-link" && view.Sy > 0 && !view.Kb.IsEmpty, "off-screen keyboard scrolling changed");
+                    Need(view.Kf() == 1 && view.Ke.Av("id") == "priority-one", "keyboard wrapping changed");
+                }
+                return "Ti and Ke/Kn/Ki/Kb/Kf/Ka aliases, positive/zero/default/negative order, links, areas, fields, summaries, focus rings, scrolling, and 256-target bounds";
+            });
+            AddProbe(probes, "Bounded focus shortcuts", delegate
+            {
+                var path = Path.Combine(folder, "focus-shortcuts.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var auto = ById(page.D, "auto-field");
+                Need(engine.Afs(page).Count == 3 && engine.Af(page).Av("id") == "invalid-auto", "autofocus candidate model changed");
+                Need(engine.Ak(auto) == "S" && engine.Aks(auto).SequenceEqual(new[] { "S", "1" }), "access-key alternatives changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(520, 300);
+                    view.Go(path);
+                    using (var bitmap = Draw(view)) Need(view.Ke != null && view.Ke.Av("id") == "auto-field" && !view.Kb.IsEmpty, "rendered autofocus selection changed");
+                    Need(view.An == 6 && view.Ak(ById(view.At.D, "fallback-button")) == "X" && view.Kl(ById(view.At.D, "run-button")) == "Alt+Shift+B", "assigned access-key model changed");
+                    Need(view.Aa("b").GetAwaiter().GetResult() == 1 && ById(view.At.D, "shortcut-state").C[0].X == "button shortcut activated", "button access-key activation changed");
+                    Need(view.Aa("r").GetAwaiter().GetResult() == 1 && view.Ke.Av("id") == "focus-region" && view.Ki == 0, "focus-only access target changed");
+                    Need(view.Aa("g").GetAwaiter().GetResult() == 1 && view.U.Fragment == "#target", "link access-key activation changed");
+                    view.Go(new UriBuilder(new Uri(path)) { Fragment = "target" }.Uri);
+                    using (var bitmap = Draw(view)) Need(view.Ke == null && view.Sy > 0, "fragment autofocus suppression changed");
+                }
+                return "Af/Afs and Ak/Aks/An/Kl/Aa aliases, first usable autofocus, Alt+Shift assignment, conflicts, exclusions, focus, activation, and fragment suppression";
+            });
+            AddProbe(probes, "Bounded semantic accessibility", delegate
+            {
+                var path = Path.Combine(folder, "accessibility.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var user = ById(page.D, "user-name");
+                var semantic = engine.Ax(page, user);
+                Need(page.Axs.Count > 20 && page.Axs.Count <= 512 && Object.ReferenceEquals(page.Axs, engine.Axs(page)), "bounded accessibility list changed");
+                Need(semantic != null && semantic.K == "textbox" && semantic.N == "Display name" && semantic.D == "Shown beside your work." && semantic.Is(Ax.Rq), "accessible name, description, role, or state changed");
+                Need(engine.Ax(page, ById(page.D, "secret")).V.Length == 0 && engine.Ax(page, ById(page.D, "custom")).Is(Ax.Mx), "semantic redaction or ARIA state changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 560);
+                    view.Go(path);
+                    using (var bitmap = Draw(view)) Need(!view.Ab(view.Ax(ById(view.At.D, "user-name"))).IsEmpty, "semantic view bounds changed");
+                    Need(view.Ao != null && view.Ao.Role == AccessibleRole.Document && view.Ao.GetChildCount() > 0, "WinForms accessibility root changed");
+                    var automation = AutomationElement.FromHandle(view.Handle);
+                    Need(automation.Current.ControlType == ControlType.Document && automation.Current.FrameworkId == "Lea", "UI Automation document provider changed");
+                    var automationUser = automation.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "user-name"));
+                    object valuePattern;
+                    Need(automationUser != null && automationUser.Current.ControlType == ControlType.Edit && automationUser.TryGetCurrentPattern(ValuePattern.Pattern, out valuePattern), "UI Automation field or value pattern changed");
+                    var automationProgress = automation.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "load-progress"));
+                    object rangePattern;
+                    Need(automationProgress != null && automationProgress.TryGetCurrentPattern(RangeValuePattern.Pattern, out rangePattern) && ((RangeValuePattern)rangePattern).Current.IsReadOnly, "UI Automation range pattern changed");
+                    var automationTable = automation.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "people"));
+                    object gridPattern = null;
+                    object tablePattern = null;
+                    Need(automationTable != null && automationTable.TryGetCurrentPattern(GridPattern.Pattern, out gridPattern) && automationTable.TryGetCurrentPattern(TablePattern.Pattern, out tablePattern), "UI Automation table patterns changed");
+                    var grid = (GridPattern)gridPattern;
+                    var table = (TablePattern)tablePattern;
+                    Need(grid.Current.RowCount == 3 && grid.Current.ColumnCount == 2 && grid.GetItem(2, 1).Current.AutomationId == "people-note", "UI Automation table grid changed");
+                    Need(table.Current.RowOrColumnMajor == RowOrColumnMajor.RowMajor && table.Current.GetColumnHeaders().Length == 2 && table.Current.GetRowHeaders().Length == 1, "UI Automation table headers changed");
+                    object textPattern;
+                    Need(automation.TryGetCurrentPattern(TextPattern.Pattern, out textPattern), "UI Automation text pattern changed");
+                    var document = ((TextPattern)textPattern).DocumentRange;
+                    var documentText = document.GetText(-1);
+                    Need(documentText.Contains("Lea semantic fixture") && documentText.Contains("Shared note") && documentText.Contains("Hidden action") && !documentText.Contains("do-not-expose"), "UI Automation logical text or redaction changed");
+                    Need((bool)document.GetAttributeValue(TextPattern.IsReadOnlyAttribute) && document.FindText("shared NOTE", false, true).GetText(-1) == "Shared note", "UI Automation text attributes or search changed");
+                    var intro = automation.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "intro"));
+                    var introRange = ((TextPattern)textPattern).RangeFromChild(intro);
+                    var visualLine = introRange.Clone();
+                    visualLine.ExpandToEnclosingUnit(TextUnit.Line);
+                    Need(introRange.GetBoundingRectangles().Length == 2 && visualLine.GetBoundingRectangles().Length == 1 &&
+                        visualLine.Move(TextUnit.Line, 1) == 1 && visualLine.GetBoundingRectangles().Length == 1, "UI Automation visual line geometry changed");
+                }
+                return "Ax/Axs/St/Is and V.Ax/Axs/Ab/Ao aliases, 512 records, names, roles, live protected state, bounds, MSAA children, UIA fragments, control types, grid/table coordinates, headers, logical text, visual lines, search, redaction, and patterns";
+            });
+            AddProbe(probes, "CSS selectors and cascade", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "selectors.html"));
+                var snapshot = engine.Dg(page);
+                Need(snapshot.C > 0 && page.Bs.Count > 0 && page.S != null, "compiled styles are missing");
+                return snapshot.C + " compiled rules across " + snapshot.B + " blocks";
+            });
+            AddProbe(probes, "Bounded selector functions", delegate
+            {
+                var path = Path.Combine(folder, "selector-functions.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "card");
+                var where = page.Bs.First(item => item.El != null && item.El.Av("id") == "where-target");
+                var adjacent = page.Bs.First(item => item.El != null && item.El.Av("id") == "adjacent");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark selector";
+                Need(block.S.F == "#0f4c81" && where.S.F == "#176b4d" && where.S.Pl == 9, "is maximum or where zero specificity changed");
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "keep").S.B &&
+                    !page.Bs.First(item => item.El != null && item.El.Av("id") == "skip").S.B && adjacent.S.W == 120 && adjacent.S.Ml == 17,
+                    "not alternatives or outer combinators changed");
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "forgiving").S.W == 144 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "forgiving").S.H == 44, "is or where forgiving alternatives changed");
+                Need(engine.Qa(page, ":is(.card,.note)").Count == 3 && engine.Qa(page, ".item:not(.skip,[data-off])").Count == 1 &&
+                    engine.Qa(page, ":is(.a > .b,.c)").Count == 1 && engine.Qa(page, ":not(.a,,.c)").Count == 0 &&
+                    engine.Qa(page, ":is(.a,.b,.c,.d,.e,.f,.g,.h,.i)").Count == 0, "functional document queries, forgiving behavior, or bounds changed");
+                engine.Dy(page, ById(page.D, "hover"), null);
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "hover").S.Pl == 19, "functional hover selector changed");
+                engine.Dy(page, null, ById(page.D, "field"));
+                Need(field.S.Bl == 5 && field.S.Pl == 12 && Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && field.V == "Retained benchmark selector", "functional focus rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var paint = Draw(view)) Need(BlockContent(view, "adjacent").Width == 120 && BlockContent(view, "where-target").Width > 0, "functional selector view geometry changed");
+                }
+                return "eight alternatives, sixteen tests, one-level compound arguments, forgiving is/where, strict not, maximum/zero specificity, outer combinators, queries, dynamic state, and retained fields";
+            });
+            AddProbe(probes, "Bounded structural arithmetic", delegate
+            {
+                var path = Path.Combine(folder, "selector-arithmetic.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var one = page.Bs.First(item => item.El != null && item.El.Av("id") == "a1");
+                var five = page.Bs.First(item => item.El != null && item.El.Av("id") == "a5");
+                var seven = page.Bs.First(item => item.El != null && item.El.Av("id") == "a7");
+                var invalid = page.Bs.First(item => item.El != null && item.El.Av("id") == "invalid");
+                Need(one.S.F == "#0f4c81" && one.S.Bg == "#edf7f2" && one.S.B && one.S.H == 31 && one.S.Ml == 11,
+                    "positive, negative, reverse, specificity, or selector-list structural matching changed");
+                Need(five.S.I && five.S.B && seven.S.Pl == 13 && page.Bs.First(item => item.El != null && item.El.Av("id") == "a8").S.Pl == 13,
+                    "unit or reverse structural ranges changed");
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "m2").S.Bl == 4 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "m2").S.W == 142 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "m4").S.W == 142, "type structural formulas changed");
+                Need(invalid.S.W == 73 && invalid.S.H == 19 && invalid.S.Pl == 3 && invalid.S.Bl == 2 && invalid.S.Bg == "", "invalid structural expressions escaped bounds");
+                Need(engine.Qa(page, "#forward > p:nth-child(3n+1)").Count == 3 &&
+                    engine.Qa(page, "#forward > p:nth-child(-n+3)").Count == 3 &&
+                    engine.Qa(page, "#forward > p:nth-last-child(2n)").Count == 4 &&
+                    engine.Qa(page, "#mixed > div:nth-last-of-type(2n+1)").Count == 2 &&
+                    engine.Qa(page, "#forward > :is(p:nth-child(4n+1),.missing)").Count == 2, "structural document queries changed");
+                Need(engine.Qa(page, "#forward > p:nth-child(8192n+1)").Count == 1 &&
+                    engine.Qa(page, "#forward > p:nth-child(8193n+1)").Count == 0 &&
+                    engine.Qa(page, "#forward > p:nth-child(2n+-1)").Count == 0 &&
+                    engine.Qa(page, "#forward > p:nth-child(2n of .rank)").Count == 4, "structural query limits or filtered compatibility changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var paint = Draw(view)) Need(BlockContent(view, "a1").Width == 96 && BlockContent(view, "a1").Height == 31 && BlockContent(view, "m2").Width == 142, "structural formula view geometry changed");
+                }
+                return "precompiled A/B integers, positive/negative/zero formulas, forward/reverse child and type positions, 32-character and 8192-value bounds, specificity, queries, selector-list composition, and geometry";
+            });
+            AddProbe(probes, "Bounded filtered positions", delegate
+            {
+                var path = Path.Combine(folder, "selector-filtered-position.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var one = page.Bs.First(item => item.El != null && item.El.Av("id") == "f1");
+                var five = page.Bs.First(item => item.El != null && item.El.Av("id") == "f5");
+                var seven = page.Bs.First(item => item.El != null && item.El.Av("id") == "f7");
+                var eight = page.Bs.First(item => item.El != null && item.El.Av("id") == "f8");
+                var invalid = page.Bs.First(item => item.El != null && item.El.Av("id") == "invalid");
+                Need(one.S.Bg == "#edf7f2" && five.S.Bg == "#edf7f2" && eight.S.Bg == "#edf7f2" &&
+                    seven.S.B && eight.S.B && page.Bs.First(item => item.El != null && item.El.Av("id") == "f3").S.Bl == 4 && five.S.Pl == 13,
+                    "filtered forward, reverse, list, or compound matching changed");
+                Need(one.S.F == "#0f4c81" && page.Bs.First(item => item.El != null && item.El.Av("id") == "f4").S.F == "#0f4c81" &&
+                    seven.S.F == "#0f4c81" && page.Bs.First(item => item.El != null && item.El.Av("id") == "specific").S.H == 33, "filtered reverse parity or specificity changed");
+                Need(page.Fs.First(item => item.El != null && item.El.Av("id") == "e2").S.Bg == "#dff6e9" &&
+                    page.Fs.First(item => item.El != null && item.El.Av("id") == "e2").S.B && page.Fs.First(item => item.El != null && item.El.Av("id") == "e3").S.Bl == 5,
+                    "filtered form-state matching changed");
+                Need(invalid.S.W == 73 && invalid.S.H == 19 && invalid.S.Pl == 3 && invalid.S.Bl == 2 && invalid.S.Br == 0 && invalid.S.Mr == 0 && invalid.S.Bg == "",
+                    "invalid filtered selectors escaped bounds");
+                Need(engine.Qa(page, "#items>p:nth-child(2n+1 of .pick)").Count == 3 &&
+                    engine.Qa(page, "#items>.pick:nth-child(-n+3)").Count == 2 &&
+                    engine.Qa(page, "#items>p:nth-child(-n+3 of .pick)").Count == 3 &&
+                    engine.Qa(page, "#items>p:nth-last-child(2n of .pick,[data-alt])").Count == 3 &&
+                    engine.Qa(page, "#forms>input:nth-child(2 of :enabled)").Count == 1, "filtered document queries changed");
+                Need(engine.Qa(page, "#invalid:nth-child(n of #invalid,.a,.b,.c,.d,.e,.f,.g):nth-last-child(n of #invalid,.h,.i,.j,.k,.l,.m,.o)").Count == 1 &&
+                    engine.Qa(page, "#invalid:nth-child(n of #invalid,.a,.b,.c,.d,.e,.f,.g):nth-last-child(n of #invalid,.h,.i,.j,.k,.l,.m,.o):nth-child(n of #invalid)").Count == 0 &&
+                    engine.Qa(page, "#invalid:nth-child(1 of .pick,)").Count == 0 && engine.Qa(page, "#invalid:nth-of-type(1 of #invalid)").Count == 0,
+                    "filtered strictness, total tests, or typed rejection changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var paint = Draw(view)) Need(BlockContent(view, "f1").Width == 108 && BlockContent(view, "specific").Height == 33, "filtered selector view geometry changed");
+                }
+                return "strict compound of-S lists, eight alternatives, sixteen total tests, maximum filter specificity, forward/reverse counting, form-state filters, queries, invalid nesting/type rejection, and geometry";
+            });
+            AddProbe(probes, "Bounded relational selectors", delegate
+            {
+                var path = Path.Combine(folder, "selector-relational.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var direct = page.Bs.First(item => item.El != null && item.El.Av("id") == "direct");
+                var descendant = page.Bs.First(item => item.El != null && item.El.Av("id") == "descendant");
+                var invalid = page.Bs.First(item => item.El != null && item.El.Av("id") == "invalid");
+                Need(direct.S.W == 118 && direct.S.Bg == "#edf7f2" && direct.S.B && descendant.S.Bl == 4,
+                    "relational child, descendant, list, or compound matching changed");
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "adjacent").S.H == 31 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "following").S.Pl == 11 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "complex").S.Br == 6 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "specific").S.H == 37,
+                    "relational sibling, complex-chain, or specificity matching changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "focus-input");
+                field.V = "Retained relational benchmark";
+                engine.Dy(page, null, field.El);
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "focus-card").S.Bg == "#dff6e9" &&
+                    Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "focus-input")) && field.V == "Retained relational benchmark",
+                    "relational focus rebuild or field retention changed");
+                Need(engine.Qa(page, ".card:has(> img.hero)").Count == 1 &&
+                    engine.Qa(page, ".card:has(.body .ready[data-state=go])").Count == 1 &&
+                    engine.Qa(page, "#adjacent:has(+ dt)").Count == 1 &&
+                    engine.Qa(page, "#following:has(~ li.end)").Count == 1 &&
+                    engine.Qa(page, "section:has(> .body > .row + .ready)").Count == 1,
+                    "relational document queries changed");
+                Need(engine.Qa(page, "#direct:has(> img,.a,.b,.c,.d,.e,.f,.g)").Count == 1 &&
+                    engine.Qa(page, "#complex:has(> .body .ready,.a .b,.c .d,.e .f,.g .h,.i .j,.k .l,.m .n)").Count == 1 &&
+                    engine.Qa(page, "#invalid:has(.ready,)").Count == 0 && engine.Qa(page, "#invalid:has(:has(.ready))").Count == 0 &&
+                    engine.Qa(page, "#invalid:has(> .a .b .c .d .e)").Count == 0,
+                    "relational strictness, nesting, or compile limits changed");
+                Need(invalid.S.W == 92 && invalid.S.H == 21 && invalid.S.Pl == 3 && invalid.S.Bl == 0 && invalid.S.Br == 0 && invalid.S.Ml == 0 && invalid.S.Mr == 0,
+                    "invalid relational selectors escaped bounds");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var paint = Draw(view)) Need(BlockContent(view, "direct").Width == 118 && BlockContent(view, "specific").Height == 37, "relational selector view geometry changed");
+                }
+                return "strict precompiled relative lists, descendant/child/adjacent/following relationships, four-part chains, eight alternatives, sixteen total parts, 4096 candidate visits, maximum specificity, dynamic focus, queries, retained fields, and geometry";
+            });
+            AddProbe(probes, "Bounded media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-queries.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark value";
+                Need(engine.Vw == 1024 && page.Vw == 1024 && engine.Dg(page).C == 16, "default responsive state changed");
+                Need(page.Bs.Any(block => block.El != null && block.El.Av("id") == "wide") &&
+                    !page.Bs.Any(block => block.El != null && block.El.Av("id") == "narrow"), "wide media selection changed");
+                engine.Vw = 480;
+                Need(page.Vw == 480 && engine.Dg(page).C == 16 &&
+                    page.Bs.Any(block => block.El != null && block.El.Av("id") == "narrow") &&
+                    page.Bs.Any(block => block.El != null && block.El.Av("id") == "nested") &&
+                    page.Bs.Any(block => block.El != null && block.El.Av("id") == "exact") &&
+                    !page.Bs.Any(block => block.El != null && block.El.Av("id") == "wide"), "narrow media selection changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark value" && field.S.W == 140, "responsive rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var widePaint = Draw(view)) Need(view.Vw == 840 && BlockContent(view, "wide").Width == 320, "wide responsive view changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained view value";
+                    view.Size = new Size(480, 760);
+                    using (var narrowPaint = Draw(view)) Need(view.Vw == 480 && BlockContent(view, "narrow").Width == 180, "narrow responsive view changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && liveField.V == "Retained view value", "responsive view replaced field state");
+                }
+                return "Vw/P.Vw/G.Vw aliases, min/max/exact/comma/nested screen queries, style media, 1-8192 px bounds, live resize, diagnostics, and retained fields";
+            });
+            AddProbe(probes, "Height and orientation media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-features.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark media value";
+                Need(engine.Vw == 1024 && engine.Vh == 768 && page.Vh == 768 && engine.Dg(page).Vh == 768,
+                    "default viewport-height aliases changed");
+                Need(has("landscape") && has("tall") && !has("portrait") && !has("short") && !has("invalid-unit") && !has("invalid-orientation") && !has("conflict"),
+                    "default height/orientation selection changed");
+                engine.Vz(480, 800);
+                Need(page.Vw == 480 && page.Vh == 800 && has("portrait") && has("tall") && has("either") && has("nested") && has("style-media") && !has("landscape"),
+                    "portrait media selection changed");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@m<=600&@h>=700&@o=p")),
+                    "intersected media diagnostics changed");
+                engine.Vz(900, 480);
+                Need(has("landscape") && has("short") && has("exact-height") && has("combined") && !has("portrait") && !has("tall"),
+                    "short landscape media selection changed");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@m>=800&@h<=500&@o=l")) &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && field.V == "Retained benchmark media value",
+                    "combined diagnostics or retained media field changed");
+                engine.Vz(500, 500);
+                Need(has("portrait") && !has("landscape"), "square portrait boundary changed");
+                engine.Vh = 480;
+                Need(engine.Vw == 500 && engine.Vh == 480 && has("landscape") && has("exact-height"), "height-only viewport update changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(480, 800);
+                    view.Go(path);
+                    using (var portraitPaint = Draw(view))
+                        Need(view.Vh == 800 && view.At.Vh == 800 && BlockContent(view, "portrait").Width == 181, "portrait view media geometry changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained media view value";
+                    view.Size = new Size(900, 480);
+                    using (var landscapePaint = Draw(view))
+                        Need(view.Vw == 900 && view.Vh == 480 && view.Dg().Vh == 480 && BlockContent(view, "combined").Width == 260,
+                            "landscape view media geometry changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && liveField.V == "Retained media view value",
+                        "height/orientation view resize replaced field state");
+                }
+                return "Vh/P.Vh/G.Vh and atomic Vz aliases, min/max/exact height, portrait/landscape, conjunctions, alternatives, nested intersections, style media, invalid-query rejection, square boundary, diagnostics, retention, and live resize";
+            });
+            AddProbe(probes, "Aspect-ratio media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-aspect-ratio.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark ratio value";
+                Need(has("four-three") && has("combined") && has("nested") && !has("wide-ratio") && !has("tall-ratio") && !has("either"),
+                    "default aspect-ratio selection changed");
+                Need(!has("zero") && !has("decimal") && !has("unknown") && !has("impossible"), "invalid aspect-ratio query escaped bounds");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@r=4/3")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@m>=700&@r>=4/3&@r<=16/9")),
+                    "normalized or intersected ratio diagnostics changed");
+                engine.Vz(480, 800);
+                Need(has("tall-ratio") && has("either") && !has("four-three") && !has("wide-ratio") && !has("nested"),
+                    "tall aspect-ratio selection changed");
+                engine.Vz(900, 480);
+                Need(has("wide-ratio") && has("combined") && has("either") && has("style-media") && !has("four-three") && !has("nested"),
+                    "wide aspect-ratio selection changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && field.V == "Retained benchmark ratio value",
+                    "ratio media rebuild replaced field state");
+                engine.Vz(500, 500);
+                Need(has("square") && !has("combined"), "square aspect-ratio boundary changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 480);
+                    view.Go(path);
+                    using (var widePaint = Draw(view)) Need(BlockContent(view, "wide-ratio").Width == 169, "wide ratio view geometry changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained ratio view value";
+                    view.Size = new Size(480, 800);
+                    using (var tallPaint = Draw(view)) Need(BlockContent(view, "tall-ratio").Width == 175 && view.Vw == 480 && view.Vh == 800, "tall ratio view geometry changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && liveField.V == "Retained ratio view value",
+                        "ratio view resize replaced field state");
+                }
+                return "bounded reduced integer exact/min/max aspect ratios, orientation conjunctions, comma alternatives, nested intersections, style media, invalid-query rejection, compact @r diagnostics, retention, and live resize";
+            });
+            AddProbe(probes, "Media range syntax", delegate
+            {
+                var path = Path.Combine(folder, "media-ranges.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark range value";
+                Need(has("width-ge") && has("width-reversed") && has("width-chain") && has("width-descending") &&
+                    has("height-chain") && has("ratio-chain") && has("ratio-reversed") && has("combined") && has("nested") &&
+                    !has("ratio-wide") && !has("ratio-tall") && !has("style-range"), "default media range selection changed");
+                Need(!has("mixed-chain") && !has("invalid-unit") && !has("zero-ratio") && !has("over-bound") &&
+                    !has("impossible-width") && !has("impossible-ratio") && !has("unknown-feature"),
+                    "invalid or empty media range escaped bounds");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@m>=700&@m<1100")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@h>500&@h<=768")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@r>1/1&@r<=4/3")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@m>=900&@m<1200&@r>1/1")),
+                    "strict or intersected media range diagnostics changed");
+                engine.Vz(800, 600);
+                Need(has("equal-width") && has("style-range") && has("width-chain") && !has("width-ge") && !has("nested"),
+                    "media range equality or inclusive chain changed");
+                engine.Vz(700, 500);
+                Need(!has("width-reversed") && has("width-chain") && has("width-descending") && !has("height-chain") && has("ratio-wide"),
+                    "strict dimension range boundary changed");
+                engine.Vz(1100, 768);
+                Need(!has("width-chain") && !has("width-descending") && has("nested"), "strict upper range boundary changed");
+                engine.Vz(900, 480);
+                Need(has("ratio-wide") && has("ratio-descending") && !has("ratio-reversed") && has("style-range") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@r>=3/2&@r<2/1")), "descending ratio range changed");
+                engine.Vz(600, 800);
+                Need(has("value-first") && !has("ratio-tall"), "strict ratio boundary changed");
+                engine.Vz(480, 800);
+                Need(has("value-first") && has("ratio-tall") && !has("ratio-chain") &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark range value", "tall media range or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 480);
+                    view.Go(path);
+                    using (var widePaint = Draw(view))
+                        Need(BlockContent(view, "ratio-descending").Width == 190 && BlockContent(view, "style-range").Width == 196,
+                            "wide media range view geometry changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained range view value";
+                    view.Size = new Size(480, 800);
+                    using (var tallPaint = Draw(view))
+                        Need(BlockContent(view, "ratio-tall").Width == 189 && view.Vw == 480 && view.Vh == 800,
+                            "tall media range view geometry changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained range view value", "media range view resize replaced field state");
+                }
+                return "feature/value-first and ascending/descending width, height, and rational aspect-ratio comparisons, strict/inclusive boundaries, nesting, style media, invalid-query rejection, compact diagnostics, retention, and live resize";
+            });
+            AddProbe(probes, "Resolution media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-resolution.html");
+                var engine = new E { Vw = 760, Vh = 1000 };
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                Need(engine.Dp == 96 && page.Dp == 96 && engine.Dg(page).Dp == 96,
+                    "default resolution aliases changed");
+                Need(has("boolean") && has("exact-dpi") && has("exact-dppx") && has("exact-dpcm") &&
+                    has("legacy-min") && has("legacy-max") && has("feature-first") && has("value-first") &&
+                    has("range") && has("positive") && has("negative-lower") && has("combined") && has("nested") &&
+                    !has("high-dppx") && !has("zero-exact") && !has("negative-upper"),
+                    "default resolution query selection changed");
+                Need(!has("empty-range") && !has("bad-chain") && !has("bad-unit") && !has("unsupported-infinite") &&
+                    !has("bad-function") && !has("bad-trailing"), "invalid resolution query escaped bounds");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@d=96dpi")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@d>48dpi&@d<=96dpi")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@m>=700&@d>=96dpi")),
+                    "resolution diagnostics changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark resolution value";
+                engine.Dp = 192;
+                Need(page.Dp == 192 && has("high-dpi") && has("high-dppx") && has("high-dpcm") && has("high-min") &&
+                    has("high-strict") && has("high-range") && !has("legacy-max") && !has("low"),
+                    "high-resolution query selection changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark resolution value" && field.S.W == 240,
+                    "resolution rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1000);
+                    view.Dp = 192;
+                    view.Go(path);
+                    using (var highPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Dp == 192 && view.At.Dp == 192 && responsive.Width == 240 &&
+                            ColorDistance(highPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(37, 99, 235)) < 8,
+                            "high-resolution view paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained resolution view value";
+                    view.Dp = 96;
+                    using (var lowPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Dp == 96 && view.At.Dp == 96 && responsive.Width == 180 &&
+                            ColorDistance(lowPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(220, 38, 38)) < 8,
+                            "low-resolution view paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained resolution view value", "resolution view rebuild replaced field state");
+                }
+                return "compact Dp/P.Dp/G.Dp density aliases, automatic WinForms DPI plumbing, dpi/dppx/dpcm conversion, boolean and legacy min/max forms, feature/value-first and chained ranges, negative bounds, width intersections, diagnostics, exact paint, and retained fields";
+            });
+            AddProbe(probes, "Preferred color scheme media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-color-scheme.html");
+                var engine = new E { Vw = 760, Vh = 1000 };
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                Need(engine.Th == 'l' && page.Th == 'l' && engine.Dg(page).Th == 'l',
+                    "default color scheme aliases changed");
+                Need(has("boolean") && has("light") && has("light-combined") && has("alternative") &&
+                    !has("dark") && !has("dark-nested") && !has("style-dark") && !has("conflict"),
+                    "default light color scheme selection changed");
+                Need(!has("invalid-old-value") && !has("invalid-value") && !has("invalid-range") && !has("invalid-trailing"),
+                    "invalid color scheme query escaped bounds");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@t=l")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@m>=700&@t=l")),
+                    "light color scheme diagnostics changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark theme value";
+                engine.Th = 'd';
+                Need(page.Th == 'd' && has("boolean") && !has("light") && has("dark") && has("dark-nested") &&
+                    has("style-dark") && !has("conflict") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@t=d")),
+                    "dark color scheme selection or diagnostics changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark theme value" && field.S.W == 240,
+                    "theme rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1000);
+                    view.Th = 'd';
+                    view.Go(path);
+                    using (var darkPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Th == 'd' && view.At.Th == 'd' && responsive.Width == 241 &&
+                            ColorDistance(darkPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(17, 24, 39)) < 8,
+                            "dark color scheme view paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained theme view value";
+                    view.Th = 'l';
+                    using (var lightPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Th == 'l' && view.At.Th == 'l' && responsive.Width == 181 &&
+                            ColorDistance(lightPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(248, 250, 252)) < 8,
+                            "light color scheme view paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained theme view value", "theme view rebuild replaced field state");
+                }
+                return "compact E/P/G/V.Th aliases, deterministic light default, automatic Windows application-theme sampling, boolean and light/dark queries, width intersections, alternatives, nested conflict rejection, style media, diagnostics, exact paint, and retained fields";
+            });
+            AddProbe(probes, "Reduced motion media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-reduced-motion.html");
+                var engine = new E { Vw = 760, Vh = 1000 };
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                Need(engine.Rm == 'n' && page.Rm == 'n' && engine.Dg(page).Rm == 'n',
+                    "default reduced motion aliases changed");
+                Need(!has("boolean") && has("no-preference") && has("no-preference-combined") && has("alternative") &&
+                    !has("reduce") && !has("reduce-nested") && !has("style-reduce") && !has("conflict"),
+                    "default motion selection or boolean context changed");
+                Need(!has("invalid-value") && !has("invalid-range") && !has("invalid-trailing"),
+                    "invalid reduced motion query escaped bounds");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@rm=n")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@m>=700&@rm=n")),
+                    "no-preference motion diagnostics changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark motion value";
+                engine.Rm = 'r';
+                Need(page.Rm == 'r' && has("boolean") && !has("no-preference") && has("reduce") &&
+                    has("reduce-nested") && has("style-reduce") && !has("conflict") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@rm=r")),
+                    "reduced motion selection, boolean context, or diagnostics changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark motion value" && field.S.W == 242,
+                    "motion rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1000);
+                    view.Rm = 'r';
+                    view.Go(path);
+                    using (var reducePaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Rm == 'r' && view.At.Rm == 'r' &&
+                            view.At.Bs.Any(block => block.El != null && block.El.Av("id") == "boolean") && responsive.Width == 243 &&
+                            ColorDistance(reducePaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(49, 46, 129)) < 8,
+                            "reduced motion view paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained motion view value";
+                    view.Rm = 'n';
+                    using (var normalPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Rm == 'n' && view.At.Rm == 'n' && responsive.Width == 183 &&
+                            ColorDistance(normalPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(220, 252, 231)) < 8,
+                            "no-preference motion view paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained motion view value", "motion view rebuild replaced field state");
+                }
+                return "compact E/P/G/V.Rm aliases, deterministic no-preference default, automatic Windows client-area animation sampling, false/true boolean context, exact no-preference/reduce queries, width intersections, alternatives, nested conflict rejection, style media, diagnostics, exact paint, and retained fields";
+            });
+            AddProbe(probes, "Reduced data media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-reduced-data.html");
+                var engine = new E { Vw = 760, Vh = 1000 };
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                Need(engine.Pdt == 'n' && page.Pdt == 'n' && engine.Dg(page).Pdt == 'n',
+                    "default reduced data aliases changed");
+                Need(!has("boolean") && has("no-preference") && has("no-preference-combined") && has("alternative") &&
+                    !has("reduce") && !has("reduce-nested") && !has("style-reduce") && !has("conflict"),
+                    "default data selection or boolean context changed");
+                Need(!has("invalid-value") && !has("invalid-range") && !has("invalid-trailing") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pdt=n")),
+                    "invalid reduced data query or diagnostics changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark data value";
+                engine.Pdt = 'r';
+                Need(page.Pdt == 'r' && has("boolean") && !has("no-preference") && has("reduce") &&
+                    has("reduce-nested") && has("style-reduce") && !has("conflict") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pdt=r")),
+                    "reduced data selection, boolean context, or diagnostics changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark data value" && field.S.W == 246,
+                    "data preference rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1000);
+                    view.Pdt = 'r';
+                    view.Go(path);
+                    using (var reducePaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Pdt == 'r' && view.At.Pdt == 'r' && responsive.Width == 247 &&
+                            ColorDistance(reducePaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(15, 118, 110)) < 8,
+                            "reduced data view paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained data view value";
+                    view.Pdt = 'n';
+                    using (var normalPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Pdt == 'n' && view.At.Pdt == 'n' && responsive.Width == 187 &&
+                            ColorDistance(normalPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(254, 243, 199)) < 8,
+                            "no-preference data view paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained data view value", "data preference view rebuild replaced field state");
+                }
+                return "compact E/P/G/V.Pdt aliases, deterministic host-controlled no-preference default, false/true boolean context, exact no-preference/reduce queries, width intersections, alternatives, nested conflict rejection, style media, diagnostics, exact paint, and retained fields";
+            });
+            AddProbe(probes, "Preferred contrast media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-contrast.html");
+                var engine = new E { Vw = 760, Vh = 1000 };
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                Need(engine.Pc == 'n' && page.Pc == 'n' && engine.Dg(page).Pc == 'n',
+                    "default preferred contrast aliases changed");
+                Need(!has("boolean") && has("no-preference") && has("no-preference-combined") && has("alternative") &&
+                    !has("less") && !has("more") && !has("custom") && !has("conflict"),
+                    "default contrast selection or boolean context changed");
+                Need(!has("invalid-value") && !has("invalid-range") && !has("invalid-trailing") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pc=n")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@m>=700&@pc=n")),
+                    "invalid contrast query or no-preference diagnostics changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark contrast value";
+                engine.Pc = 'l';
+                Need(has("boolean") && has("less") && !has("more") && !has("custom") && field.S.W == 234 &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pc")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pc=l")),
+                    "less contrast selection, boolean context, or diagnostics changed");
+                engine.Pc = 'm';
+                Need(has("boolean") && !has("less") && has("more") && !has("custom") && has("alternative") && field.S.W == 244,
+                    "more contrast selection changed");
+                engine.Pc = 'c';
+                Need(has("boolean") && !has("less") && !has("more") && has("custom") && has("custom-nested") &&
+                    has("boolean-custom") && has("style-custom") && !has("boolean-conflict") && !has("conflict") && field.S.W == 254 &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pc=c")),
+                    "custom contrast selection, nesting, or diagnostics changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark contrast value", "contrast rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1000);
+                    view.Pc = 'c';
+                    view.Go(path);
+                    using (var customPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Pc == 'c' && view.At.Pc == 'c' &&
+                            view.At.Bs.Any(block => block.El != null && block.El.Av("id") == "boolean") && responsive.Width == 255 &&
+                            ColorDistance(customPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(63, 63, 70)) < 8,
+                            "custom contrast view paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained contrast view value";
+                    view.Pc = 'n';
+                    using (var normalPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Pc == 'n' && view.At.Pc == 'n' && responsive.Width == 185 &&
+                            ColorDistance(normalPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(224, 242, 254)) < 8,
+                            "no-preference contrast view paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained contrast view value", "contrast view rebuild replaced field state");
+                }
+                return "compact E/P/G/V.Pc aliases, deterministic no-preference default, automatic Windows high-contrast sampling as custom, false/true boolean context, exact no-preference/less/more/custom queries, width intersections, alternatives, nested conflict rejection, style media, diagnostics, exact paint, and retained fields";
+            });
+            AddProbe(probes, "Scripting media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-scripting.html");
+                var engine = new E { Vw = 760, Vh = 1000 };
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                Need(engine.Je && page.Je && engine.Dg(page).Je && has("boolean") && has("enabled") &&
+                    has("enabled-combined") && has("alternative") && has("enabled-nested") && has("boolean-enabled"),
+                    "default scripting aliases, selection, or boolean context changed");
+                Need(!has("none") && !has("initial-only") && !has("style-none") && !has("boolean-conflict") &&
+                    !has("exact-conflict") && !has("invalid-value") && !has("invalid-range") && !has("invalid-trailing") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@je")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@je=e")),
+                    "inactive scripting modes, conflicts, malformed queries, or diagnostics changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark scripting value";
+                engine.Je = false;
+                Need(!page.Je && !engine.Dg(page).Je && !has("boolean") && !has("enabled") && has("none") &&
+                    has("style-none") && has("alternative") && !has("initial-only") && field.S.W == 189 &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@je=n")),
+                    "disabled scripting selection, boolean context, or diagnostics changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark scripting value", "scripting rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1000);
+                    view.Go(path);
+                    using (var enabledPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Je && view.At.Je && responsive.Width == 250 &&
+                            ColorDistance(enabledPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(17, 24, 39)) < 8,
+                            "enabled scripting view paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained scripting view value";
+                    view.Je = false;
+                    using (var nonePaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(!view.Je && !view.At.Je && responsive.Width == 190 &&
+                            ColorDistance(nonePaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(224, 242, 254)) < 8,
+                            "disabled scripting view paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained scripting view value", "scripting view rebuild replaced field state");
+                }
+                return "existing compact E/P/G/V.Je aliases, enabled default, false/true boolean context, exact none/initial-only/enabled queries, width intersections, alternatives, nested conflict rejection, style media, diagnostics, exact paint, and retained fields";
+            });
+            AddProbe(probes, "CSS supports queries", delegate
+            {
+                var path = Path.Combine(folder, "supports-queries.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark supports value";
+                Need(has("grid") && has("flex") && has("sticky") && has("ratio") && has("calculated") &&
+                    has("selector-has") && has("selector-nth") && has("negated") && has("conjunction") &&
+                    has("alternative") && has("grouped") && has("custom-property") && has("nested-support") &&
+                    has("nested-media") && !has("media-nested"), "supported declaration, selector, logic, or nesting changed");
+                Need(!has("false-display") && !has("false-position") && !has("false-selector") && !has("mixed-logic") &&
+                    !has("malformed") && !has("invalid-value") && !has("unknown-property") && !has("too-deep") && !has("too-many"),
+                    "unsupported or over-limit supports condition escaped bounds");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@s(display:grid)")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(selector(:has(>.ready)))")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(display:grid)&@s(position:sticky)")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(display:grid)&@m>=800")),
+                    "supports diagnostics or nesting changed");
+                engine.Vz(500, 700);
+                Need(!has("nested-media") && has("media-nested") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(selector(:has(*)))&@m<=600")),
+                    "media then supports responsive state changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark supports value", "supports rebuild replaced field state");
+                engine.Vz(900, 600);
+                Need(has("nested-media") && !has("media-nested"), "supports then media wide restore changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 600);
+                    view.Go(path);
+                    using (var widePaint = Draw(view))
+                        Need(BlockContent(view, "nested-media").Width == 215 && BlockContent(view, "selector-has").Width == 206,
+                            "supports wide view geometry changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained supports view value";
+                    view.Size = new Size(500, 700);
+                    using (var narrowPaint = Draw(view))
+                        Need(BlockContent(view, "media-nested").Width == 216, "supports narrow view geometry changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained supports view value", "supports view resize replaced field state");
+                }
+                return "bounded declaration capability checks, selector() through the compiled selector grammar, not/and/or logic, grouped and nested supports/media blocks, strict depth/term limits, @s diagnostics, retention, and live resize";
+            });
+            AddProbe(probes, "CSS supports script guards", delegate
+            {
+                var path = Path.Combine(folder, "css-supports-script.html");
+                var engine = new E();
+                Need(engine.Su("display", "grid") && engine.Su("display: grid") &&
+                    engine.Su("selector(:has(*))") && !engine.Su("display", "ruby") && !engine.Su(" display", "grid"),
+                    "compact host support capability changed");
+                var page = engine.Go(path);
+                var status = ById(page.D, "status");
+                var block = page.Bs.First(item => item.El == status);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.Jc == 7 && status.C[0].X == "Two argument support" &&
+                    status.Av("class") == "base bare fallback negated selector" && block.S.W == 248 && block.S.Bg == "#dff5e8",
+                    "literal property/value, one-argument, else, negated, selector, or nested startup guard changed");
+                field.V = "Retained benchmark CSS supports value";
+                Need(engine.Js(page, "if(CSS.supports('display','grid')){wd('field','247px');}") == 1 &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark CSS supports value" && field.S.W == 247,
+                    "host guard or retained field rebuild changed");
+                Need(engine.Js(page, "if(CSS.supports('display',value)){tx('status','bad');}") == 0 &&
+                    status.C[0].X == "Two argument support", "computed support argument escaped the literal boundary");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(700, 700);
+                    view.Go(path);
+                    Need(view.Su("display", "grid") && view.Js("if(CSS.supports('display','grid')){wd('field','249px');}") == 1,
+                        "WinForms supports aliases or guard changed");
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "field").Width == 249 && ColoredSamples(image) > 0,
+                            "WinForms supports guard geometry or paint changed");
+                }
+                return "compact E/V.Su capability aliases, literal CSS.supports property/value and condition guards, else and negation, selector and compound checks, four-level nesting, shared command limits, retained rebuilds, and WinForms paint";
+            });
+            AddProbe(probes, "Match media script guards", delegate
+            {
+                var path = Path.Combine(folder, "match-media-script.html");
+                var engine = new E { Vw = 900, Vh = 600, Dp = 144, Th = 'd', Rm = 'r', Pc = 'm', Pdt = 'r' };
+                Need(engine.Mq("(min-width:800px)") && engine.Mq("(orientation:landscape)") &&
+                    engine.Mq("(resolution:1.5dppx)") && engine.Mq("(prefers-color-scheme:dark)") &&
+                    engine.Mq("(prefers-reduced-motion:reduce)") && engine.Mq("(prefers-reduced-data:reduce)") &&
+                    engine.Mq("(prefers-contrast:more)") && engine.Mq("(scripting:enabled)") &&
+                    !engine.Mq("(max-width:500px)") && !engine.Mq("(width:50em)"),
+                    "compact host media matching changed");
+                var page = engine.Go(path);
+                var status = ById(page.D, "status");
+                var block = page.Bs.First(item => item.El == status);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.Jc == 8 && status.C[0].X == "Wide media match" &&
+                    status.Av("class") == "base global window dark reduced elsewide" && block.S.W == 248 && block.S.Bg == "#dff5e8",
+                    "literal global/window, preference, else, or mixed nested startup guard changed");
+                field.V = "Retained benchmark match media value";
+                engine.Vz(420, 700);
+                Need(engine.Mq("(max-width:500px)") && engine.Mq("(orientation:portrait)") &&
+                    engine.Js(page, "if(!matchMedia('(min-width:800px)').matches){wd('field','217px');}") == 1 &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark match media value" && field.S.W == 217,
+                    "live media state, negated guard, or retained field rebuild changed");
+                Need(engine.Js(page, "if(matchMedia(query).matches){tx('status','bad');}") == 0 &&
+                    status.C[0].X == "Wide media match", "computed media argument escaped the literal boundary");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 700);
+                    view.Th = 'd';
+                    view.Rm = 'r';
+                    view.Pc = 'm';
+                    view.Pdt = 'r';
+                    view.Go(path);
+                    Need(view.Mq("(min-width:800px)") &&
+                        view.Js("if(window.matchMedia('(min-width:800px)').matches){wd('field','249px');}") == 1,
+                        "WinForms media alias or guard changed");
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "field").Width == 249 && ColoredSamples(image) > 0,
+                            "WinForms media guard geometry or paint changed");
+                    view.Size = new Size(420, 700);
+                    using (var image = Draw(view)) { }
+                    Need(view.Mq("(max-width:500px)") && view.Mq("(orientation:portrait)"),
+                        "WinForms media alias did not follow resize");
+                }
+                return "compact E/V.Mq aliases, literal global/window matchMedia matches guards, live viewport and preference state, else and negation, mixed four-level nesting, shared command limits, retained rebuilds, and WinForms paint";
+            });
+            AddProbe(probes, "Media query modifiers", delegate
+            {
+                var path = Path.Combine(folder, "media-modifiers.html");
+                var engine = new E { Vw = 900, Vh = 600 };
+                Need(engine.Mq("not print") && engine.Mq("only screen and (min-width:800px)") &&
+                    engine.Mq("not screen and (max-width:500px)") && engine.Mq("not (orientation:portrait)") &&
+                    !engine.Mq("not screen and (min-width:800px)") && !engine.Mq("not all") &&
+                    !engine.Mq("only (min-width:1px)") && !engine.Mq("screen not (min-width:1px)") &&
+                    !engine.Mq("only screen and"),
+                    "wide or invalid media modifier matching changed");
+                var page = engine.Go(path);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.Jc == 4 && ById(page.D, "status").Av("class") == "base notprint onlywide wide landscape" &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "not-print") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "only-wide") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "not-portrait") && field.S.W == 260,
+                    "wide modifier CSS or script selection changed");
+                field.V = "Retained benchmark modifier value";
+                engine.Vz(420, 700);
+                Need(engine.Mq("not screen and (min-width:800px)") && !engine.Mq("not (orientation:portrait)") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "not-wide") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "nested-not") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "style-not") &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark modifier value" && field.S.W == 180,
+                    "negated nesting, style media, resize, or retained field changed");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("(@m>=300&!(@m>=800))")) &&
+                    engine.Js(page, "if(matchMedia('not print').matches){wd('field','177px');}") == 1 && field.S.W == 177,
+                    "modifier diagnostics or live script guard changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(view.Mq("not print") && BlockContent(view, "field").Width == 260,
+                            "wide modifier WinForms state or geometry changed");
+                    view.Size = new Size(420, 700);
+                    using (var image = Draw(view)) { }
+                    Need(view.Mq("not screen and (min-width:800px)") && BlockContent(view, "field").Width == 180,
+                        "narrow modifier WinForms state or geometry changed");
+                }
+                return "whole-query not, strict only, screen/print semantics, comma alternatives, nested predicate intersections, style media, live matchMedia guards, diagnostics, retained fields, resize, and WinForms geometry";
+            });
+            AddProbe(probes, "Interaction media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-interaction.html");
+                var engine = new E();
+                Need(engine.Pt == 'f' && engine.Hv && engine.Ap == 'f' && engine.Ah &&
+                    engine.Mq("(pointer:fine) and (hover:hover)") && engine.Mq("(any-pointer:fine) and (any-hover:hover)") &&
+                    !engine.Mq("(pointer:coarse)") && !engine.Mq("(any-pointer:none)"),
+                    "default interaction host state changed");
+                var page = engine.Go(path);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.Jc == 4 && ById(page.D, "status").Av("class") == "base fine hover anyfine anyhover" &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "fine") && field.S.W == 260,
+                    "desktop interaction CSS or script selection changed");
+                field.V = "Retained benchmark interaction value";
+                engine.Mi('c', false, 'b', true);
+                Need(engine.Mq("(pointer:coarse) and (hover:none)") &&
+                    engine.Mq("(any-pointer:coarse) and (any-pointer:fine)") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "hybrid") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "not-fine") &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark interaction value" && field.S.W == 180,
+                    "hybrid interaction state, nesting, or retained field changed");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@ap=b")) &&
+                    engine.Js(page, "if(matchMedia('(pointer:coarse)').matches){wd('field','177px');}") == 1 && field.S.W == 177,
+                    "interaction diagnostics or live script guard changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 600);
+                    view.Mi('f', true, 'f', true);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(view.Mq("(pointer:fine) and (hover:hover)") && BlockContent(view, "field").Width == 260,
+                            "desktop interaction WinForms state or geometry changed");
+                    view.Mi('c', false, 'b', true);
+                    using (var image = Draw(view)) { }
+                    Need(view.Mq("(any-pointer:coarse) and (any-pointer:fine)") && BlockContent(view, "field").Width == 180,
+                        "hybrid interaction WinForms state or geometry changed");
+                }
+                return "compact Pt/Hv/Ap/Ah/Mi host aliases, pointer/hover and any-pointer/any-hover boolean/exact queries, hybrid unions, nesting, style media, matchMedia guards, diagnostics, retention, Windows plumbing, and WinForms geometry";
+            });
+            AddProbe(probes, "Style container queries", delegate
+            {
+                var path = Path.Combine(folder, "container-style.html");
+                var engine = new E();
+                Need(engine.Su("container-name", "shell frame") && !engine.Su("container-name", "and"),
+                    "container-name capability changed");
+                var page = engine.Go(path);
+                var shell = page.Bs.First(item => item.El != null && item.El.Av("id") == "shell");
+                var inner = page.Bs.First(item => item.El != null && item.El.Av("id") == "inner");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(shell.S.Cn == "shell frame" && inner.S.Cn == "inner" && shell.S.H == 140 &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "nearest") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "named-compact") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "nested") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "conditional") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "named-wide") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "size-query") && field.S.W == 260,
+                    "compact style container selection or unsupported-query rejection changed");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@c(shell:style(--mode:compact))")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@c(inner:style(--mode:cozy))")),
+                    "style container diagnostics changed");
+                field.V = "Retained benchmark container value";
+                Need(engine.Ck(page, ById(page.D, "wide")) == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "named-compact") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "named-wide") &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark container value" && field.S.W == 300,
+                    "style container class rebuild or field retention changed");
+                Need(engine.Ck(page, ById(page.D, "compact")) == 1 &&
+                    engine.Ss(page, "benchmark-container", "@container shell style(--mode:compact){#named-compact{width:231px}}") == 1 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "named-compact").S.W == 231 &&
+                    engine.Sd(page, "benchmark-container") == 1 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "named-compact").S.W == 221,
+                    "native style container sheet lifecycle changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 700);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "field").Width == 260,
+                            "compact style container WinForms geometry changed");
+                    view.Ck(ById(view.At.D, "wide"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "field").Width == 300,
+                        "wide style container WinForms geometry changed");
+                }
+                return "bounded exact custom-property style queries, named and nearest ancestors, not/and/or, nested containers/media/supports/layers, diagnostics, class and native-sheet rebuilds, retained fields, and WinForms geometry";
+            });
+            AddProbe(probes, "Size container queries", delegate
+            {
+                var path = Path.Combine(folder, "container-size.html");
+                var engine = new E();
+                Need(engine.Su("container-type", "inline-size") && engine.Su("container", "shell frame / inline-size") &&
+                    !engine.Su("container-type", "width"), "size container capability changed");
+                var page = engine.Go(path);
+                var shell = ById(page.D, "shell");
+                var inner = ById(page.D, "inner");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.Bs.First(item => item.El == shell).S.Ct == "i" && page.Bs.First(item => item.El == inner).S.Ct == "s" &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "style-only") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "wide"),
+                    "pre-feedback size container state changed");
+                field.V = "Retained benchmark size value";
+                Need(engine.Cz(page, new List<Cz> { new Cz(shell, 520, 20), new Cz(inner, 320, 180) }) == 1 &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "nearest") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "wide") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "chain") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "height-exact") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "mixed") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "nested") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "wrong-axis") &&
+                    field.S.W == 260 && Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark size value", "wide size selection or field retention changed");
+                Need(engine.Ck(page, ById(page.D, "make-narrow")) == 1 &&
+                    engine.Cz(page, new List<Cz> { new Cz(shell, 240, 20), new Cz(inner, 320, 180) }) == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "wide") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "narrow") && field.S.W == 140,
+                    "narrow size feedback changed");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@c(shell:(width>=500px))")),
+                    "size container diagnostics changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 760);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "shell").Width == 520 && BlockContent(view, "inner").Height == 180 &&
+                            BlockContent(view, "field").Width == 260 && view.At.Bs.Any(item => item.El != null && item.El.Av("id") == "wide"),
+                            "automatic wide size feedback or geometry changed");
+                    view.Ck(ById(view.At.D, "make-narrow"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "shell").Width == 240 && BlockContent(view, "field").Width == 140 &&
+                        view.At.Bs.Any(item => item.El != null && item.El.Av("id") == "narrow"),
+                        "automatic narrow size feedback or geometry changed");
+                }
+                return "bounded container shorthand and S.Ct types, atomic E.Cz content-box feedback, named and nearest width/height ranges, style combinations, nesting, diagnostics, retained fields, and automatic bounded WinForms relayout";
+            });
+            AddProbe(probes, "Container ratio and orientation queries", delegate
+            {
+                var path = Path.Combine(folder, "container-features.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var frame = ById(page.D, "frame");
+                var portrait = ById(page.D, "portrait");
+                var square = ById(page.D, "square");
+                var inline = ById(page.D, "inline-only");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(!page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-exact"),
+                    "pre-feedback container ratio state changed");
+                field.V = "Retained benchmark feature value";
+                Need(engine.Cz(page, new List<Cz>
+                {
+                    new Cz(frame, 400, 300), new Cz(portrait, 180, 320),
+                    new Cz(square, 220, 220), new Cz(inline, 400, 300)
+                }) == 1 && page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-boolean") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-exact") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-reduced") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-chain") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-descending") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "landscape") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "portrait-result") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "square-portrait") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "nested") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "inline-ineligible") &&
+                    field.S.W == 270 && Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark feature value", "landscape container feature selection changed");
+                Need(engine.Ck(page, ById(page.D, "make-tall")) == 1 &&
+                    engine.Cz(page, new List<Cz>
+                    {
+                        new Cz(frame, 240, 360), new Cz(portrait, 180, 320),
+                        new Cz(square, 220, 220), new Cz(inline, 400, 300)
+                    }) == 1 && page.Bs.Any(item => item.El != null && item.El.Av("id") == "frame-portrait") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "tall-ratio") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-exact") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "landscape") && field.S.W == 150,
+                    "portrait container feature feedback changed");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@c(frame:(aspect-ratio:4/3))")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@c(frame:(orientation:landscape))")),
+                    "container feature diagnostics changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 1050);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "frame").Width == 400 && BlockContent(view, "frame").Height == 300 &&
+                            BlockContent(view, "field").Width == 270 && view.At.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-exact"),
+                            "automatic landscape container features changed");
+                    view.Ck(ById(view.At.D, "make-tall"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "frame").Width == 240 && BlockContent(view, "frame").Height == 360 &&
+                        BlockContent(view, "field").Width == 150 && view.At.Bs.Any(item => item.El != null && item.El.Av("id") == "frame-portrait"),
+                        "automatic portrait container features changed");
+                }
+                return "bounded container aspect-ratio boolean/exact/min/max/direct/value-first/chained ranges and portrait/landscape features, both-axis eligibility, nested logic, diagnostics, retained fields, and automatic WinForms relayout";
+            });
+            AddProbe(probes, "Relative container query lengths", delegate
+            {
+                var path = Path.Combine(folder, "container-query-lengths.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var outer = ById(page.D, "outer");
+                var inner = ById(page.D, "inner");
+                var emField = page.Fs.Single(item => item.El != null && item.El.Av("id") == "em-field");
+                var remField = page.Fs.Single(item => item.El != null && item.El.Av("id") == "rem-field");
+                emField.V = "Retained benchmark em query value";
+                remField.V = "Retained benchmark rem query value";
+                Need(engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 320, 120) }) == 1 &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "em-direct") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "em-decimal") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "rem-chain") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "pixel-decimal") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "false-em") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-unit") &&
+                    emField.S.W == 260 && remField.S.W == 270 &&
+                    Object.ReferenceEquals(emField, page.Fs.Single(item => item.El != null && item.El.Av("id") == "em-field")) &&
+                    emField.V == "Retained benchmark em query value", "relative container query selection changed");
+                Need(engine.Ck(page, ById(page.D, "large-inner")) == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "em-direct") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "rem-chain") && emField.S.W == 110,
+                    "container-font query feedback changed");
+                Need(engine.Ss(page, "relative-root-font", "html{font-size:12px}") == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "rem-chain") && remField.S.W == 120,
+                    "root-font query feedback changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 900);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "em-field").Width == 260 && BlockContent(view, "rem-field").Width == 270,
+                            "automatic relative query geometry changed");
+                    view.Ck(ById(view.At.D, "large-inner"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "em-field").Width == 110 && BlockContent(view, "rem-field").Width == 270,
+                        "automatic container-font query geometry changed");
+                }
+                return "fixed-hundredth px/em/rem size-query terms, selected-container and root font bases, decimal ranges, unitless zero, diagnostics, native sheets, retained fields, and exact WinForms feedback";
+            });
+            AddProbe(probes, "Viewport and container query lengths", delegate
+            {
+                var path = Path.Combine(folder, "container-query-viewport.html");
+                var engine = new E();
+                engine.Vz(800, 600);
+                var page = engine.Go(path);
+                var outer = ById(page.D, "outer");
+                var inner = ById(page.D, "inner");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "viewport-field");
+                field.V = "Retained benchmark viewport query value";
+                Need(engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 320, 120) }) == 1 &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "vw") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "vmax") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "cqw") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "cqmin") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "fallback-cqw") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-unit") &&
+                    field.S.W == 220, "viewport/container query bases changed");
+                engine.Vz(1000, 800);
+                Need(!page.Bs.Any(item => item.El != null && item.El.Av("id") == "vw") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "fallback-cqw") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "cqw") &&
+                    field.S.W == 100 && Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "viewport-field")) &&
+                    field.V == "Retained benchmark viewport query value", "viewport query rebuild changed");
+                engine.Vz(800, 600);
+                Need(engine.Cz(page, new List<Cz> { new Cz(outer, 600, 400), new Cz(inner, 320, 120) }) == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "cqw") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "vw"),
+                    "ancestor query rebuild changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(800, 600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "viewport-field").Width == 220 &&
+                            BlockContent(view, "ancestor-field").Width == 230,
+                            "native viewport and ancestor query geometry changed");
+                    view.Ck(ById(view.At.D, "large-outer"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "ancestor-field").Width == 100,
+                        "native ancestor query resize changed");
+                }
+                return "bounded vw/vh/vmin/vmax and cqw/cqh/cqi/cqb/cqmin/cqmax size-query terms, viewport fallback, mixed chains, independent live bases, retained fields, and native geometry";
+            });
+            AddProbe(probes, "Calculated container query lengths", delegate
+            {
+                var path = Path.Combine(folder, "container-query-calc.html");
+                var engine = new E();
+                engine.Vz(800, 600);
+                var page = engine.Go(path);
+                var outer = ById(page.D, "outer");
+                var inner = ById(page.D, "inner");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark calculated query value";
+                Need(engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 320, 120) }) == 1 &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "relative-plus") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "chain") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "decimal-true") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "decimal-false") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-spacing") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-unitless") &&
+                    field.S.W == 240, "calculated container query threshold changed");
+                engine.Vz(1000, 800);
+                Need(!page.Bs.Any(item => item.El != null && item.El.Av("id") == "chain") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "relative-plus"),
+                    "calculated viewport query rebuild changed");
+                engine.Vz(800, 600);
+                Need(engine.Cz(page, new List<Cz> { new Cz(outer, 600, 400), new Cz(inner, 320, 120) }) == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "relative-plus") &&
+                    field.S.W == 100 && Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark calculated query value", "calculated ancestor query rebuild changed");
+                Need(engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 0, 120) }) == 1 &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "negative-greater") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "negative-equal"),
+                    "signed calculated query comparison changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(800, 600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "field").Width == 240, "native calculated query geometry changed");
+                    view.Ck(ById(view.At.D, "large-outer"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "field").Width == 100, "native calculated ancestor feedback changed");
+                }
+                return "bounded two-term calc thresholds across direct/legacy/reversed/chained queries, exact mixed-unit arithmetic, live viewport/ancestor feedback, malformed guards, retained fields, and native geometry";
+            });
+            AddProbe(probes, "Container relative units", delegate
+            {
+                var path = Path.Combine(folder, "container-units.html");
+                var engine = new E();
+                Need(engine.Su("width", "50cqw") && engine.Su("height", "25cqh") &&
+                    engine.Su("width", "10cqmin") && engine.Su("height", "10cqmax") &&
+                    !engine.Su("width", "101cqw"), "container unit capability changed");
+                var page = engine.Go(path);
+                var outer = ById(page.D, "outer");
+                var inner = ById(page.D, "inner");
+                var source = ById(page.D, "source");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark container unit value";
+                Need(engine.Cz(page, new List<Cz>
+                {
+                    new Cz(outer, 500, 300), new Cz(inner, 320, 120), new Cz(source, 64, 50)
+                }) == 1, "container unit feedback changed");
+                var cqw = page.Bs.First(item => item.El != null && item.El.Av("id") == "cqw").S;
+                var cqh = page.Bs.First(item => item.El != null && item.El.Av("id") == "cqh-width").S;
+                var inherited = page.Bs.First(item => item.El != null && item.El.Av("id") == "inherited").S;
+                Need(cqw.Wu == 7 && cqw.Cq(7, page.Vw, page.Vh, false, 0) == 320 &&
+                    cqh.Wu == 8 && cqh.Cq(8, page.Vw, page.Vh, false, 0) == 300 &&
+                    inherited.Cq(7, page.Vw, page.Vh, false, 0) == 320 &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark container unit value", "container unit model or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 1100);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "cqw").Width == 160 && BlockContent(view, "cqh-width").Width == 150 &&
+                            BlockContent(view, "cqmin").Width == 30 && BlockContent(view, "cqmax").Height == 32 &&
+                            BlockContent(view, "source").Width == 64 && BlockContent(view, "inherited").Width == 64,
+                            "automatic container unit geometry changed");
+                    view.Ck(ById(view.At.D, "make-narrow"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "cqw").Width == 100 && BlockContent(view, "source").Width == 40 &&
+                        BlockContent(view, "inherited").Width == 40, "dynamic container unit feedback changed");
+                }
+                return "compact cqw/cqh/cqi/cqb/cqmin/cqmax codes, per-axis nearest containers, viewport fallback, calc/min/max/clamp/variables, computed inheritance, commands, native sheets, retained fields, and bounded WinForms feedback";
+            });
+            AddProbe(probes, "CSS cascade layers", delegate
+            {
+                var path = Path.Combine(folder, "cascade-layers.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("normal-order").S.W == 201 && block("same-layer").S.W == 211 && block("same-layer").S.H == 31 &&
+                    block("merged").S.W == 221 && block("merged").S.H == 32, "normal layer order or named merge changed");
+                Need(block("important-order").S.W == 131 && block("important-unlayered").S.W == 141 &&
+                    block("unlayered-normal").S.W == 361 && block("inline-normal").S.W == 371 && block("inline-important").S.W == 381,
+                    "normal, unlayered, important, or inline layer priority changed");
+                Need(block("custom-normal").S.W == 251 && block("custom-important").S.F == "#a13b18" &&
+                    block("nested-order").S.W == 272 && block("nested-order").S.F == "#a13b18" &&
+                    block("same-layer-specificity").S.W == 181 && block("same-layer-source").S.W == 283,
+                    "layered custom property, nesting, specificity, or source order changed");
+                var before = block("layer-before").Is.First(item => item.K == "be");
+                Need(before.X == "Theme" && before.S.F == "#a13b18", "layered pseudo content priority changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark layer value";
+                Need(block("layer-wide").S.W == 291 && !page.Bs.Any(item => item.El != null && item.El.Av("id") == "layer-narrow") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@l(responsive)&@s(display:grid)&@m>=800")),
+                    "layered wide condition or diagnostic changed");
+                engine.Vz(500, 700);
+                Need(block("layer-narrow").S.W == 292 && !page.Bs.Any(item => item.El != null && item.El.Av("id") == "layer-wide") &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark layer value", "layered narrow rebuild or retention changed");
+                Need(engine.Ss(page, "layer-one", "@layer injected{#sheet-normal{width:251px}#sheet-important{width:251px!important}}") == 1 &&
+                    engine.Ss(page, "layer-two", "@layer later{#sheet-normal{width:252px}#sheet-important{width:252px!important}}#sheet-normal{width:253px}#sheet-important{width:253px!important}") == 1 &&
+                    block("sheet-normal").S.W == 253 && block("sheet-important").S.W == 251,
+                    "injected layer merge or priority changed");
+                var limits = new E();
+                var limitPage = limits.Go(Path.Combine(folder, "cascade-layer-limits.html"));
+                for (var index = 1; index <= 16; index++)
+                    Need(limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "layer-" + index.ToString("00")), "bounded layer missing " + index);
+                Need(!limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "layer-17") &&
+                    !limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-list") &&
+                    !limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-depth") &&
+                    !limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "anonymous-layer"),
+                    "over-limit or malformed layer escaped bounds");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 600);
+                    view.Go(path);
+                    using (var widePaint = Draw(view)) Need(BlockContent(view, "layer-wide").Width == 291, "layered wide view geometry changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained layer view value";
+                    view.Size = new Size(500, 700);
+                    using (var narrowPaint = Draw(view)) Need(BlockContent(view, "layer-narrow").Width == 292, "layered narrow view geometry changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained layer view value", "layered view resize replaced field state");
+                }
+                return "named and nested @layer blocks, later-normal/unlayered/earlier-important/inline precedence, local specificity and source order, custom properties, pseudo content, supports/media nesting, native sheets, 16-layer bounds, diagnostics, retention, and live resize";
+            });
+            AddProbe(probes, "Modern HSL colors", delegate
+            {
+                var path = Path.Combine(folder, "hsl-colors.html");
+                var engine = new E { Vw = 760, Vh = 1300 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("legacy").S.Bg == "hsl(120, 100%, 25%)" &&
+                    block("modern").S.Bg == "hsl(240 100% 50% / 50%)" &&
+                    block("alpha").S.Bg == "hsla(0, 100%, 50%, .5)", "HSL syntax state changed");
+                Need(block("units").S.Bg == "hsl(.5turn 100% 50%)" &&
+                    block("units").S.Bcv(0) == "hsl(200grad 100% 50%)" &&
+                    block("units").S.Oc == "hsl(3.141592653589793rad 100% 50%)" &&
+                    block("wrapped").S.Bg == "hsl(-120deg 100% 50%)", "HSL hue unit state changed");
+                Need(block("shadow").S.Sw.Count == 1 && block("shadow").S.Sw[0].C == "hsl(300 100% 25%)" &&
+                    block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4,
+                    "HSL shadow or atomic rejection changed");
+                Need(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 3 &&
+                    block("gradient-atomic").S.Gi != null && block("gradient-atomic").S.Gi.Ss[0].C == "hsl(60 100% 50%)",
+                    "HSL gradient or atomic rejection changed");
+                Need(block("decor").S.Tc == "hsl(330 100% 40%)" && block("decor").S.Ts != null &&
+                    block("variable").S.Bg == "hsl(150 100% 25%)" && block("layered").S.Bg == "hsl(180 100% 50%)",
+                    "HSL decoration, variable, or layer state changed");
+                Need(page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-mixed") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-slash") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-none") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(color:hsl(120100%25%))")),
+                    "HSL supports capability changed");
+                var svg = block("svg").Vg;
+                Need(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F == "hsl(15 100% 50%)" &&
+                    svg.Ds.Count == 1 && svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[0].C == "hsl(300 100% 50%)",
+                    "HSL SVG state changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark HSL value";
+                engine.Vz(500, 1300);
+                Need(block("responsive").S.Bg == "hsl(280 100% 50%)" &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark HSL value", "responsive HSL state or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1300);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var legacy = BlockContent(view, "legacy");
+                        var modern = BlockContent(view, "modern");
+                        var vector = BlockContent(view, "svg");
+                        Need(ColorDistance(image.GetPixel(legacy.Right - 5, legacy.Top + 5), Color.FromArgb(0, 128, 0)) < 4 &&
+                            ColorDistance(image.GetPixel(modern.Right - 5, modern.Top + 5), Color.FromArgb(127, 127, 255)) < 8,
+                            "HSL HTML paint changed");
+                        Need(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), Color.FromArgb(255, 64, 0)) < 12 &&
+                            ColorDistance(image.GetPixel(vector.Left + 97, vector.Top + 30), Color.Magenta) < 35 &&
+                            ColorDistance(image.GetPixel(vector.Right - 5, vector.Top + 30), Color.Yellow) < 35,
+                            "HSL SVG paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained HSL view value";
+                    view.Size = new Size(500, 1300);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(170, 0, 255)) < 8,
+                            "responsive HSL paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained HSL view value", "HSL view resize replaced field state");
+                }
+                return "legacy comma and modern space/slash hsl/hsla, degree/grad/radian/turn hue normalization, channel clamping, alpha, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention";
+            });
+            AddProbe(probes, "Modern HWB colors", delegate
+            {
+                var path = Path.Combine(folder, "hwb-colors.html");
+                var engine = new E { Vw = 760, Vh = 1600 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("pure").S.Bg == "hwb(0 0% 0%)" && block("mixed").S.Bg == "hwb(120 20% 30%)" &&
+                    block("alpha").S.Bg == "hwb(240 0% 0% / 50%)" &&
+                    block("alpha-number").S.Bg == "hwb(0 0% 0% / .5)", "HWB syntax state changed");
+                Need(block("units").S.Bg == "hwb(.5turn 0% 0%)" &&
+                    block("units").S.Bcv(0) == "hwb(200grad 0% 0%)" &&
+                    block("units").S.Oc == "hwb(3.141592653589793rad 0% 0%)" &&
+                    block("wrapped").S.Bg == "hwb(-120deg 0% 0%)", "HWB hue unit state changed");
+                Need(block("normalized").S.Bg == "hwb(30 80% 40%)" && block("clamped").S.Bg == "hwb(60 120% -20%)",
+                    "HWB normalization or clamp state changed");
+                Need(block("shadow").S.Sw.Count == 1 && block("shadow").S.Sw[0].C == "hwb(300 0% 50%)" &&
+                    block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4,
+                    "HWB shadow or atomic rejection changed");
+                Need(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 3 &&
+                    block("gradient-atomic").S.Gi != null && block("gradient-atomic").S.Gi.Ss[0].C == "hwb(60 0% 0%)",
+                    "HWB gradient or atomic rejection changed");
+                Need(block("decor").S.Tc == "hwb(330 0% 20%)" && block("decor").S.Ts != null &&
+                    block("variable").S.Bg == "hwb(150 10% 35%)" && block("layered").S.Bg == "hwb(180 0% 0%)",
+                    "HWB decoration, variable, or layer state changed");
+                Need(page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-comma") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-percent") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-slash") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-none") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-nested") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(color:hwb(12020%30%))")),
+                    "HWB supports capability changed");
+                var svg = block("svg").Vg;
+                Need(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F == "hwb(15 0% 0%)" &&
+                    svg.Ds.Count == 1 && svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[0].C == "hwb(300 0% 0%)",
+                    "HWB SVG state changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark HWB value";
+                engine.Vz(500, 1600);
+                Need(block("responsive").S.Bg == "hwb(280 0% 0%)" &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark HWB value", "responsive HWB state or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var pure = BlockContent(view, "pure");
+                        var mixed = BlockContent(view, "mixed");
+                        var alpha = BlockContent(view, "alpha");
+                        var alphaNumber = BlockContent(view, "alpha-number");
+                        var normalized = BlockContent(view, "normalized");
+                        var vector = BlockContent(view, "svg");
+                        Need(ColorDistance(image.GetPixel(pure.Right - 5, pure.Top + 5), Color.Red) < 4 &&
+                            ColorDistance(image.GetPixel(mixed.Right - 5, mixed.Top + 5), Color.FromArgb(51, 178, 51)) < 4 &&
+                            ColorDistance(image.GetPixel(alpha.Right - 5, alpha.Top + 5), Color.FromArgb(127, 127, 255)) < 8 &&
+                            ColorDistance(image.GetPixel(alphaNumber.Right - 5, alphaNumber.Top + 5), Color.FromArgb(255, 127, 127)) < 8 &&
+                            ColorDistance(image.GetPixel(normalized.Right - 5, normalized.Top + 5), Color.FromArgb(170, 170, 170)) < 4,
+                            "HWB HTML paint changed");
+                        Need(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), Color.FromArgb(255, 64, 0)) < 12 &&
+                            ColorDistance(image.GetPixel(vector.Left + 97, vector.Top + 30), Color.Magenta) < 35 &&
+                            ColorDistance(image.GetPixel(vector.Right - 5, vector.Top + 30), Color.Yellow) < 35,
+                            "HWB SVG paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained HWB view value";
+                    view.Size = new Size(500, 1600);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(170, 0, 255)) < 8,
+                            "responsive HWB paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained HWB view value", "HWB view resize replaced field state");
+                }
+                return "modern space/slash hwb, degree/grad/radian/turn hue normalization, whiteness/blackness normalization, channel clamping, alpha, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention";
+            });
+            AddProbe(probes, "CIE Lab colors", delegate
+            {
+                var path = Path.Combine(folder, "lab-colors.html");
+                var engine = new E { Vw = 760, Vh = 2200 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("lab-purple").S.Bg == "lab(44.36% 36.05 -58.99)" &&
+                    block("lab-percent").S.Bg == "lab(44.36 28.84% -47.192%)" &&
+                    block("lch-purple").S.Bg == "lch(44.36 69.1333682095701 301.429958490306)" &&
+                    block("lch-percent").S.Bg == "lch(44.36% 46.0889121397134% 301.429958490306)",
+                    "Lab/LCH syntax state changed");
+                Need(block("units").S.Bg == "lch(44.36 69.1333682095701 0.83730544025085turn)" &&
+                    block("units").S.Bcv(0) == "lch(44.36 69.1333682095701 334.92217610034grad)" &&
+                    block("wrapped").S.Bg == "lch(44.36 69.1333682095701 661.429958490306deg)",
+                    "LCH hue unit state changed");
+                Need(block("white-clamp").S.Bg == "lab(120% 1250 -1250)" &&
+                    block("black-clamp").S.Bg == "lab(-20% -1250 1250)" &&
+                    block("chroma-clamp").S.Bg == "lch(50 -1 20)" && block("gamut").S.Bg == "lch(70 230 40)",
+                    "Lab clamp or gamut state changed");
+                Need(block("mix").S.Bg.StartsWith("color-mix(in srgb, lab(", StringComparison.Ordinal) &&
+                    block("shadow").S.Sw.Count == 1 && block("shadow-atomic").S.Sw.Count == 1 &&
+                    block("shadow-atomic").S.Sw[0].X == 4, "Lab mix, shadow, or atomic rejection changed");
+                Need(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 2 &&
+                    block("gradient-atomic").S.Gi != null &&
+                    block("gradient-atomic").S.Gi.Ss[0].C == "lab(97.607% -15.753 93.388)",
+                    "Lab gradient or atomic rejection changed");
+                Need(block("decor").S.Tc == "lab(44.36% 36.05 -58.99)" &&
+                    block("variable").S.Bg == "lch(29.567 131.206719600636 301.368303737467)" &&
+                    block("layered").S.Bg == "lab(97.607% -15.753 93.388)",
+                    "Lab decoration, variable, or layer state changed");
+                Need(page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-lab") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-lch") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-comma") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-slash") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-none") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-nested") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-missing"),
+                    "Lab supports capability changed");
+                var svg = block("svg").Vg;
+                Need(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F.StartsWith("lab(", StringComparison.Ordinal) &&
+                    svg.Ds.Count == 1 && svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[1].C.StartsWith("lch(", StringComparison.Ordinal),
+                    "Lab SVG state changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark Lab value";
+                engine.Vz(500, 2200);
+                Need(block("responsive").S.Bg == "lab(29.567% 68.298 -112.0294)" &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark Lab value", "responsive Lab state or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 2200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var purple = Color.FromArgb(118, 84, 205);
+                        var lab = BlockContent(view, "lab-purple");
+                        var lch = BlockContent(view, "lch-purple");
+                        var alpha = BlockContent(view, "alpha");
+                        var neutral = BlockContent(view, "chroma-clamp");
+                        var gamut = BlockContent(view, "gamut");
+                        var mix = BlockContent(view, "mix");
+                        var vector = BlockContent(view, "svg");
+                        Need(ColorDistance(image.GetPixel(lab.Right - 5, lab.Top + 5), purple) < 6 &&
+                            ColorDistance(image.GetPixel(lch.Right - 5, lch.Top + 5), purple) < 6 &&
+                            ColorDistance(image.GetPixel(alpha.Right - 5, alpha.Top + 5), Color.FromArgb(187, 170, 230)) < 10 &&
+                            ColorDistance(image.GetPixel(neutral.Right - 5, neutral.Top + 5), Color.FromArgb(119, 119, 119)) < 6,
+                            "Lab HTML paint changed");
+                        var mapped = image.GetPixel(gamut.Right - 5, gamut.Top + 5);
+                        Need(mapped.R > 240 && mapped.G > 80 && mapped.G < 190 && mapped.B > 80 && mapped.B < 190 &&
+                            ColorDistance(image.GetPixel(mix.Right - 5, mix.Top + 5), Color.FromArgb(128, 128, 128)) < 8,
+                            "Lab gamut or mixed paint changed");
+                        Need(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), purple) < 12 &&
+                            ColorDistance(image.GetPixel(vector.Left + 101, vector.Top + 30), Color.Yellow) < 35 &&
+                            ColorDistance(image.GetPixel(vector.Right - 5, vector.Top + 30), Color.Blue) < 35,
+                            "Lab SVG paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained Lab view value";
+                    view.Size = new Size(500, 2200);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.Blue) < 6,
+                            "responsive Lab paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained Lab view value", "Lab view resize replaced field state");
+                }
+                return "modern CIE Lab/LCH numbers and percentages, D50 conversion with Bradford D50-to-D65 adaptation, hue units and wrapping, channel clamping, local-MINDE sRGB gamut mapping, alpha, color-mix stops, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention";
+            });
+            AddProbe(probes, "Predefined CSS colors", delegate
+            {
+                var path = Path.Combine(folder, "predefined-colors.html");
+                var engine = new E { Vw = 760, Vh = 2300 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("srgb-blue").S.Bg == "color(srgb 0 0 1)" &&
+                    block("srgb-linear").S.Bg == "color(srgb-linear 0 1 0)" &&
+                    block("p3-reference").S.Bg == "color(display-p3 0.445 0.529 0.891)" &&
+                    block("p3-linear-pair").S.Bg == "color(display-p3-linear 0.3081 0.014 0.0567)",
+                    "predefined RGB syntax state changed");
+                Need(block("xyz-d50").S.Bg == "color(xyz-d50 0.2005 0.14089 0.4472)" &&
+                    block("xyz-d65").S.Bg == "color(xyz-d65 0.21661 0.14602 0.59452)" &&
+                    block("xyz-alias").S.Bg == "color(xyz 0.21661 0.14602 0.59452)",
+                    "predefined XYZ syntax state changed");
+                Need(block("gamut").S.Bg == "color(display-p3 1 1 0)" &&
+                    block("extended").S.Bg == "color(display-p3 1.1 .4 .2)" &&
+                    block("mix").S.Bg.StartsWith("color-mix(in srgb, color(", StringComparison.Ordinal),
+                    "predefined extended or mix state changed");
+                Need(block("shadow").S.Sw.Count == 1 && block("shadow-atomic").S.Sw.Count == 1 &&
+                    block("shadow-atomic").S.Sw[0].X == 4 && block("gradient").S.Gi != null &&
+                    block("gradient").S.Gi.Ss.Count == 2 && block("gradient-atomic").S.Gi != null &&
+                    block("gradient-atomic").S.Gi.Ss[0].C == "color(srgb 0 1 0)",
+                    "predefined shadow, gradient, or atomic rejection changed");
+                Need(block("decor").S.Tc == "color(display-p3 0.445 0.529 0.891)" &&
+                    block("variable").S.Bg == "color(display-p3 0.445 0.529 0.891)" &&
+                    block("layered").S.Bg == "color(display-p3 0 0 1)",
+                    "predefined decoration, variable, or layer state changed");
+                Need(page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-srgb") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-linear") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-p3") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-p3-linear") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-xyz") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-space") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-comma") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-slash") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-none") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-nested") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-missing"),
+                    "predefined supports capability changed");
+                var svg = block("svg").Vg;
+                Need(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F.StartsWith("color(display-p3", StringComparison.Ordinal) &&
+                    svg.Ds.Count == 1 && svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[1].C == "color(srgb 1 0 0)",
+                    "predefined SVG state changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark predefined value";
+                engine.Vz(500, 2300);
+                Need(block("responsive").S.Bg == "color(display-p3 0 0 1)" &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark predefined value", "responsive predefined state or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 2300);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var p3 = BlockContent(view, "p3-reference");
+                        var p3Percent = BlockContent(view, "p3-percent");
+                        var p3Pair = BlockContent(view, "p3-pair");
+                        var p3LinearPair = BlockContent(view, "p3-linear-pair");
+                        var xyzD50 = BlockContent(view, "xyz-d50");
+                        var xyzD65 = BlockContent(view, "xyz-d65");
+                        var gamut = BlockContent(view, "gamut");
+                        var vector = BlockContent(view, "svg");
+                        var p3Reference = Color.FromArgb(108, 136, 234);
+                        var xyzReference = Color.FromArgb(118, 84, 205);
+                        Need(ColorDistance(image.GetPixel(p3.Right - 5, p3.Top + 5), p3Reference) < 10 &&
+                            ColorDistance(image.GetPixel(p3Percent.Right - 5, p3Percent.Top + 5), p3Reference) < 10 &&
+                            ColorDistance(image.GetPixel(p3Pair.Right - 5, p3Pair.Top + 5),
+                                image.GetPixel(p3LinearPair.Right - 5, p3LinearPair.Top + 5)) < 8,
+                            "predefined P3 paint changed");
+                        Need(ColorDistance(image.GetPixel(xyzD50.Right - 5, xyzD50.Top + 5), xyzReference) < 6 &&
+                            ColorDistance(image.GetPixel(xyzD65.Right - 5, xyzD65.Top + 5), xyzReference) < 6,
+                            "predefined XYZ paint changed");
+                        var mapped = image.GetPixel(gamut.Right - 5, gamut.Top + 5);
+                        Need(mapped.R > 230 && mapped.G > 220 && mapped.B < 100,
+                            "predefined gamut paint changed");
+                        Need(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), p3Reference) < 15 &&
+                            ColorDistance(image.GetPixel(vector.Left + 101, vector.Top + 30), Color.Yellow) < 40 &&
+                            ColorDistance(image.GetPixel(vector.Right - 5, vector.Top + 30), Color.Red) < 35,
+                            "predefined SVG paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained predefined view value";
+                    view.Size = new Size(500, 2300);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.Blue) < 15,
+                            "responsive predefined paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained predefined view value", "predefined view resize replaced field state");
+                }
+                return "bounded color() with sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65 and xyz alias, percentages, extended channels, alpha, Bradford adaptation, local-MINDE sRGB gamut mapping, color-mix stops, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention";
+            });
+            AddProbe(probes, "Wide-gamut CSS colors", delegate
+            {
+                var path = Path.Combine(folder, "wide-gamut-colors.html");
+                var engine = new E { Vw = 760, Vh = 2500 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("a98-reference").S.Bg == "color(a98-rgb 0.44091 0.49971 0.37408)" &&
+                    block("a98-percent").S.Bg == "color(a98-rgb 44.091% 49.971% 37.408%)" &&
+                    block("prophoto-reference").S.Bg == "color(prophoto-rgb 0.36589 0.41717 0.31333)" &&
+                    block("rec2020-reference").S.Bg == "color(rec2020 0.522 0.557 0.892)",
+                    "wide-gamut syntax state changed");
+                Need(block("gamut").S.Bg == "color(rec2020 0.42053 0.97978 0.00579)" &&
+                    block("extended").S.Bg == "color(prophoto-rgb 1.1 -.1 .2)" &&
+                    block("mix").S.Bg.StartsWith("color-mix(in srgb, color(a98-rgb", StringComparison.Ordinal),
+                    "wide-gamut extended or mix state changed");
+                Need(block("shadow").S.Sw.Count == 1 && block("shadow-atomic").S.Sw.Count == 1 &&
+                    block("shadow-atomic").S.Sw[0].X == 4 && block("gradient").S.Gi != null &&
+                    block("gradient").S.Gi.Ss.Count == 2 && block("gradient-atomic").S.Gi != null &&
+                    block("gradient-atomic").S.Gi.Ss[0].C == "color(prophoto-rgb 0 1 0)",
+                    "wide-gamut shadow, gradient, or atomic rejection changed");
+                Need(block("decor").S.Tc == "color(a98-rgb 0.44091 0.49971 0.37408)" &&
+                    block("variable").S.Bg == "color(prophoto-rgb 0.36589 0.41717 0.31333)" &&
+                    block("layered").S.Bg == "color(rec2020 0.522 0.557 0.892)",
+                    "wide-gamut decoration, variable, or layer state changed");
+                Need(page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-a98") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-prophoto") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-rec2020") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-linear") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-profile") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-none") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-comma") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-nested") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-missing"),
+                    "wide-gamut supports capability changed");
+                var svg = block("svg").Vg;
+                Need(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F.StartsWith("color(prophoto-rgb", StringComparison.Ordinal) &&
+                    svg.Ds.Count == 1 && svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[1].C == "color(rec2020 0 0 1)",
+                    "wide-gamut SVG state changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark wide gamut value";
+                engine.Vz(500, 2500);
+                Need(block("responsive").S.Bg == "color(rec2020 0.522 0.557 0.892)" &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark wide gamut value", "responsive wide-gamut state or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 2500);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var a98 = BlockContent(view, "a98-reference");
+                        var prophoto = BlockContent(view, "prophoto-reference");
+                        var rec2020 = BlockContent(view, "rec2020-reference");
+                        var gamut = BlockContent(view, "gamut");
+                        var vector = BlockContent(view, "svg");
+                        var leafReference = Color.FromArgb(106, 128, 94);
+                        var blueReference = Color.FromArgb(108, 136, 234);
+                        Need(ColorDistance(image.GetPixel(a98.Right - 5, a98.Top + 5), leafReference) < 9 &&
+                            ColorDistance(image.GetPixel(prophoto.Right - 5, prophoto.Top + 5), leafReference) < 9 &&
+                            ColorDistance(image.GetPixel(rec2020.Right - 5, rec2020.Top + 5), blueReference) < 10,
+                            "wide-gamut reference paint changed");
+                        var mapped = image.GetPixel(gamut.Right - 5, gamut.Top + 5);
+                        Need(mapped.G > 210 && mapped.G > mapped.R + 50 && mapped.G > mapped.B + 80,
+                            "Rec. 2020 gamut paint changed");
+                        Need(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), leafReference) < 15 &&
+                            image.GetPixel(vector.Left + 101, vector.Top + 30).R > 170 &&
+                            image.GetPixel(vector.Right - 5, vector.Top + 30).B > 120,
+                            "wide-gamut SVG paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained wide gamut view value";
+                    view.Size = new Size(500, 2500);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(108, 136, 234)) < 12, "responsive wide-gamut paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained wide gamut view value", "wide-gamut view resize replaced field state");
+                }
+                return "bounded A98 RGB, ProPhoto RGB, and Rec. 2020 color() spaces with official extended transfer curves, D50 adaptation, percentages, extended channels, alpha, local-MINDE sRGB gamut mapping, color-mix stops, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention";
+            });
+            AddProbe(probes, "Modern Oklab colors", delegate
+            {
+                var path = Path.Combine(folder, "oklab-colors.html");
+                var engine = new E { Vw = 760, Vh = 2200 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("lab-red").S.Bg == "oklab(0.6279553606 0.2248630611 0.1258462985)" &&
+                    block("lab-percent").S.Bg == "oklab(62.79553606% 56.215765275% 31.461574625%)" &&
+                    block("lch-blue").S.Bg == "oklch(0.4520137184 0.3132143717 264.0520206)" &&
+                    block("lch-percent").S.Bg == "oklch(62.79553606% 64.420826925% 29.2338852)",
+                    "Oklab syntax state changed");
+                Need(block("units").S.Bg == "oklch(0.8664396115 0.2948272403 0.395820386turn)" &&
+                    block("units").S.Bcv(0) == "oklch(0.8664396115 0.2948272403 158.328154grad)" &&
+                    block("wrapped").S.Bg == "oklch(0.6279553606 0.2576833077 389.2338852deg)",
+                    "OkLCh hue unit state changed");
+                Need(block("white-clamp").S.Bg == "oklab(120% 4 -4)" &&
+                    block("black-clamp").S.Bg == "oklab(-20% -4 4)" &&
+                    block("chroma-clamp").S.Bg == "oklch(0.5 -1 20)" &&
+                    block("gamut").S.Bg == "oklch(0.72 0.5 40)", "Oklab clamp or gamut state changed");
+                Need(block("mix").S.Bg.StartsWith("color-mix(in srgb, oklab(", StringComparison.Ordinal) &&
+                    block("shadow").S.Sw.Count == 1 && block("shadow-atomic").S.Sw.Count == 1 &&
+                    block("shadow-atomic").S.Sw[0].X == 4, "Oklab mix, shadow, or atomic rejection changed");
+                Need(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 2 &&
+                    block("gradient-atomic").S.Gi != null &&
+                    block("gradient-atomic").S.Gi.Ss[0].C == "oklab(0.8664396115 -0.2338875742 0.1794984799)",
+                    "Oklab gradient or atomic rejection changed");
+                Need(block("decor").S.Tc == "oklab(0.6279553606 0.2248630611 0.1258462985)" &&
+                    block("variable").S.Bg == "oklch(0.8664396115 0.2948272403 142.4953389)" &&
+                    block("layered").S.Bg == "oklch(0.4520137184 0.3132143717 264.0520206)",
+                    "Oklab decoration, variable, or layer state changed");
+                Need(page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-lab") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-lch") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-comma") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-slash") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-none") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-nested") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-missing"),
+                    "Oklab supports capability changed");
+                var svg = block("svg").Vg;
+                Need(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F.StartsWith("oklab(", StringComparison.Ordinal) &&
+                    svg.Ds.Count == 1 && svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[1].C.StartsWith("oklch(", StringComparison.Ordinal),
+                    "Oklab SVG state changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark Oklab value";
+                engine.Vz(500, 2200);
+                Need(block("responsive").S.Bg == "oklch(0.4520137184 0.3132143717 264.0520206)" &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark Oklab value", "responsive Oklab state or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 2200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var lab = BlockContent(view, "lab-red");
+                        var lch = BlockContent(view, "lch-blue");
+                        var alpha = BlockContent(view, "alpha");
+                        var neutral = BlockContent(view, "chroma-clamp");
+                        var gamut = BlockContent(view, "gamut");
+                        var mix = BlockContent(view, "mix");
+                        var vector = BlockContent(view, "svg");
+                        Need(ColorDistance(image.GetPixel(lab.Right - 5, lab.Top + 5), Color.Red) < 5 &&
+                            ColorDistance(image.GetPixel(lch.Right - 5, lch.Top + 5), Color.Blue) < 5 &&
+                            ColorDistance(image.GetPixel(alpha.Right - 5, alpha.Top + 5), Color.FromArgb(255, 127, 127)) < 8 &&
+                            ColorDistance(image.GetPixel(neutral.Right - 5, neutral.Top + 5), Color.FromArgb(99, 99, 99)) < 5,
+                            "Oklab HTML paint changed");
+                        var mapped = image.GetPixel(gamut.Right - 5, gamut.Top + 5);
+                        Need(mapped.R > 220 && mapped.G > 40 && mapped.G < 180 && mapped.B < 100 &&
+                            ColorDistance(image.GetPixel(mix.Right - 5, mix.Top + 5), Color.FromArgb(128, 0, 128)) < 8,
+                            "Oklab gamut or mixed paint changed");
+                        Need(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), Color.Red) < 12 &&
+                            ColorDistance(image.GetPixel(vector.Left + 101, vector.Top + 30), Color.Lime) < 35 &&
+                            ColorDistance(image.GetPixel(vector.Right - 5, vector.Top + 30), Color.Blue) < 35,
+                            "Oklab SVG paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained Oklab view value";
+                    view.Size = new Size(500, 2200);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.Blue) < 5,
+                            "responsive Oklab paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained Oklab view value", "Oklab view resize replaced field state");
+                }
+                return "modern Oklab/OkLCh numbers and percentages, hue units and wrapping, channel clamping, local-MINDE sRGB gamut mapping, alpha, color-mix stops, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention";
+            });
+            AddProbe(probes, "Bounded sRGB color mixing", delegate
+            {
+                var path = Path.Combine(folder, "color-mix.html");
+                var engine = new E { Vw = 760, Vh = 1800 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("equal").S.Bg == "color-mix(in srgb, red, blue)" &&
+                    block("complement").S.Bg == "color-mix(in srgb, red 25%, blue)" &&
+                    block("reverse").S.Bg == "color-mix(in srgb, red, blue 25%)", "color mix weight state changed");
+                Need(block("low-total").S.Bg == "color-mix(in srgb, red 20%, blue 20%)" &&
+                    block("high-total").S.Bg == "color-mix(in srgb, red 80%, blue 80%)" &&
+                    block("transparent-mix").S.Bg == "color-mix(in srgb, transparent, red)" &&
+                    block("premultiplied").S.Bg == "color-mix(in srgb, rgba(255, 0, 0, .5), blue)",
+                    "color mix alpha state changed");
+                Need(block("functions").S.Bg == "color-mix(in srgb, hsl(120 100% 25%) 25%, hwb(240 0% 0%))" &&
+                    block("current").S.Bcv(0) == "color-mix(in srgb, currentColor 25%, white)",
+                    "functional or current color mix state changed");
+                Need(block("shadow").S.Sw.Count == 1 && block("shadow").S.Sw[0].C == "color-mix(in srgb, red, blue)" &&
+                    block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4,
+                    "color mix shadow or atomic rejection changed");
+                Need(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 2 &&
+                    block("gradient-atomic").S.Gi != null &&
+                    block("gradient-atomic").S.Gi.Ss[0].C == "color-mix(in srgb, red, white)",
+                    "color mix gradient or atomic rejection changed");
+                Need(block("decor").S.Tc == "color-mix(in srgb, red 40%, blue)" && block("decor").S.Ts != null &&
+                    block("variable").S.Bg == "color-mix(in srgb, green 60%, white)" &&
+                    block("layered").S.Bg == "color-mix(in srgb, blue, white)",
+                    "color mix decoration, variable, or layer state changed");
+                Need(page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-space") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-extra") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-zero") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-negative") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-over") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-nested") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(color:color-mix(insrgb,red25%,blue))")),
+                    "color mix supports capability changed");
+                var svg = block("svg").Vg;
+                Need(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F == "color-mix(in srgb, red, blue)" &&
+                    svg.Ds.Count == 1 && svg.Ds[0].Ss.Count == 2 &&
+                    svg.Ds[0].Ss[0].C == "color-mix(in srgb, red 75%, blue)", "color mix SVG state changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark color mix value";
+                engine.Vz(500, 1800);
+                Need(block("responsive").S.Bg == "color-mix(in srgb, blue 75%, white)" &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark color mix value", "responsive color mix state or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1800);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var equal = BlockContent(view, "equal");
+                        var complement = BlockContent(view, "complement");
+                        var low = BlockContent(view, "low-total");
+                        var transparent = BlockContent(view, "transparent-mix");
+                        var premultiplied = BlockContent(view, "premultiplied");
+                        var vector = BlockContent(view, "svg");
+                        Need(ColorDistance(image.GetPixel(equal.Right - 5, equal.Top + 5), Color.FromArgb(128, 0, 128)) < 4 &&
+                            ColorDistance(image.GetPixel(complement.Right - 5, complement.Top + 5), Color.FromArgb(64, 0, 191)) < 4 &&
+                            ColorDistance(image.GetPixel(low.Right - 5, low.Top + 5), Color.FromArgb(204, 153, 204)) < 8,
+                            "color mix weighted paint changed");
+                        Need(ColorDistance(image.GetPixel(transparent.Right - 5, transparent.Top + 5), Color.FromArgb(255, 127, 127)) < 8 &&
+                            ColorDistance(image.GetPixel(premultiplied.Right - 5, premultiplied.Top + 5), Color.FromArgb(127, 63, 191)) < 10,
+                            "color mix alpha paint changed");
+                        Need(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), Color.FromArgb(128, 0, 128)) < 12 &&
+                            ColorDistance(image.GetPixel(vector.Left + 101, vector.Top + 30), Color.FromArgb(191, 0, 64)) < 35 &&
+                            ColorDistance(image.GetPixel(vector.Right - 5, vector.Top + 30), Color.FromArgb(64, 0, 191)) < 35,
+                            "color mix SVG paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained color mix view value";
+                    view.Size = new Size(500, 1800);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(64, 64, 255)) < 8,
+                            "responsive color mix paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained color mix view value", "color mix view resize replaced field state");
+                }
+                return "bounded in-srgb two-stop mixing, omitted and normalized weights, reduced and premultiplied alpha, named/hex/RGB/HSL/HWB/current colors, strict rejection, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention";
+            });
+            AddProbe(probes, "Bounded CSS custom properties", delegate
+            {
+                var path = Path.Combine(folder, "custom-properties.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "var-field");
+                field.V = "Retained benchmark variable";
+                Need(page.S.Vc == 19 && page.S.Cv("--brand") == "#176b4d" && page.S.Cv("--Brand") == "#123f8c", "custom property aliases or case sensitivity changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "base").S.W == 260 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "child").S.F == "#7e22ce" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "depth-ok").S.W == 177 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "depth-limit").S.W == 43, "custom inheritance, values, or depth bounds changed");
+                engine.Dy(page, ById(page.D, "hover"), null);
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "hover").S.Pl == 18, "custom hover cascade changed");
+                engine.Vw = 480;
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "base").S.W == 150 &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "var-field")) && field.V == "Retained benchmark variable", "responsive custom value or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var widePaint = Draw(view)) Need(BlockContent(view, "base").Width == 260, "custom property wide geometry changed");
+                    view.Size = new Size(480, 760);
+                    using (var narrowPaint = Draw(view)) Need(BlockContent(view, "base").Width == 150, "custom property responsive geometry changed");
+                }
+                return "S.Vc/Cv aliases, 32 properties, 64-character names, 512-character values, eight-level resolution, case-sensitive inheritance, nested/cycle fallbacks, inline/hover/media rebuilds, and retained fields";
+            });
+            AddProbe(probes, "Bounded important cascade", delegate
+            {
+                var path = Path.Combine(folder, "important-cascade.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var sheet = page.Bs.First(block => block.El != null && block.El.Av("id") == "sheet");
+                var inline = page.Bs.First(block => block.El != null && block.El.Av("id") == "inline");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark priority";
+                Need(engine.Dg(page).Ic == 19 && sheet.S.F == "#a13b18" && sheet.S.W == 140 && sheet.S.Bg == "#7e22ce" &&
+                    inline.S.F == "#0f4c81" && inline.S.W == 190 && inline.S.Bg == "#176b4d", "important stylesheet or inline tier changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "specific").S.Pl == 9 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "order").S.W == 91 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "custom-child").S.F == "#123f8c" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "fallback").S.W == 133, "important specificity, order, inheritance, or fallback changed");
+                engine.Dy(page, ById(page.D, "hover"), null);
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "hover").S.W == 180, "important hover cascade changed");
+                engine.Dy(page, null, null);
+                engine.Vw = 480;
+                Need(engine.Dg(page).Ic == 22 && page.Bs.First(block => block.El != null && block.El.Av("id") == "media").S.W == 115 &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && field.V == "Retained benchmark priority" && field.S.W == 150,
+                    "important media cascade or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var widePaint = Draw(view)) Need(BlockContent(view, "sheet").Width == 140 && BlockContent(view, "inline").Width == 190, "important wide view geometry changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained important view";
+                    view.Size = new Size(480, 760);
+                    using (var narrowPaint = Draw(view)) Need(BlockContent(view, "media").Width == 115, "important narrow view geometry changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && liveField.V == "Retained important view" && liveField.S.W == 150, "important view replaced field state");
+                }
+                return "G.Ic diagnostics, stylesheet/inline priority tiers, specificity/source order, shorthands, custom properties, nested marker boundaries, hover/media rebuilds, and retained fields";
+            });
+            AddProbe(probes, "Bounded document queries", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "selectors.html"));
+                Need(engine.Id(page, "stage") != null, "Id lookup failed");
+                Need(engine.Q(page, "#stage > p.direct") != null, "first query failed");
+                Need(engine.Qa(page, ".card").Count == 3, "all query count changed");
+                Need(engine.Qa(page, "p,,div").Count == 0, "invalid query was accepted");
+                return "Id and first match; 3 ordered matches; invalid selector rejected";
+            });
+            AddProbe(probes, "Document base URLs", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "base-url.html"));
+                var expected = new Uri(page.U, "../");
+                Need(page.Bu == expected && page.U != page.Bu, "document base URL changed");
+                Need(page.S.Bg == "#edf7f2", "base-relative stylesheet is missing");
+                Need(page.Ls.Count == 2 && page.Ls.All(link => link.U.IsFile), "base-relative links changed");
+                Need(page.Fs.Any(field => field.U == new Uri(expected, "test-pages/form-result.html")), "base-relative form action changed");
+                return "First valid Bu resolves styles, links, images, forms, and downloads while U stays unchanged";
+            });
+            AddProbe(probes, "Layout and painting", delegate
+            {
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "stacking-contexts.html"));
+                    using (var image = Draw(view))
+                    {
+                        var colored = ColoredSamples(image);
+                        Need(view.Bc > 0 && view.Dh > 0 && colored > 0, "painted view is blank");
+                        return view.Bc + " boxes, " + view.Dh + " px document, " + colored + " colored samples";
+                    }
+                }
+            });
+            AddProbe(probes, "Bounded box sizing", delegate
+            {
+                var path = Path.Combine(folder, "box-sizing.html");
+                var page = new E().Go(path);
+                Need(ById(page.D, "content-box") != null && page.Bs.First(block => block.El != null && block.El.Av("id") == "content-box").S.Bz == "c", "content-box model changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "border-box").S.Bz == "b" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-content").S.Bz == "c" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-border").S.Fb == 140, "border-box cascade, inheritance, or flex basis changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockOuter(view, "content-box").Size == new Size(232, 78) && BlockOuter(view, "border-box").Size == new Size(200, 50), "content/border box geometry changed");
+                        Need(BlockOuter(view, "border-min").Size == new Size(180, 42) && BlockOuter(view, "border-max").Size == new Size(170, 44), "border-box min/max geometry changed");
+                        Need(BlockOuter(view, "border-field").Size == new Size(180, 44) && BlockOuter(view, "border-image").Size == new Size(100, 60) && BlockOuter(view, "flex-content").Width == 162 && BlockOuter(view, "flex-border").Width == 140 && BlockOuter(view, "border-table").Size == new Size(240, 100), "field, image, flex, or table box sizing changed");
+                    }
+                    view.Size = new Size(180, 1200);
+                    using (var image = Draw(view))
+                    {
+                        var border = BlockOuter(view, "border-box");
+                        var flex = BlockContent(view, "border-flex");
+                        var item = BlockOuter(view, "flex-border");
+                        Need(border.Width > 32 && border.Width < 200 && BlockOuter(view, "border-field").Width == border.Width && BlockOuter(view, "border-table").Width == border.Width, "narrow border-box reflow changed");
+                        Need(item.Width > 22 && item.Right <= flex.Right, "narrow border-box flex containment changed");
+                    }
+                }
+                return "Bz c/b across width, height, min/max, flex-basis, fields, tables, and 180 px reflow with fixture-backed paint and hits";
+            });
+            AddProbe(probes, "Bounded CSS corner radii", delegate
+            {
+                var path = Path.Combine(folder, "border-radius.html");
+                var page = new E().Go(path);
+                var solid = page.Bs.First(block => block.El != null && block.El.Av("id") == "solid");
+                var dashed = page.Bs.First(block => block.El != null && block.El.Av("id") == "dashed");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(solid.S.R0 == 30 && solid.S.R1 == 12 && solid.S.Q0 == 20 && solid.S.Q2 == 30, "elliptical radius aliases changed");
+                Need(dashed.S.R0 == -50 && dashed.S.R1 == -25 && dashed.S.Q0 == 18 && dashed.S.Q1 == 10, "percentage radius aliases changed");
+                Need(atomic.S.R0 == 1 && atomic.S.R3 == 4 && atomic.S.Q0 == 5 && atomic.S.Q3 == 8, "atomic invalid radius fallback changed");
+                Need(field.S.R0 == 18 && field.S.R1 == 36 && field.S.Q2 == 18 && field.S.Q3 == 36, "custom-property field radius changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var solidOuter = BlockOuter(view, "solid");
+                        var clipContent = BlockContent(view, "clipper");
+                        Need(ColorDistance(image.GetPixel(solidOuter.Left, solidOuter.Top), Color.White) < 24 &&
+                            ColorDistance(image.GetPixel(solidOuter.Left + solidOuter.Width / 2, solidOuter.Top + 2), Color.FromArgb(22, 101, 52)) < 24, "rounded background or solid border paint changed");
+                        Need(ColorDistance(image.GetPixel(clipContent.Left + 1, clipContent.Top + 1), Color.White) < 24 &&
+                            ColorDistance(image.GetPixel(clipContent.Left + clipContent.Width / 2, clipContent.Top + clipContent.Height / 2), Color.FromArgb(239, 68, 68)) < 12, "rounded overflow clip changed");
+                    }
+                    view.Size = new Size(300, 1200);
+                    using (var image = Draw(view)) Need(BlockOuter(view, "dashed").Right <= view.ClientSize.Width - 1, "rounded narrow reflow changed");
+                }
+                return "S.R0-R3/Q0-Q3 aliases, atomic pixel/percentage ellipses, longhands, variables, important/reset/bounds, normalized solid/dashed paint, overflow clips, fields, links, and resize";
+            });
+            AddProbe(probes, "Bounded logical corner radii", delegate
+            {
+                var path = Path.Combine(folder, "logical-radii.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var mapping = block("mapping").S;
+                Need(mapping.R0 == 11 && mapping.Q0 == 12 && mapping.R1 == 13 && mapping.Q1 == 14 &&
+                    mapping.R2 == 15 && mapping.Q2 == 16 && mapping.R3 == 17 && mapping.Q3 == 18,
+                    "logical corner radius mapping changed");
+                var source = block("source").S;
+                Need(source.R0 == 20 && source.Q0 == 21 && source.R2 == 23 && source.Q2 == 24,
+                    "physical/logical corner source order changed");
+                var priority = block("priority").S;
+                Need(priority.R1 == 25 && priority.Q1 == 26 && priority.R0 == 3 && priority.Q3 == 3,
+                    "important logical corner radius changed");
+                var inherited = block("inherit-all").S;
+                var inheritedCorners = block("inherit-corners").S;
+                Need(inherited.R0 == 31 && inherited.Q1 == 42 && inherited.R2 == 33 && inherited.Q3 == 44 &&
+                    inheritedCorners.R0 == 31 && inheritedCorners.Q1 == 42 && inheritedCorners.R2 == 33 && inheritedCorners.Q3 == 44,
+                    "radius inheritance changed");
+                var invalid = block("invalid").S;
+                Need(invalid.R0 == 5 && invalid.R1 == 6 && invalid.R2 == 7 && invalid.R3 == 8 &&
+                    invalid.Q0 == 9 && invalid.Q1 == 10 && invalid.Q2 == 11 && invalid.Q3 == 12,
+                    "logical radius atomic fallback changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1500);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var paint = BlockOuter(view, "paint");
+                        Need(ColorDistance(image.GetPixel(paint.Left + 1, paint.Top + 1), Color.White) < 24 &&
+                            ColorDistance(image.GetPixel(paint.Right - 2, paint.Top + 2), Color.FromArgb(23, 107, 77)) < 24 &&
+                            ColorDistance(image.GetPixel(paint.Left + paint.Width / 2, paint.Top + paint.Height / 2), Color.FromArgb(255, 244, 204)) < 16,
+                            "logical asymmetric corner paint changed");
+                    }
+                }
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 9 && block("command").S.R0 == 30 && block("command").S.Q1 == 33 &&
+                    block("command").S.R2 == 36 && block("command").S.Q3 == 35,
+                    "short radius aliases did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "set-invalid")) == 0 && block("command").S.R0 == 30,
+                    "unsupported radius command values were accepted");
+                Need(engine.Ck(page, ById(page.D, "clear-all")) == 9 && block("command").S.R0 == 2 && block("command").S.Q3 == 9,
+                    "radius DOM reset lost authored state");
+                Need(engine.Ck(page, ById(page.D, "set-readable")) == 9 && block("command").S.R0 == 50 && block("command").S.Q2 == 57,
+                    "readable radius commands changed");
+                Need(engine.Ck(page, ById(page.D, "clear-all")) == 9 && engine.Ck(page, ById(page.D, "set-dom")) == 9 &&
+                    block("command").S.R0 == 70 && block("command").S.Q1 == 73 && block("command").S.R2 == 76 && block("command").S.Q3 == 75,
+                    "familiar radius DOM styles changed");
+                Need(engine.Ck(page, ById(page.D, "clear-all")) == 9 && block("command").S.R0 == 2 && block("command").S.Q3 == 9,
+                    "radius DOM authored restore changed");
+                return "horizontal-tb/LTR logical corners mapped onto R0-R3/Q0-Q3, source order, important, variables, inheritance/reset, atomic rejection, nine compact/readable commands, familiar DOM styles, authored restore, and asymmetric paint";
+            });
+            AddProbe(probes, "Bounded CSS box shadows", delegate
+            {
+                var path = Path.Combine(folder, "box-shadows.html");
+                var page = new E().Go(path);
+                var outer = page.Bs.First(block => block.El != null && block.El.Av("id") == "outer");
+                var soft = page.Bs.First(block => block.El != null && block.El.Av("id") == "soft");
+                var inset = page.Bs.First(block => block.El != null && block.El.Av("id") == "inset");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var clipChild = page.Bs.First(block => block.El != null && block.El.Av("id") == "shadow-clip-child");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(outer.S.Sw.Count == 2 && outer.S.Sw[0].X == 12 && outer.S.Sw[1].X == -8, "outer shadow aliases changed");
+                Need(soft.S.Sw.Count == 1 && soft.S.Sw[0].B == 12 && soft.S.Sw[0].R == 4, "blur/spread shadow aliases changed");
+                Need(inset.S.Sw.Count == 1 && inset.S.Sw[0].I && atomic.S.Sw.Count == 1 && atomic.S.Sw[0].X == 3, "inset or atomic fallback changed");
+                Need(field.S.Sw.Count == 2 && field.S.Sw[1].I, "field shadow model changed");
+                Need(clipChild.S.Op == 50 && clipChild.S.Sw.Count == 1, "shadow opacity or overflow fixture model changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var outerRect = BlockOuter(view, "outer");
+                        var insetRect = BlockOuter(view, "inset");
+                        var clipRect = BlockContent(view, "shadow-clipper");
+                        Need(ColorDistance(image.GetPixel(outerRect.Right + 6, outerRect.Top + outerRect.Height / 2 + 4), Color.FromArgb(220, 38, 38)) < 24, "outer shadow paint changed");
+                        Need(ColorDistance(image.GetPixel(insetRect.Left + 4, insetRect.Top + insetRect.Height / 2), Color.FromArgb(22, 163, 74)) < 24, "inset shadow paint changed");
+                        Need(ColorDistance(image.GetPixel(clipRect.Left + 160, clipRect.Top + clipRect.Height / 2), Color.FromArgb(223, 135, 139)) < 30 &&
+                            ColorDistance(image.GetPixel(clipRect.Right + 3, clipRect.Top + clipRect.Height / 2), Color.White) < 18, "shadow opacity or overflow clip paint changed");
+                    }
+                    view.Size = new Size(260, 1200);
+                    using (var image = Draw(view)) Need(BlockOuter(view, "outer").Right <= view.ClientSize.Width - 1, "shadow narrow reflow changed");
+                }
+                return "S.Sw with X/Y/B/R/C/I aliases, four-layer cap, atomic parsing, variables, priority/reset/bounds, alpha/current colors, rounded outer/inset/field paint, unchanged hits, and resize";
+            });
+            AddProbe(probes, "Bounded CSS background gradients", delegate
+            {
+                var path = Path.Combine(folder, "background-gradients.html");
+                var page = new E().Go(path);
+                var linear = page.Bs.First(block => block.El != null && block.El.Av("id") == "linear");
+                var radial = page.Bs.First(block => block.El != null && block.El.Av("id") == "radial");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var normalized = page.Bs.First(block => block.El != null && block.El.Av("id") == "normalized");
+                var limit = page.Bs.First(block => block.El != null && block.El.Av("id") == "limit");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.S.Gi != null && page.S.Gi.K == "l" && page.S.Gi.Ss.Count == 2, "page gradient model changed");
+                Need(linear.S.Gi != null && linear.S.Gi.K == "l" && linear.S.Gi.A == 90 && linear.S.Gi.Ss.Count == 3 && linear.S.Gi.Ss[1].P == 50, "linear gradient aliases changed");
+                Need(radial.S.Gi != null && radial.S.Gi.K == "r" && radial.S.Gi.X == 25 && radial.S.Gi.Y == 50, "radial gradient aliases changed");
+                Need(atomic.S.Gi != null && atomic.S.Gi.Ss[0].P == 10 && normalized.S.Gi.Ss[1].P == 40 && limit.S.Gi.Ss.Count == 2, "gradient atomic fallback, normalization, or cap changed");
+                Need(field.S.Gi != null && field.S.Gi.A == 90 && field.S.Gi.Ss.Count == 2, "field gradient model changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var linearRect = BlockOuter(view, "linear");
+                        var radialRect = BlockOuter(view, "radial");
+                        var fieldRect = BlockContent(view, "field");
+                        Need(ColorDistance(image.GetPixel(2, 2), Color.White) < 20 && ColorDistance(image.GetPixel(717, 2), Color.FromArgb(226, 232, 240)) < 30, "page gradient paint changed");
+                        Need(ColorDistance(image.GetPixel(linearRect.Left + 8, linearRect.Top + linearRect.Height / 2), Color.FromArgb(220, 38, 38)) < 45 &&
+                            ColorDistance(image.GetPixel(linearRect.Right - 8, linearRect.Top + linearRect.Height / 2), Color.FromArgb(22, 163, 74)) < 45, "linear gradient paint changed");
+                        Need(ColorDistance(image.GetPixel(radialRect.Left + radialRect.Width / 4, radialRect.Top + radialRect.Height / 2), Color.FromArgb(254, 240, 138)) < 35 &&
+                            ColorDistance(image.GetPixel(radialRect.Right - 10, radialRect.Top + radialRect.Height / 2), Color.FromArgb(124, 58, 237)) < 50, "radial gradient paint changed");
+                        Need(ColorDistance(image.GetPixel(fieldRect.Left + 10, fieldRect.Bottom - 8), Color.FromArgb(153, 246, 228)) < 35, "field gradient paint changed");
+                    }
+                    view.Size = new Size(280, 1200);
+                    using (var image = Draw(view)) Need(BlockOuter(view, "linear").Right <= view.ClientSize.Width - 1, "gradient narrow reflow changed");
+                }
+                return "S.Gi and Gi.K/A/X/Y/Ss plus Cs.C/P aliases, one-layer/eight-stop caps, atomic parsing, variables, priority/reset/bounds, normalized alpha/current colors, rounded linear/radial/page/field paint, unchanged hits, and resize";
+            });
+            AddProbe(probes, "Bounded CSS bitmap backgrounds", delegate
+            {
+                var path = Path.Combine(folder, "background-images.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var repeat = page.Bs.First(block => block.El != null && block.El.Av("id") == "repeat");
+                var positioned = page.Bs.First(block => block.El != null && block.El.Av("id") == "no-repeat");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var shorthand = page.Bs.First(block => block.El != null && block.El.Av("id") == "shorthand");
+                var external = page.Bs.First(block => block.El != null && block.El.Av("id") == "external-image");
+                Need(page.S.Bi != null && page.S.Bi.R == "n" && page.S.Bi.X == 100 && page.S.Bi.Y == 100 && page.S.Bi.W == 24 && page.S.Bi.H == 24,
+                    "page bitmap aliases changed");
+                Need(repeat.S.Bi != null && repeat.S.Bi.U.Scheme == "data" && repeat.S.Bi.R == "b" && repeat.S.Bi.W == 12 && repeat.S.Bi.H == 12,
+                    "repeated bitmap aliases changed");
+                Need(positioned.S.Bi != null && positioned.S.Bi.R == "n" && positioned.S.Bi.X == 100 && positioned.S.Bi.Y == 100 && positioned.S.Bi.W == 30 && positioned.S.Bi.H == 20,
+                    "positioned bitmap aliases changed");
+                Need(atomic.S.Bi != null && atomic.S.Bi.U == repeat.S.Bi.U && shorthand.S.Bi != null && shorthand.S.Bi.R == "n" && shorthand.S.Bi.W == 26 && shorthand.S.Bi.H == 22,
+                    "bitmap atomic fallback or shorthand changed");
+                Need(external.S.Bi != null && external.S.Bi.U == new Uri(Path.GetFullPath(Path.Combine(root, "assets", "lea.ico"))),
+                    "linked stylesheet bitmap origin changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1400);
+                    LoadView(view, path, "bitmap background fixture");
+                    using (var image = Draw(view))
+                    {
+                        var repeatRect = BlockOuter(view, "repeat");
+                        var positionedRect = BlockOuter(view, "no-repeat");
+                        var roundedRect = BlockOuter(view, "rounded");
+                        var fieldRect = BlockContent(view, "field");
+                        Need(ColorDistance(image.GetPixel(repeatRect.Right - 6, repeatRect.Bottom - 6), Color.FromArgb(23, 107, 77)) < 4,
+                            "repeated bitmap paint changed");
+                        Need(ColorDistance(image.GetPixel(positionedRect.Right - 6, positionedRect.Bottom - 6), Color.FromArgb(23, 107, 77)) < 4 &&
+                            ColorDistance(image.GetPixel(positionedRect.Left + 5, positionedRect.Bottom - 6), Color.White) < 8,
+                            "positioned bitmap paint changed");
+                        Need(ColorDistance(image.GetPixel(roundedRect.Left, roundedRect.Top), Color.White) < 8 &&
+                            ColorDistance(image.GetPixel(roundedRect.Left + roundedRect.Width / 2, roundedRect.Top + roundedRect.Height / 2), Color.FromArgb(23, 107, 77)) < 4,
+                            "rounded bitmap clip changed");
+                        Need(ColorDistance(image.GetPixel(fieldRect.Right - 8, fieldRect.Top + fieldRect.Height / 2), Color.FromArgb(23, 107, 77)) < 8,
+                            "field bitmap paint changed");
+                        Need(ColorDistance(image.GetPixel(image.Width - 8, image.Height - 8), Color.FromArgb(126, 34, 206)) < 4,
+                            "page bitmap paint changed");
+                    }
+                    view.Size = new Size(350, 1800);
+                    using (var image = Draw(view))
+                    {
+                        var dynamicRect = BlockOuter(view, "dynamic");
+                        Need(dynamicRect.Bottom <= image.Height &&
+                            ColorDistance(image.GetPixel(dynamicRect.Left + dynamicRect.Width / 2, dynamicRect.Top + dynamicRect.Height / 2), Color.FromArgb(126, 34, 206)) < 4,
+                            "responsive bitmap paint changed");
+                        Need(BlockOuter(view, "repeat").Right <= view.ClientSize.Width - 1, "bitmap narrow reflow changed");
+                    }
+                }
+                return "S.Bi with U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K aliases, bounded data/file loading, stylesheet/custom-property origins, atomic URL/position/size/shorthand parsing, repeat/axis/cover/contain/page/field paint, rounded clips, opacity, and resize";
+            });
+            AddProbe(probes, "Bounded replaced-image fitting", delegate
+            {
+                var path = Path.Combine(folder, "object-fit.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var fill = page.Bs.First(block => block.El != null && block.El.Av("id") == "fill");
+                var contain = page.Bs.First(block => block.El != null && block.El.Av("id") == "contain");
+                var cover = page.Bs.First(block => block.El != null && block.El.Av("id") == "cover-right");
+                var none = page.Bs.First(block => block.El != null && block.El.Av("id") == "none");
+                var down = page.Bs.First(block => block.El != null && block.El.Av("id") == "scale-down");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var child = page.Bs.First(block => block.El != null && block.El.Av("id") == "child");
+                Need(fill.S.Of == "f" && contain.S.Of == "c" && cover.S.Of == "v" && none.S.Of == "n" && down.S.Of == "s",
+                    "object-fit aliases changed");
+                Need(cover.S.Ox == 100 && cover.S.Oy == 100 && cover.S.Oxp && cover.S.Oyp &&
+                    none.S.Ox == 25 && none.S.Oy == 75 && none.S.Oxp && none.S.Oyp,
+                    "object-position aliases changed");
+                Need(atomic.S.Of == "c" && reset.S.Of == "f" && reset.S.Ox == 50 && reset.S.Oy == 50 && child.S.Of == "f",
+                    "object geometry atomic reset or noninheritance changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1800);
+                    LoadView(view, path, "object-fit fixture");
+                    using (var image = Draw(view))
+                    {
+                        var containRect = BlockContent(view, "contain");
+                        var coverRect = BlockContent(view, "cover-right");
+                        var mappedRect = BlockContent(view, "mapped-fit");
+                        var mappedBlock = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "mapped-fit");
+                        var mapBounds = view.Ab(view.Ax(mappedBlock.Mp.As[0].El));
+                        Need(ColorDistance(image.GetPixel(containRect.Left + 10, containRect.Top + 10), Color.White) < 8 &&
+                            ColorDistance(image.GetPixel(containRect.Left + 20, containRect.Top + containRect.Height / 2), Color.FromArgb(220, 38, 38)) < 20,
+                            "object contain paint changed");
+                        Need(ColorDistance(image.GetPixel(coverRect.Left + 60, coverRect.Top + 20), Color.FromArgb(37, 99, 235)) < 20,
+                            "positioned object cover paint changed");
+                        Need(mapBounds == new Rectangle(mappedRect.Left, mappedRect.Top + 20, 80, 80) && view.Kn == 2 && view.Kf() == 1 && view.Kb == mapBounds,
+                            "fitted image-map geometry changed");
+                    }
+                    view.Size = new Size(350, 1800);
+                    using (var image = Draw(view))
+                    {
+                        var dynamic = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic");
+                        Need(dynamic.S.Of == "v" && dynamic.S.Ox == 100 && dynamic.S.Oy == 100,
+                            "responsive object geometry changed");
+                    }
+                }
+                return "S.Of=f/c/v/n/s with Ox/Oy/Oxp/Oyp aliases, atomic variables/priority/reset/noninheritance, clipped fill/contain/cover/none/scale-down paint, fitted map pointer/accessibility/keyboard geometry, and resize";
+            });
+            AddProbe(probes, "Bounded CSS aspect ratios", delegate
+            {
+                var path = Path.Combine(folder, "aspect-ratio.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var wide = page.Bs.First(block => block.El != null && block.El.Av("id") == "wide");
+                var autoImage = page.Bs.First(block => block.El != null && block.El.Av("id") == "auto-image");
+                var fallback = page.Bs.First(block => block.El != null && block.El.Av("id") == "fallback-image");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var child = page.Bs.First(block => block.El != null && block.El.Av("id") == "ratio-child");
+                Need(wide.S.Rw == 16D && wide.S.Rh == 9D && !wide.S.Ra,
+                    "aspect-ratio aliases changed");
+                Need(autoImage.S.Rw == 1D && autoImage.S.Rh == 1D && autoImage.S.Ra &&
+                    fallback.S.Rw == 4D && fallback.S.Rh == 3D && fallback.S.Ra,
+                    "intrinsic ratio fallback changed");
+                Need(reset.S.Rw == 0D && reset.S.Rh == 0D && reset.S.Ra &&
+                    child.S.Rw == 0D && child.S.Rh == 0D,
+                    "aspect ratio reset or noninheritance changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 3600);
+                    LoadView(view, path, "aspect-ratio fixture");
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "wide").Size == new Size(240, 135) &&
+                            BlockContent(view, "auto-image").Size == new Size(100, 50) &&
+                            BlockContent(view, "fallback-image").Size == new Size(100, 75) &&
+                            BlockOuter(view, "ratio-table").Size == new Size(240, 120),
+                            "aspect ratio shared layout changed");
+                    }
+                    view.Size = new Size(350, 4200);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "dynamic").Size == new Size(200, 200),
+                            "responsive aspect ratio changed");
+                    }
+                }
+                return "S.Rw/Rh/Ra aliases, bounded atomic parsing and reset/noninheritance, intrinsic media fallback, content/border-box, fields, flex/grid/table layout, paint, and resize";
+            });
+            AddProbe(probes, "Bounded CSS outlines", delegate
+            {
+                var path = Path.Combine(folder, "outlines.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var solid = page.Bs.First(block => block.El != null && block.El.Av("id") == "solid");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var child = page.Bs.First(block => block.El != null && block.El.Av("id") == "outline-child");
+                Need(solid.S.Ow == 4 && solid.S.Os == "s" && solid.S.Oc == "#a13b18" && solid.S.Oo == 3,
+                    "outline aliases changed");
+                Need(atomic.S.Ow == 2 && atomic.S.Os == "s" && reset.S.Ow == 3 && reset.S.Os == "n" && child.S.Ow == 0,
+                    "outline atomic reset or noninheritance changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1900);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var rect = BlockOuter(view, "solid");
+                        Need(rect.Size == new Size(160, 50) &&
+                            ColorDistance(image.GetPixel(rect.Left - 5, rect.Top + rect.Height / 2), Color.FromArgb(161, 59, 24)) < 16,
+                            "outline geometry or paint changed");
+                    }
+                    Need(view.Js("fo('focus-field')") == 1, "outline focus command changed");
+                    using (var image = Draw(view))
+                    {
+                        var field = BlockOuter(view, "focus-field");
+                        Need(ColorDistance(image.GetPixel(field.Left - 7, field.Top + field.Height / 2), Color.FromArgb(220, 38, 38)) < 24,
+                            "focused field outline changed");
+                    }
+                    view.Size = new Size(350, 2300);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "responsive");
+                        Need(responsive.S.Ow == 6 && responsive.S.Os == "o" && responsive.S.Oo == 5,
+                            "responsive outline changed");
+                    }
+                }
+                return "S.Ow/Os/Oc/Oo aliases, atomic shorthand/longhands, variables/priority/reset/noninheritance, solid/dashed/dotted/auto and signed offsets, rounded box/field focus paint, clipping, stable geometry, and resize";
+            });
+            AddProbe(probes, "Bounded pointer interaction", delegate
+            {
+                var path = Path.Combine(folder, "pointer-interaction.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var pointer = page.Bs.First(block => block.El != null && block.El.Av("id") == "pointer");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var variable = page.Bs.First(block => block.El != null && block.El.Av("id") == "variable");
+                var child = page.Bs.First(block => block.El != null && block.El.Av("id") == "none-child");
+                var enabled = page.Bs.First(block => block.El != null && block.El.Av("id") == "auto-child");
+                var hoverCursor = page.Bs.First(block => block.El != null && block.El.Av("id") == "hover-cursor");
+                Need(page.S.Cu == "c" && page.S.Pe && pointer.S.Cu == "p" && pointer.S.Pe && hoverCursor.S.Cu == "p",
+                    "cursor aliases or inheritance changed");
+                Need(reset.S.Cu.Length == 0 && reset.S.Pe && variable.S.Cu == "p" && !variable.S.Pe,
+                    "pointer reset, variables, or event gate changed");
+                Need(child.S.Cu == "n" && !child.S.Pe && enabled.S.Cu == "h" && enabled.S.Pe,
+                    "pointer subtree inheritance or re-enable changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2200);
+                    view.Go(path);
+                    Rectangle pointerRect;
+                    Rectangle hoverCursorRect;
+                    Rectangle deadRect;
+                    Rectangle enabledRect;
+                    using (var image = Draw(view))
+                    {
+                        pointerRect = BlockOuter(view, "pointer");
+                        hoverCursorRect = BlockOuter(view, "hover-cursor");
+                        deadRect = BlockOuter(view, "dead-link");
+                        enabledRect = BlockOuter(view, "auto-child");
+                        Need(deadRect.Size == new Size(202, 46) && ElementHit(view, "dead-link").IsEmpty &&
+                            !ElementHit(view, "live-link").IsEmpty && ElementHit(view, "dead-field").IsEmpty && !ElementHit(view, "live-field").IsEmpty,
+                            "pointer hit gating or stable geometry changed");
+                    }
+                    Move(view, pointerRect);
+                    Need(Object.ReferenceEquals(view.Cursor, Cursors.Hand), "pointer cursor mapping changed");
+                    Move(view, hoverCursorRect);
+                    Need(Object.ReferenceEquals(view.Cursor, Cursors.Help) &&
+                        view.At.Bs.First(block => block.El != null && block.El.Av("id") == "hover-cursor").S.Cu == "h",
+                        "dynamic hover cursor changed");
+                    Move(view, deadRect);
+                    Need(Object.ReferenceEquals(view.Cursor, Cursors.Cross), "pointer fallthrough cursor changed");
+                    Move(view, enabledRect);
+                    Need(Object.ReferenceEquals(view.Cursor, Cursors.Help), "pointer child cursor changed");
+                    Need(view.Js("fo('dead-field')") == 1 && view.Ke != null && view.Ke.Av("id") == "dead-field" && !view.Kb.IsEmpty,
+                        "pointer suppression changed keyboard focus");
+                    view.Size = new Size(350, 2600);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "responsive");
+                        Need(responsive.S.Cu == "w" && !responsive.S.Pe,
+                            "responsive pointer state changed");
+                    }
+                }
+                return "S.Cu/Pe inherited aliases, bounded cursor keywords, variables/priority/reset/invalid preservation, pointer-disabled link/field hits and hover, child re-enable, semantic cursors, keyboard/accessibility stability, and resize";
+            });
+            AddProbe(probes, "Bounded text transform", delegate
+            {
+                var path = Path.Combine(folder, "text-transform.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                var inherited = page.Bs.First(block => block.El != null && block.El.Av("id") == "inherited");
+                var upper = page.Bs.First(block => block.El != null && block.El.Av("id") == "upper");
+                var lower = page.Bs.First(block => block.El != null && block.El.Av("id") == "lower");
+                var inline = page.Bs.First(block => block.El != null && block.El.Av("id") == "inline");
+                var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var variable = page.Bs.First(block => block.El != null && block.El.Av("id") == "variable");
+                var priority = page.Bs.First(block => block.El != null && block.El.Av("id") == "priority");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.S.Tt == "c" && inherited.X == "Inherited Heading Text" && upper.S.Tt == "u" && upper.X == "UPPER MIXED TEXT" &&
+                    lower.S.Tt == "l" && lower.X == "lower mixed text", "text transform aliases or inheritance changed");
+                Need(inline.Is.Count == 5 && inline.X == "START mixed low Lea-Engine Words Raw MiXeD END" &&
+                    inline.Is[1].S.Tt == "l" && inline.Is[2].S.Tt == "c" && inline.Is[3].S.Tt == "n",
+                    "inline text transform runs changed");
+                Need(invalid.S.Tt == "c" && reset.S.Tt == "n" && variable.S.Tt == "l" && priority.S.Tt == "u",
+                    "text transform cascade behavior changed");
+                Need(field.V == "Field MiXeD Text" && E.Tx(field.V, field.S) == "field mixed text" && page.X.Contains("Upper MiXeD Text"),
+                    "raw form or document text changed");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic").X == "DYNAMIC MIXED TEXT",
+                    "dynamic text transform changed");
+                engine.Vw = 350;
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "responsive").X == "responsive mixed text" &&
+                    Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                    "responsive transform or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2300);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var upperRect = BlockOuter(view, "upper");
+                        Need(!upperRect.IsEmpty && ColorDistance(image.GetPixel(upperRect.Left + 3, upperRect.Top + 3), Color.FromArgb(248, 250, 252)) < 12,
+                            "text transform paint changed");
+                    }
+                    var dynamicRect = BlockOuter(view, "dynamic");
+                    Move(view, dynamicRect);
+                    Need(view.At.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic").X == "DYNAMIC MIXED TEXT",
+                        "text transform hover repaint changed");
+                    view.Size = new Size(350, 2600);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "responsive");
+                        Need(responsive.S.Tt == "l" && responsive.X == "responsive mixed text", "text transform resize changed");
+                    }
+                }
+                return "S.Tt n/u/l/c inherited alias, strict none/upper/lower/capitalize parsing, inline overrides, variables/priority/resets/invalid preservation, multiline/table/control presentation, raw DOM/form retention, hover, paint, and resize";
+            });
+            AddProbe(probes, "Bounded text spacing", delegate
+            {
+                var path = Path.Combine(folder, "text-spacing.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                var positive = page.Bs.First(block => block.El != null && block.El.Av("id") == "positive");
+                var negative = page.Bs.First(block => block.El != null && block.El.Av("id") == "negative");
+                var inline = page.Bs.First(block => block.El != null && block.El.Av("id") == "inline");
+                var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid");
+                var bounded = page.Bs.First(block => block.El != null && block.El.Av("id") == "bounded");
+                var variable = page.Bs.First(block => block.El != null && block.El.Av("id") == "variable");
+                var priority = page.Bs.First(block => block.El != null && block.El.Av("id") == "priority");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.S.Ls == 1 && page.S.Wg == 2 && positive.S.Ls == 3 && positive.S.Wg == 8 &&
+                    negative.S.Ls == -2 && negative.S.Wg == -4, "text spacing aliases or inheritance changed");
+                Need(inline.Is.Count == 4 && inline.Is[1].S.Ls == 6 && inline.Is[1].S.Wg == 12 &&
+                    inline.Is[2].S.Ls == 0 && inline.Is[2].S.Wg == 0, "inline text spacing runs changed");
+                Need(invalid.S.Ls == 5 && invalid.S.Wg == 7 && bounded.S.Ls == 1 && bounded.S.Wg == 2 &&
+                    variable.S.Ls == 4 && variable.S.Wg == 9 && priority.S.Ls == 7 && priority.S.Wg == 11,
+                    "text spacing cascade or bounds changed");
+                Need(field.V == "Field raw words" && page.Fs.First(item => item.El != null && item.El.Av("id") == "button").V == "Send raw words",
+                    "spaced form values changed");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic").S.Ls == 8 &&
+                    Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                    "dynamic text spacing changed");
+                engine.Vw = 350;
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "responsive").S.Ls == -1 &&
+                    Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                    "responsive spacing or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var normalWidth = InlineBounds(view, "normal").Width;
+                        var positiveWidth = InlineBounds(view, "positive").Width;
+                        var negativeWidth = InlineBounds(view, "negative").Width;
+                        Need(positiveWidth > normalWidth && normalWidth > negativeWidth && ColoredSamples(image) > 0,
+                            "text spacing metric or paint changed");
+                    }
+                    var dynamicRect = BlockOuter(view, "dynamic");
+                    Move(view, dynamicRect);
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic").S.Wg == 14,
+                            "text spacing hover repaint changed");
+                    view.Size = new Size(350, 2900);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "responsive");
+                        Need(responsive.S.Ls == -1 && responsive.S.Wg == 0 && !BlockOuter(view, "after-spacing").IsEmpty,
+                            "text spacing resize changed");
+                    }
+                }
+                return "S.Ls/Wg inherited signed pixel aliases, strict normal/reset/bounds/invalid preservation, inline overrides, variables/priority, shared wrap and paint metrics, raw form retention, hover, and resize";
+            });
+            AddProbe(probes, "Bounded text indent", delegate
+            {
+                var path = Path.Combine(folder, "text-indent.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.S.Ti == 0 && block("pixel").S.Ti == 32 && !block("pixel").S.Tip &&
+                    block("percent").S.Ti == 25 && block("percent").S.Tip && block("negative").S.Ti == -18,
+                    "text indent aliases changed");
+                Need(block("rtl").S.Dr == "r" && block("rtl").S.Ti == 30 && block("inherited").S.Ti == 22 &&
+                    block("unset").S.Ti == 20 && block("unset").S.Tip && block("initial").S.Ti == 0,
+                    "text indent direction, inheritance, or reset changed");
+                Need(block("invalid").S.Ti == 16 && block("variable").S.Ti == 26 && block("important").S.Ti == 38,
+                    "text indent bounds or cascade changed");
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").S.Ti == 36 &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command").S.Ti == 20 && block("command").S.Tip &&
+                    engine.Ck(page, ById(page.D, "clear-dom")) == 1 && block("command").S.Ti == 0,
+                    "text indent command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "pixel", "Pixel").Left == BlockContent(view, "pixel").Left + 32 &&
+                            InlineTextRect(view, "percent", "Percent").Left == BlockContent(view, "percent").Left + BlockContent(view, "percent").Width / 4 &&
+                            InlineTextRect(view, "negative", "Negative").Left == BlockContent(view, "negative").Left - 18 &&
+                            InlineTextRect(view, "rtl", "RTL").Right == BlockContent(view, "rtl").Right - 30 &&
+                            InlineTextRect(view, "wrap", "FirstLine").Left == BlockContent(view, "wrap").Left + 46 &&
+                            InlineTextRect(view, "wrap", "SecondLine").Left == BlockContent(view, "wrap").Left && ColoredSamples(image) > 0,
+                            "text indent direction, wrapping, or paint changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(InlineTextRect(view, "dynamic", "Dynamic").Left == BlockContent(view, "dynamic").Left + 40,
+                            "text indent hover changed");
+                    Need(view.Js("ti('command','36px')") == 1, "text indent compact command changed");
+                    using (var image = Draw(view))
+                        Need(InlineTextRect(view, "command", "Command").Left == BlockContent(view, "command").Left + 36,
+                            "text indent command geometry changed");
+                    view.Size = new Size(350, 2800);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive");
+                        Need(responsive.S.Ti == 30 && responsive.S.Tip &&
+                            InlineTextRect(view, "responsive", "Responsive").Left == BlockContent(view, "responsive").Left + (int)Math.Round(BlockContent(view, "responsive").Width * 30 / 100D),
+                            "text indent responsive geometry changed");
+                    }
+                }
+                return "S.Ti/Tip inherited signed pixel/percentage aliases, strict reset/bounds, variables/priority, LTR/RTL first-line wrap geometry, ti/DOM commands, hover, paint, and resize";
+            });
+            AddProbe(probes, "Bounded text decoration", delegate
+            {
+                var path = Path.Combine(folder, "text-decoration.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("solid").S.Td == "u" && block("solid").S.Tc == "#dc2626" && block("solid").S.Tds == "" && block("solid").S.Tw == 2 &&
+                    block("double").S.Tds == "d" && block("dotted").S.Td == "s" && block("dotted").S.Tds == "o" && block("wavy").S.Td == "us" && block("wavy").S.Tds == "w",
+                    "text decoration aliases changed");
+                Need(block("longhand").S.Tc == "#b91c1c" && block("longhand").S.Tds == "a" && block("longhand").S.Tw == 3 &&
+                    block("inherited").S.Tc == "#a13b18" && block("reset").S.Td == "n" && block("invalid").S.Tds == "o" &&
+                    block("variable").S.Tw == 3 && block("important").S.Tds == "d",
+                    "text decoration cascade or bounds changed");
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").S.Td == "u" && block("command").S.Tds == "o" &&
+                    engine.Ck(page, ById(page.D, "set-parts")) == 3 && block("command").S.Tc == "#2563eb" && block("command").S.Tw == 3 &&
+                    engine.Js(page, "tdl('command','line-through')") == 1 && block("command").S.Td == "s" && block("command").S.Tc == "#2563eb" && block("command").S.Tds == "d" && block("command").S.Tw == 3 &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command").S.Td == "s" && block("command").S.Tds == "a",
+                    "text decoration command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 4300);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "plain").Size == BlockContent(view, "solid").Size, "text decoration changed layout geometry");
+                        Need(HasColor(image, BlockOuter(view, "solid"), Color.FromArgb(220, 38, 38)) &&
+                            HasColor(image, BlockOuter(view, "double"), Color.FromArgb(37, 99, 235)) &&
+                            HasColor(image, BlockOuter(view, "dotted"), Color.FromArgb(15, 118, 110)) &&
+                            HasColor(image, BlockOuter(view, "wavy"), Color.FromArgb(124, 58, 237)) &&
+                            HasColor(image, BlockContent(view, "field"), Color.FromArgb(220, 38, 38)),
+                            "text decoration block or field paint changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "dynamic").S.Tds == "w" &&
+                            HasColor(image, BlockOuter(view, "dynamic"), Color.FromArgb(220, 38, 38)),
+                            "text decoration hover changed");
+                    Need(view.Js("td('command','underline dotted #dc2626 2px')") == 1, "text decoration compact command changed");
+                    using (var image = Draw(view))
+                        Need(HasColor(image, BlockOuter(view, "command"), Color.FromArgb(220, 38, 38)),
+                            "text decoration command paint changed");
+                    view.Size = new Size(350, 4700);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive");
+                        Need(responsive.S.Td == "s" && responsive.S.Tc == "#7c3aed" && responsive.S.Tds == "d" && responsive.S.Tw == 3 &&
+                            HasColor(image, BlockOuter(view, "responsive"), Color.FromArgb(124, 58, 237)),
+                            "text decoration responsive state changed");
+                    }
+                }
+                return "S.Td/Tc/Tds/Tw compact aliases, bounded atomic shorthand and longhands, solid/double/dotted/dashed/wavy underline/strike paint, inheritance/reset, variables/priority, td/tdl/tdc/tds/tdw and DOM commands, stable geometry, hover, and resize";
+            });
+            AddProbe(probes, "Bounded text underline offset", delegate
+            {
+                var path = Path.Combine(folder, "text-underline-offset.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("auto").S.Uo == 0 && !block("auto").S.Uop && block("positive").S.Uo == 6 && !block("positive").S.Uop &&
+                    block("negative").S.Uo == -4 && block("percent").S.Uo == 20 && block("percent").S.Uop,
+                    "text underline offset aliases changed");
+                Need(block("inherited").S.Uo == 5 && block("explicit-inherit").S.Uo == 5 && block("unset").S.Uo == 5 &&
+                    block("shorthand-independent").S.Uo == 7 && block("shorthand-independent").S.Tds == "d" &&
+                    block("reset").S.Uo == 0 && block("invalid").S.Uo == 4 && block("variable").S.Uo == 18 && block("variable").S.Uop && block("important").S.Uo == 8,
+                    "text underline offset cascade or bounds changed");
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").S.Uo == 6 &&
+                    engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command").S.Uo == -3 &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command").S.Uo == 25 && block("command").S.Uop &&
+                    engine.Ck(page, ById(page.D, "clear-dom")) == 1 && block("command").S.Uo == 0 &&
+                    engine.Js(page, "uo('command','33px')") == 0 && engine.Js(page, "uo('command','101%')") == 0,
+                    "text underline offset command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var autoRect = BlockOuter(view, "auto");
+                        var positiveRect = BlockOuter(view, "positive");
+                        var negativeRect = BlockOuter(view, "negative");
+                        var autoLine = ColorBounds(image, autoRect, Color.FromArgb(220, 38, 38));
+                        var positiveLine = ColorBounds(image, positiveRect, Color.FromArgb(220, 38, 38));
+                        var negativeLine = ColorBounds(image, negativeRect, Color.FromArgb(220, 38, 38));
+                        Need(BlockContent(view, "auto").Size == BlockContent(view, "positive").Size && !autoLine.IsEmpty && !positiveLine.IsEmpty && !negativeLine.IsEmpty &&
+                            positiveLine.Top - positiveRect.Top >= autoLine.Top - autoRect.Top + 4 &&
+                            negativeLine.Top - negativeRect.Top <= autoLine.Top - autoRect.Top - 2,
+                            "text underline offset geometry or signed paint position changed");
+                        Need(HasColor(image, BlockOuter(view, "percent"), Color.FromArgb(15, 118, 110)) &&
+                            HasColor(image, BlockOuter(view, "shorthand-independent"), Color.FromArgb(37, 99, 235)) &&
+                            HasColor(image, BlockOuter(view, "wrapped"), Color.FromArgb(15, 118, 110)),
+                            "text underline offset percentage, shorthand, or wrapped paint changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "dynamic").S.Uo == 7 &&
+                            HasColor(image, BlockOuter(view, "dynamic"), Color.FromArgb(220, 38, 38)),
+                            "text underline offset hover changed");
+                    Need(view.Js("uo('command','6px')") == 1, "text underline offset compact command changed");
+                    using (var image = Draw(view))
+                        Need(HasColor(image, BlockOuter(view, "command"), Color.FromArgb(23, 107, 77)),
+                            "text underline offset command paint changed");
+                    view.Size = new Size(350, 5600);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive");
+                        Need(responsive.S.Uo == 25 && responsive.S.Uop &&
+                            HasColor(image, BlockOuter(view, "responsive"), Color.FromArgb(124, 58, 237)),
+                            "text underline offset responsive state changed");
+                    }
+                }
+                return "S.Uo/Uop compact inherited signed pixel/percentage state, strict resets and bounds, shorthand independence, uo/readable/DOM commands, offset-aware custom paint, stable geometry, hover, and resize";
+            });
+            AddProbe(probes, "Bounded balanced text wrapping", delegate
+            {
+                var path = Path.Combine(folder, "text-wrap.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.S.Wm == "" && page.S.Wt == "" && block("auto").S.Wm == "w" && block("auto").S.Wt == "" &&
+                    block("balance").S.Wm == "w" && block("balance").S.Wt == "b" &&
+                    block("nowrap").S.Wm == "n" && block("mode-wrap").S.Ws == "nw" && block("mode-wrap").S.Wm == "w" &&
+                    block("white-reset").S.Ws == "n" && block("white-reset").S.Wm == "w",
+                    "text wrap shorthand mode or white-space interaction changed");
+                Need(block("longhands").S.Wm == "w" && block("longhands").S.Wt == "b" &&
+                    block("style-only").S.Wm == "n" && block("style-only").S.Wt == "b" &&
+                    block("inherited").S.Wt == "b" && block("explicit-inherit").S.Wt == "b" && block("unset").S.Wt == "b" &&
+                    block("initial").S.Wt == "" && block("invalid").S.Wt == "b" && block("variable").S.Wt == "b" && block("important").S.Wt == "b",
+                    "text wrap longhand inheritance or cascade changed");
+                Need(engine.Ck(page, ById(page.D, "set-tw")) == 1 && block("command").S.Wt == "b" &&
+                    engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command").S.Wt == "" &&
+                    engine.Ck(page, ById(page.D, "set-twm")) == 1 && engine.Ck(page, ById(page.D, "set-tws")) == 1 &&
+                    block("command-longhands").S.Wm == "w" && block("command-longhands").S.Wt == "b" &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command-dom").S.Wt == "b" &&
+                    engine.Js(page, "twm('command','balance');tws('command','pretty')") == 0,
+                    "text wrap command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 7000);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var automatic = TextLines(view, "auto");
+                        var balanced = TextLines(view, "balance");
+                        var rtlAutomatic = TextLines(view, "rtl-auto");
+                        var rtlBalanced = TextLines(view, "rtl-balance");
+                        Need(automatic.Length >= 2 && automatic.Length == balanced.Length && balanced.Length <= 8 &&
+                            LineWidthSpread(balanced) < LineWidthSpread(automatic) &&
+                            BlockOuter(view, "auto").Size == BlockOuter(view, "balance").Size,
+                            "text wrap balance line count variance or outer geometry changed");
+                        Need(rtlAutomatic.Length == rtlBalanced.Length && LineWidthSpread(rtlBalanced) < LineWidthSpread(rtlAutomatic) &&
+                            rtlBalanced[0].Right == BlockContent(view, "rtl-balance").Right,
+                            "text wrap RTL balance geometry changed");
+                        Need(TextLines(view, "nowrap").Length == 1 && TextLines(view, "style-only").Length == 1 &&
+                            TextLines(view, "mode-wrap").Length > 1 && TextLines(view, "white-reset").Length > 1 &&
+                            TextLines(view, "forced").Length == 2 && TextLines(view, "cell").Length > 1 && ColoredSamples(image) > 0,
+                            "text wrap mode forced-line table or paint behavior changed");
+                    }
+                    var before = LineWidthSpread(TextLines(view, "dynamic"));
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "dynamic").S.Wt == "b" &&
+                            LineWidthSpread(TextLines(view, "dynamic")) < before,
+                            "text wrap hover changed");
+                    Need(view.Js("tw('command','balance')") == 1, "text wrap compact command changed");
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "command").S.Wt == "b" &&
+                            TextLines(view, "command").Length > 1,
+                            "text wrap command layout changed");
+                    view.Size = new Size(350, 7300);
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").S.Wt == "b" &&
+                            TextLines(view, "responsive").Length > 1,
+                            "text wrap responsive state changed");
+                }
+                return "S.Wm/Wt compact inherited mode/style state, text-wrap shorthand, white-space source order, bounded same-count balancing, tw/twm/tws readable/DOM routes, LTR/RTL/indent/forced/table geometry, hover, and resize";
+            });
+            AddProbe(probes, "Bounded text alignment shorthand", delegate
+            {
+                var path = Path.Combine(folder, "text-align.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.S.Ta == "" && page.S.Tl == "" && block("left").S.Ta == "l" &&
+                    block("center").S.Ta == "c" && block("right").S.Ta == "r" &&
+                    block("start-ltr").S.Ta == "s" && block("end-ltr").S.Ta == "e" &&
+                    block("start-rtl").S.Ta == "s" && block("end-rtl").S.Ta == "e",
+                    "text alignment compact physical or logical state changed");
+                Need(block("inherited").S.Ta == "e" && block("match-parent").S.Ta == "r" &&
+                    block("explicit-inherit").S.Ta == "c" && block("unset").S.Ta == "c" &&
+                    block("initial").S.Ta == "" && block("invalid").S.Ta == "l" &&
+                    block("variable").S.Ta == "c" && block("important").S.Ta == "r",
+                    "text alignment inheritance match parent or cascade changed");
+                Need(block("justify-normal").S.Ta == "j" && block("justify-normal").S.Tl == "" &&
+                    block("justify-all").S.Ta == "j" && block("justify-all").S.Tl == "j" &&
+                    block("reset-last").S.Ta == "c" && block("reset-last").S.Tl == "" &&
+                    block("last-after").S.Ta == "j" && block("last-after").S.Tl == "c" &&
+                    block("all-after").S.Ta == "c" && block("all-after").S.Tl == "r",
+                    "text alignment shorthand or longhand interaction changed");
+                Need(engine.Ck(page, ById(page.D, "set-ta")) == 1 && block("command-ta").S.Ta == "j" && block("command-ta").S.Tl == "j" &&
+                    engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command-ta").S.Ta == "c" && block("command-ta").S.Tl == "" &&
+                    engine.Ck(page, ById(page.D, "set-taa")) == 1 && block("command-taa").S.Ta == "c" && block("command-taa").S.Tl == "r" &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command-dom").S.Ta == "e" && block("command-dom").S.Tl == "" &&
+                    engine.Js(page, "ta('command-ta','middle');taa('command-taa','justify-all')") == 0,
+                    "text alignment command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 6500);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(TextLines(view, "left")[0].Left == BlockContent(view, "left").Left &&
+                            TextLines(view, "right")[0].Right == BlockContent(view, "right").Right &&
+                            Math.Abs(TextLines(view, "center")[0].Left + TextLines(view, "center")[0].Right -
+                                BlockContent(view, "center").Left - BlockContent(view, "center").Right) <= 2,
+                            "text alignment physical geometry changed");
+                        Need(TextLines(view, "start-ltr")[0].Left == BlockContent(view, "start-ltr").Left &&
+                            TextLines(view, "end-ltr")[0].Right == BlockContent(view, "end-ltr").Right &&
+                            TextLines(view, "start-rtl")[0].Right == BlockContent(view, "start-rtl").Right &&
+                            TextLines(view, "end-rtl")[0].Left == BlockContent(view, "end-rtl").Left &&
+                            TextLines(view, "inherited")[0].Left == BlockContent(view, "inherited").Left &&
+                            TextLines(view, "match-parent")[0].Right == BlockContent(view, "match-parent").Right,
+                            "text alignment logical inheritance or match parent geometry changed");
+                        Need(TextLines(view, "justify-normal")[0].Left == BlockContent(view, "justify-normal").Left &&
+                            TextLines(view, "justify-all")[0].Left == BlockContent(view, "justify-all").Left &&
+                            TextLines(view, "justify-all")[0].Right == BlockContent(view, "justify-all").Right,
+                            "text alignment justify all geometry changed");
+                        var allAfter = TextLines(view, "all-after");
+                        Need(allAfter.Length > 1 &&
+                            Math.Abs(allAfter[0].Left + allAfter[0].Right - BlockContent(view, "all-after").Left - BlockContent(view, "all-after").Right) <= 2 &&
+                            allAfter[allAfter.Length - 1].Right == BlockContent(view, "all-after").Right && ColoredSamples(image) > 0,
+                            "text align all and last geometry changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "dynamic").S.Ta == "e" &&
+                            TextLines(view, "dynamic")[0].Left == BlockContent(view, "dynamic").Left,
+                            "text alignment hover changed");
+                    Need(view.Js("ta('command-ta','justify-all')") == 1, "text alignment compact command changed");
+                    using (var image = Draw(view))
+                        Need(TextLines(view, "command-ta")[0].Left == BlockContent(view, "command-ta").Left &&
+                            TextLines(view, "command-ta")[0].Right == BlockContent(view, "command-ta").Right,
+                            "text alignment command geometry changed");
+                    view.Size = new Size(350, 6900);
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").S.Ta == "e" &&
+                            TextLines(view, "responsive")[0].Left == BlockContent(view, "responsive").Left,
+                            "text alignment responsive state changed");
+                }
+                return "S.Ta/Tl compact physical/logical state, text-align shorthand, text-align-all, justify-all, match-parent, ta/taa/readable/DOM routes, inherited LTR/RTL geometry, hover, and resize";
+            });
+            AddProbe(probes, "Bounded text align last", delegate
+            {
+                var path = Path.Combine(folder, "text-align-last.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("auto").S.Tl == "" && block("auto").S.Ta == "j" && block("left").S.Tl == "l" &&
+                    block("center").S.Tl == "c" && block("right").S.Tl == "r" && block("justify").S.Tl == "j",
+                    "text align last aliases changed");
+                Need(block("start-ltr").S.Tl == "s" && block("end-ltr").S.Tl == "e" &&
+                    block("start-rtl").S.Tl == "s" && block("end-rtl").S.Tl == "e" &&
+                    block("inherited").S.Tl == "c" && block("match-parent").S.Tl == "c" &&
+                    block("reset").S.Tl == "" && block("invalid").S.Tl == "r" && block("important").S.Tl == "r",
+                    "text align last cascade or direction changed");
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").S.Tl == "r" &&
+                    engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command").S.Tl == "l" &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command").S.Tl == "c" &&
+                    engine.Ck(page, ById(page.D, "clear-dom")) == 1 && block("command").S.Tl == "" &&
+                    engine.Js(page, "tl('command','middle')") == 0,
+                    "text align last command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var left = TextLines(view, "left")[0];
+                        var center = TextLines(view, "center")[0];
+                        var right = TextLines(view, "right")[0];
+                        Need(left.Left == BlockContent(view, "left").Left && right.Right == BlockContent(view, "right").Right &&
+                            Math.Abs(center.Left + center.Right - BlockContent(view, "center").Left - BlockContent(view, "center").Right) <= 2 &&
+                            BlockOuter(view, "left").Size == BlockOuter(view, "center").Size && BlockOuter(view, "center").Size == BlockOuter(view, "right").Size,
+                            "text align last physical geometry changed");
+                        var justified = TextLines(view, "justify")[0];
+                        var forced = TextLines(view, "forced");
+                        var wrapped = TextLines(view, "wrapped");
+                        Need(TextLines(view, "auto")[0].Left == BlockContent(view, "auto").Left &&
+                            justified.Left == BlockContent(view, "justify").Left && justified.Right == BlockContent(view, "justify").Right &&
+                            forced.Length == 2 && forced[0].Right == BlockContent(view, "forced").Right && forced[1].Right == BlockContent(view, "forced").Right &&
+                            wrapped.Length > 1 && wrapped[0].Left == BlockContent(view, "wrapped").Left &&
+                            Math.Abs(wrapped[wrapped.Length - 1].Left + wrapped[wrapped.Length - 1].Right - BlockContent(view, "wrapped").Left - BlockContent(view, "wrapped").Right) <= 2,
+                            "text align last auto justify forced-break or wrap geometry changed");
+                        Need(TextLines(view, "start-ltr")[0].Left == BlockContent(view, "start-ltr").Left &&
+                            TextLines(view, "end-ltr")[0].Right == BlockContent(view, "end-ltr").Right &&
+                            TextLines(view, "start-rtl")[0].Right == BlockContent(view, "start-rtl").Right &&
+                            TextLines(view, "end-rtl")[0].Left == BlockContent(view, "end-rtl").Left && ColoredSamples(image) > 0,
+                            "text align last logical geometry or paint changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "dynamic").S.Tl == "r" &&
+                            TextLines(view, "dynamic")[0].Right == BlockContent(view, "dynamic").Right,
+                            "text align last hover changed");
+                    Need(view.Js("tl('command','right')") == 1, "text align last compact command changed");
+                    using (var image = Draw(view))
+                        Need(TextLines(view, "command")[0].Right == BlockContent(view, "command").Right,
+                            "text align last command geometry changed");
+                    view.Size = new Size(350, 5600);
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").S.Tl == "e" &&
+                            TextLines(view, "responsive")[0].Right == BlockContent(view, "responsive").Right,
+                            "text align last responsive state changed");
+                }
+                return "S.Tl inherited compact alignment, auto/start/end/left/right/center/justify/match-parent cascade, tl/readable/DOM commands, final and forced-line LTR/RTL geometry, stable boxes, hover, and resize";
+            });
+            AddProbe(probes, "Bounded text shadow", delegate
+            {
+                var path = Path.Combine(folder, "text-shadow.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.S.Ts == null && block("basic").S.Ts != null && block("basic").S.Ts.X == 5 &&
+                    block("color-first").S.Ts != null && block("color-first").S.Ts.X == -4 &&
+                    block("soft").S.Ts != null && block("soft").S.Ts.B == 6,
+                    "text shadow aliases changed");
+                Need(block("inherited").S.Ts != null && block("inherited").S.Ts.X == 4 && block("reset").S.Ts == null &&
+                    block("invalid").S.Ts != null && block("invalid").S.Ts.X == 2 && block("variable").S.Ts != null &&
+                    block("important").S.Ts != null && block("important").S.Ts.X == 6,
+                    "text shadow inheritance bounds or cascade changed");
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").S.Ts != null && block("command").S.Ts.X == 6 &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command").S.Ts.X == -4 &&
+                    engine.Ck(page, ById(page.D, "clear-dom")) == 1 && block("command").S.Ts == null,
+                    "text shadow command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 3400);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "basic", "Basic").Left == BlockContent(view, "basic").Left,
+                            "text shadow changed layout geometry");
+                        Need(HasColor(image, BlockOuter(view, "basic"), Color.FromArgb(220, 38, 38)) &&
+                            HasColor(image, BlockContent(view, "field"), Color.FromArgb(15, 118, 110)),
+                            "text shadow block or field paint changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "dynamic").S.Ts.X == 7 &&
+                            HasColor(image, BlockOuter(view, "dynamic"), Color.FromArgb(220, 38, 38)),
+                            "text shadow hover changed");
+                    Need(view.Js("ts('command','6px 3px 0 #dc2626')") == 1, "text shadow compact command changed");
+                    using (var image = Draw(view))
+                        Need(HasColor(image, BlockOuter(view, "command"), Color.FromArgb(220, 38, 38)),
+                            "text shadow command paint changed");
+                    view.Size = new Size(350, 3800);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive");
+                        Need(responsive.S.Ts != null && responsive.S.Ts.X == -5 && responsive.S.Ts.Y == 4 && responsive.S.Ts.B == 4 &&
+                            ColoredSamples(image) > 0, "text shadow responsive state changed");
+                    }
+                }
+                return "S.Ts inherited nullable alias, one bounded offset/blur/color layer, strict reset/invalid preservation, inline override, variables/priority, ts/DOM commands, block/field paint, stable geometry, hover, and resize";
+            });
+            AddProbe(probes, "Bounded text overflow", delegate
+            {
+                var path = Path.Combine(folder, "text-overflow.html");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 3200);
+                    view.Go(path);
+                    var field = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                    var block = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "ellipsis");
+                    Need(view.At.S.To == "c" && block.S.To == "e" && view.At.X.Contains("Alpha beta gamma delta epsilon ending"),
+                        "text overflow aliases or authored text changed");
+                    using (var image = Draw(view))
+                    {
+                        Need(EllipsisCount(view, "clip") == 0 && EllipsisCount(view, "ellipsis") == 1 &&
+                            EllipsisCount(view, "short") == 0 && EllipsisCount(view, "visible") == 0 &&
+                            EllipsisCount(view, "pre") == 2 && EllipsisCount(view, "inline") == 1 &&
+                            EllipsisCount(view, "cell") == 1 && EllipsisCount(view, "inherited") == 1 &&
+                            EllipsisCount(view, "noninherited") == 0 && EllipsisCount(view, "invalid") == 1 &&
+                            EllipsisCount(view, "important") == 1 && ColoredSamples(image) > 0,
+                            "ellipsis paint, cascade, or retained line behavior changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view)) Need(EllipsisCount(view, "dynamic") == 1, "ellipsis hover changed");
+                    view.Size = new Size(350, 3400);
+                    using (var image = Draw(view))
+                        Need(EllipsisCount(view, "responsive") == 1 &&
+                            Object.ReferenceEquals(field, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                            "ellipsis resize or field retention changed");
+                }
+                return "S.To c/e non-inherited alias, strict clip/ellipsis, inherit/reset/invalid/variable/important cascade, paint-only inline/table/multiline truncation, preserved authored text, hover, and resize";
+            });
+            AddProbe(probes, "Bounded line clamping", delegate
+            {
+                var path = Path.Combine(folder, "line-clamp.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.S.Lc == 0 && block("two").S.Lc == 2 && block("webkit").S.Lc == 2 &&
+                    block("noninherited").S.Lc == 0 && block("explicit-inherit").S.Lc == 3 &&
+                    block("invalid").S.Lc == 2 && block("variable").S.Lc == 2 && block("important").S.Lc == 3,
+                    "line clamp compact state or cascade changed");
+                Need(engine.Ck(page, ById(page.D, "set-lc")) == 1 && block("command").S.Lc == 2 &&
+                    engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command").S.Lc == 3 &&
+                    engine.Ck(page, ById(page.D, "set-webkit-dom")) == 1 && block("command-webkit").S.Lc == 2 &&
+                    engine.Js(page, "lc('command','0');lc('command','33')") == 0,
+                    "line clamp compact readable or DOM routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5200);
+                    view.Go(path);
+                    var field = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                    using (var image = Draw(view))
+                    {
+                        Need(TextLines(view, "none").Length > 2 && TextLines(view, "two").Length == 2 &&
+                            TextLines(view, "webkit").Length == 2 && TextLines(view, "forced").Length == 2 &&
+                            TextLines(view, "cell").Length == 2 && TextLines(view, "short").Length == 1 &&
+                            EllipsisCount(view, "two") == 1 && EllipsisCount(view, "rtl") == 1 &&
+                            EllipsisCount(view, "short") == 0 && EllipsisCount(view, "nowrap") == 0 &&
+                            BlockOuter(view, "two").Height < BlockOuter(view, "none").Height && ColoredSamples(image) > 0,
+                            "line clamp retained layout marker or flow height changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view)) Need(EllipsisCount(view, "dynamic") == 1, "line clamp hover changed");
+                    Need(view.Js("lc('command','2')") == 1, "line clamp compact view command changed");
+                    using (var image = Draw(view)) Need(TextLines(view, "command").Length == 2 && EllipsisCount(view, "command") == 1,
+                        "line clamp command layout changed");
+                    view.Size = new Size(350, 5200);
+                    using (var image = Draw(view))
+                        Need(TextLines(view, "responsive").Length == 1 && EllipsisCount(view, "responsive") == 1 &&
+                            Object.ReferenceEquals(field, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                            "line clamp responsive state or field retention changed");
+                }
+                return "S.Lc compact non-inherited 0/1..32 state, standard/WebKit syntax, strict cascade, lc/readable/DOM routes, retained LTR/RTL inline and table geometry, grapheme-safe markers, hidden hit removal, full logical text, hover, flow re-layout, and resize";
+            });
+            AddProbe(probes, "Bounded flex layout", delegate
+            {
+                var path = Path.Combine(folder, "flex.html");
+                var page = new E().Go(path);
+                var spread = page.Bs.First(block => block.El != null && block.El.Av("id") == "spread");
+                var first = page.Bs.First(block => block.El != null && block.El.Av("id") == "first");
+                var reverse = page.Bs.First(block => block.El != null && block.El.Av("id") == "reverse");
+                var wrap = page.Bs.First(block => block.El != null && block.El.Av("id") == "wrap");
+                var wrapOne = page.Bs.First(block => block.El != null && block.El.Av("id") == "wrap-one");
+                var grow = page.Bs.First(block => block.El != null && block.El.Av("id") == "grow");
+                var growOne = page.Bs.First(block => block.El != null && block.El.Av("id") == "grow-one");
+                var growTwo = page.Bs.First(block => block.El != null && block.El.Av("id") == "grow-two");
+                var shrinkOne = page.Bs.First(block => block.El != null && block.El.Av("id") == "shrink-one");
+                var shrinkTwo = page.Bs.First(block => block.El != null && block.El.Av("id") == "shrink-two");
+                var shrinkLock = page.Bs.First(block => block.El != null && block.El.Av("id") == "shrink-lock");
+                var orderOne = page.Bs.First(block => block.El != null && block.El.Av("id") == "order-one");
+                var orderTwo = page.Bs.First(block => block.El != null && block.El.Av("id") == "order-two");
+                var column = page.Bs.First(block => block.El != null && block.El.Av("id") == "column");
+                var columnReverse = page.Bs.First(block => block.El != null && block.El.Av("id") == "column-reverse");
+                var around = page.Bs.First(block => block.El != null && block.El.Av("id") == "around");
+                var evenly = page.Bs.First(block => block.El != null && block.El.Av("id") == "evenly");
+                var aroundOne = page.Bs.First(block => block.El != null && block.El.Av("id") == "around-one");
+                Need(spread.S.D == "flex" && spread.S.Fd == "r" && spread.S.Jc == "b" && spread.S.Ai == "c" && spread.S.Gp == 10, "flex style aliases changed");
+                Need(Object.ReferenceEquals(first.Up, spread) && reverse.S.Fd == "x", "flex ownership or reverse direction changed");
+                Need(wrap.S.Wr == "w" && wrap.S.Rg == 12 && wrap.S.Gp == 10 && wrapOne.S.Fg == 1 && wrapOne.S.Fb == 150, "wrapped flex aliases changed");
+                Need(grow.S.Rg == 4 && grow.S.Gp == 8 && growOne.S.Fg == 1 && growOne.S.Fb == 80 && growTwo.S.Fg == 2 && growTwo.S.Fb == 80, "weighted flex aliases changed");
+                Need(shrinkOne.S.Sh == 1 && shrinkTwo.S.Sh == 2 && shrinkLock.S.Sh == 0 && shrinkLock.S.Wn == 100 && shrinkLock.S.Wx == 100, "weighted flex shrink aliases changed");
+                Need(orderOne.S.Or == 2 && orderTwo.S.Or == -1, "flex order aliases changed");
+                Need(column.S.Fd == "c" && columnReverse.S.Fd == "y", "flex column aliases changed");
+                Need(around.S.Jc == "a" && evenly.S.Jc == "v" && aroundOne.S.As == "t", "distributed flex or align-self aliases changed");
+                using (var view = NewView())
+                {
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var one = BlockOuter(view, "first");
+                        var two = BlockOuter(view, "second");
+                        var three = BlockOuter(view, "third");
+                        var reverseOne = BlockOuter(view, "reverse-one");
+                        var reverseTwo = BlockOuter(view, "reverse-two");
+                        var wrapOneBox = BlockOuter(view, "wrap-one");
+                        var wrapTwoBox = BlockOuter(view, "wrap-two");
+                        var wrapThreeBox = BlockOuter(view, "wrap-three");
+                        var growOneBox = BlockOuter(view, "grow-one");
+                        var growTwoBox = BlockOuter(view, "grow-two");
+                        var growFixedBox = BlockOuter(view, "grow-fixed");
+                        var shrinkOneBox = BlockOuter(view, "shrink-one");
+                        var shrinkTwoBox = BlockOuter(view, "shrink-two");
+                        var shrinkLockBox = BlockOuter(view, "shrink-lock");
+                        var orderOneBox = BlockOuter(view, "order-one");
+                        var orderTwoBox = BlockOuter(view, "order-two");
+                        var orderThreeBox = BlockOuter(view, "order-three");
+                        var columnOneBox = BlockOuter(view, "column-one");
+                        var columnTwoBox = BlockOuter(view, "column-two");
+                        var columnThreeBox = BlockOuter(view, "column-three");
+                        var columnReverseOneBox = BlockOuter(view, "column-reverse-one");
+                        var columnReverseTwoBox = BlockOuter(view, "column-reverse-two");
+                        var columnReverseThreeBox = BlockOuter(view, "column-reverse-three");
+                        var columnAutoOneBox = BlockOuter(view, "column-auto-one");
+                        var columnAutoTwoBox = BlockOuter(view, "column-auto-two");
+                        var aroundBox = BlockOuter(view, "around");
+                        var aroundOneBox = BlockOuter(view, "around-one");
+                        var aroundTwoBox = BlockOuter(view, "around-two");
+                        var aroundThreeBox = BlockOuter(view, "around-three");
+                        var evenlyBox = BlockOuter(view, "evenly");
+                        var evenlyOneBox = BlockOuter(view, "evenly-one");
+                        var evenlyTwoBox = BlockOuter(view, "evenly-two");
+                        var evenlyThreeBox = BlockOuter(view, "evenly-three");
+                        var after = BlockOuter(view, "after-flex");
+                        Need(one.Left < two.Left && two.Left < three.Left && two.Left - one.Right == 122, "flex distribution changed");
+                        Need(reverseOne.Left > reverseTwo.Left, "row-reverse changed");
+                        Need(wrapOneBox.Width == 175 && wrapOneBox.Left - wrapTwoBox.Right == 10 && wrapThreeBox.Top - wrapOneBox.Top == 56, "wrapped flex geometry changed");
+                        Need(growOneBox.Width == 140 && growTwoBox.Width == 200 && growFixedBox.Width == 80 && growTwoBox.Left - growOneBox.Right == 8, "weighted flex geometry changed");
+                        Need(shrinkOneBox.Width == 140 && shrinkTwoBox.Width == 100 && shrinkLockBox.Width == 100 && shrinkLockBox.Left - shrinkTwoBox.Right == 10, "weighted flex shrink geometry changed");
+                        Need(orderTwoBox.Left < orderOneBox.Left && orderOneBox.Left < orderThreeBox.Left && orderOneBox.Left - orderTwoBox.Right == 8, "ordered row geometry changed");
+                        Need(columnTwoBox.Height == 106 && columnOneBox.Height == 74 && columnThreeBox.Height == 40 && columnOneBox.Top - columnTwoBox.Bottom == 10, "ordered column growth changed");
+                        Need(columnReverseOneBox.Height == 50 && columnReverseTwoBox.Height == 30 && columnReverseThreeBox.Height == 30 && columnReverseOneBox.Top - columnReverseTwoBox.Bottom == 10, "column-reverse shrink changed");
+                        Need(columnAutoTwoBox.Top - columnAutoOneBox.Bottom == 7, "auto-height column gap changed");
+                        Need(aroundOneBox.Left - aroundBox.Left == 38 && aroundTwoBox.Left - aroundOneBox.Right == 63 && aroundOneBox.Height == 90 && aroundThreeBox.Bottom == aroundBox.Bottom - 12, "space-around or row align-self changed");
+                        Need(evenlyOneBox.Top - evenlyBox.Top == 39 && evenlyTwoBox.Top - evenlyOneBox.Bottom == 37 && evenlyThreeBox.Right == evenlyBox.Right - 12, "space-evenly or column align-self changed");
+                        Need(after.Top > evenlyBox.Bottom, "flex following flow changed");
+                        Need(ColoredSamples(image) > 0, "flex layout is blank");
+                    }
+                }
+                return "Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or aliases, stable row order, column/reverse flow, around/evenly distribution, item alignment, fixed, auto, wrapped, growing, shrinking, protected, and locked slots, hits, resize, and following flow";
+            });
+            AddProbe(probes, "Direction-aware flex and grid layout", delegate
+            {
+                var path = Path.Combine(folder, "direction-layout.html");
+                var page = new E().Go(path);
+                var rtl = page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-rtl");
+                var rtlA = page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-rtl-a");
+                var rtlB = page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-rtl-b");
+                Need(rtl.S.Dr == "r" && rtl.S.Fd == "r" && Object.ReferenceEquals(rtlA.Up, rtl) && page.Bs.IndexOf(rtlA) < page.Bs.IndexOf(rtlB),
+                    "direction state, ownership, or source order changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "grid-dense").S.Gf == "d" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "grid-column-flow").S.Gf == "c" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "grid-area").S.Aa == 2,
+                    "direction fixture grid records changed");
+                using (var view = NewView())
+                {
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var flex = BlockOuter(view, "flex-rtl");
+                        var flexA = BlockOuter(view, "flex-rtl-a");
+                        var flexB = BlockOuter(view, "flex-rtl-b");
+                        var flexC = BlockOuter(view, "flex-rtl-c");
+                        var reverse = BlockOuter(view, "flex-rtl-reverse");
+                        var reverseA = BlockOuter(view, "flex-rtl-reverse-a");
+                        var orderA = BlockOuter(view, "flex-order-a");
+                        var orderB = BlockOuter(view, "flex-order-b");
+                        var orderC = BlockOuter(view, "flex-order-c");
+                        var wrapA = BlockOuter(view, "flex-wrap-a");
+                        var wrapB = BlockOuter(view, "flex-wrap-b");
+                        var wrapC = BlockOuter(view, "flex-wrap-c");
+                        Need(flexA.Right == flex.Right && flexA.Left > flexB.Left && flexB.Left > flexC.Left && flexA.Left - flexB.Right == 10,
+                            "RTL row direction changed");
+                        Need(reverseA.Left == reverse.Left && orderB.Left > orderA.Left && orderA.Left > orderC.Left,
+                            "RTL row-reverse or order mapping changed");
+                        Need(wrapA.Right == BlockOuter(view, "flex-wrap").Right && wrapA.Top == wrapB.Top && wrapC.Top > wrapA.Bottom,
+                            "RTL wrap line mapping changed");
+                        Need(BlockOuter(view, "flex-column-a").Right == BlockOuter(view, "flex-column").Right &&
+                            BlockOuter(view, "flex-column-b").Left == BlockOuter(view, "flex-column").Left,
+                            "RTL column cross alignment changed");
+
+                        var grid = BlockOuter(view, "grid-auto");
+                        var gridA = BlockOuter(view, "grid-auto-a");
+                        var gridB = BlockOuter(view, "grid-auto-b");
+                        var gridC = BlockOuter(view, "grid-auto-c");
+                        var explicitSpan = BlockOuter(view, "grid-explicit-span");
+                        var explicitSide = BlockOuter(view, "grid-explicit-side");
+                        Need(gridA.Right == grid.Right && gridA.Width == 40 && gridB.Width == 60 && gridC.Width == 80 &&
+                            gridA.Left - gridB.Right == 10 && gridB.Left - gridC.Right == 10,
+                            "RTL unequal grid tracks changed");
+                        Need(explicitSpan.Width == 110 && explicitSpan.Right == BlockOuter(view, "grid-explicit").Right && explicitSide.Width == 80,
+                            "RTL explicit grid span changed");
+                        var denseA = BlockOuter(view, "grid-dense-a");
+                        var denseB = BlockOuter(view, "grid-dense-b");
+                        var denseC = BlockOuter(view, "grid-dense-c");
+                        Need(denseC.Top == denseA.Top && denseB.Top > denseA.Bottom && denseA.Left - denseC.Right == 10,
+                            "RTL dense backfill changed");
+                        var columnA = BlockOuter(view, "grid-column-a");
+                        var columnB = BlockOuter(view, "grid-column-b");
+                        var columnC = BlockOuter(view, "grid-column-c");
+                        Need(columnA.Left == columnB.Left && columnA.Left - columnC.Right == 10 && columnA.Top == columnC.Top,
+                            "RTL column auto flow changed");
+                        var areaLead = BlockOuter(view, "grid-area-lead");
+                        var areaSide = BlockOuter(view, "grid-area-side");
+                        Need(areaLead.Width == 110 && areaLead.Right == BlockOuter(view, "grid-area").Right && areaLead.Left - areaSide.Right == 10,
+                            "RTL named area mapping changed");
+                        Need(BlockOuter(view, "grid-content-end-b").Left == BlockOuter(view, "grid-content-end").Left &&
+                            BlockOuter(view, "grid-self-start").Right == BlockOuter(view, "grid-self").Right &&
+                            BlockOuter(view, "grid-self-end").Left == BlockOuter(view, "grid-self").Left,
+                            "RTL grid content or self alignment changed");
+                        Need(ColoredSamples(image) > 0, "direction layout is blank");
+                    }
+
+                    Need(view.Js("dr('command-flex','rtl')") == 1, "compact direction reflow command changed");
+                    using (var remapped = Draw(view))
+                        Need(BlockOuter(view, "command-flex-a").Right == BlockOuter(view, "command-flex").Right && ColoredSamples(remapped) > 0,
+                            "compact direction command did not remap flex geometry");
+                }
+                return "S.Dr plus row/reverse/order/wrap flex, column cross-axis alignment, logical grid auto/explicit/dense/column/area placement, content/self alignment, source order, paint, and compact dr reflow";
+            });
+            AddProbe(probes, "Direction-aware inline flow and markers", delegate
+            {
+                var path = Path.Combine(folder, "direction-inline.html");
+                var page = new E().Go(path);
+                var simple = page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-simple");
+                var runs = page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-runs");
+                Need(simple.S.Dr == "r" && simple.Is.Count == 0 && runs.S.Dr == "r" && runs.Is.Count >= 3 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-seven").Mk == "7." &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-minus").Mk == "-2." &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-bullet").Mk == "\u2022" &&
+                    page.X.IndexOf("First", StringComparison.Ordinal) < page.X.IndexOf("Second", StringComparison.Ordinal) &&
+                    page.X.IndexOf("Second", StringComparison.Ordinal) < page.X.IndexOf("Third", StringComparison.Ordinal),
+                    "direction inline model or source order changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1800);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var simpleContent = BlockContent(view, "rtl-simple");
+                        var amber = InlineTextRect(view, "rtl-simple", "Amber");
+                        var bronze = InlineTextRect(view, "rtl-simple", "Bronze");
+                        var cobalt = InlineTextRect(view, "rtl-simple", "Cobalt");
+                        Need(amber.Right == simpleContent.Right && amber.Left > bronze.Left && bronze.Left > cobalt.Left,
+                            "plain RTL word flow changed");
+
+                        var runContent = BlockContent(view, "rtl-runs");
+                        var first = InlineElementBounds(view, "rtl-first");
+                        var second = InlineElementBounds(view, "rtl-second");
+                        var third = InlineElementBounds(view, "rtl-third");
+                        Need(first.Right == runContent.Right && first.Left > second.Left && second.Left > third.Left,
+                            "mixed RTL run flow changed");
+                        Need(ElementHit(view, "rtl-third").IntersectsWith(third), "RTL inline link hit changed");
+
+                        var wrapContent = BlockContent(view, "rtl-wrap");
+                        var wrapOne = InlineElementBounds(view, "wrap-one");
+                        var wrapTwo = InlineElementBounds(view, "wrap-two");
+                        var wrapThree = InlineElementBounds(view, "wrap-three");
+                        Need(wrapOne.Top < wrapTwo.Top && wrapTwo.Top < wrapThree.Top && wrapOne.Right == wrapContent.Right && wrapTwo.Right == wrapContent.Right && wrapThree.Right == wrapContent.Right,
+                            "wrapped RTL line starts changed");
+                        var nowrapContent = BlockContent(view, "rtl-nowrap");
+                        var nearword = InlineTextRect(view, "rtl-nowrap", "Nearword");
+                        var farword = InlineTextRect(view, "rtl-nowrap", "Farword");
+                        Need(nearword.Right == nowrapContent.Right && farword.Left < nowrapContent.Left,
+                            "unwrapped RTL overflow direction changed");
+
+                        var left = Rectangle.Union(InlineElementBounds(view, "left-one"), InlineElementBounds(view, "left-two"));
+                        var right = Rectangle.Union(InlineElementBounds(view, "right-one"), InlineElementBounds(view, "right-two"));
+                        var start = Rectangle.Union(InlineElementBounds(view, "start-one"), InlineElementBounds(view, "start-two"));
+                        var end = Rectangle.Union(InlineElementBounds(view, "end-one"), InlineElementBounds(view, "end-two"));
+                        Need(left.Left == BlockContent(view, "rtl-left").Left && right.Right == BlockContent(view, "rtl-right").Right &&
+                            start.Right == BlockContent(view, "rtl-start").Right && end.Left == BlockContent(view, "rtl-end").Left,
+                            "RTL physical or logical alignment changed");
+
+                        var justifyContent = BlockContent(view, "rtl-justify");
+                        var justifyOne = InlineElementBounds(view, "justify-one");
+                        var justifyFour = InlineElementBounds(view, "justify-four");
+                        var justifyFive = InlineElementBounds(view, "justify-five");
+                        Need(justifyOne.Right == justifyContent.Right && justifyFour.Left == justifyContent.Left && justifyFive.Top >= justifyOne.Bottom && justifyFive.Right == justifyContent.Right,
+                            "RTL justification changed");
+
+                        var orderedMarker = InlineTextRect(view, "rtl-seven", "7.");
+                        var bulletMarker = InlineTextRect(view, "rtl-bullet", "\u2022");
+                        var summaryMarker = InlineTextRect(view, "rtl-summary", ">");
+                        Need(orderedMarker.Left > BlockContent(view, "rtl-seven").Right &&
+                            bulletMarker.Left > BlockContent(view, "rtl-bullet").Right &&
+                            summaryMarker.Right == BlockContent(view, "rtl-summary").Right && ColoredSamples(image) > 0,
+                            "RTL list/disclosure marker placement or paint changed");
+                        var nestedMarker = InlineTextRect(view, "rtl-minus", "-2.");
+                        Need(nestedMarker.Left > BlockContent(view, "rtl-minus").Right && BlockContent(view, "rtl-minus").Right < BlockContent(view, "rtl-seven").Right,
+                            "nested RTL marker or logical indentation changed");
+
+                        var cellStart = InlineTextRect(view, "rtl-cell", "CellStart");
+                        var cellEnd = InlineElementBounds(view, "cell-end");
+                        Need(cellStart.Right == BlockContent(view, "rtl-cell").Right && cellEnd.Right == BlockContent(view, "cell-end").Right && cellStart.Top < cellEnd.Top,
+                            "RTL structured cell flow changed");
+                    }
+
+                    var beforeOne = InlineElementBounds(view, "command-one");
+                    var beforeTwo = InlineElementBounds(view, "command-two");
+                    Need(beforeOne.Left == BlockContent(view, "command-inline").Left && beforeOne.Left < beforeTwo.Left,
+                        "LTR command baseline changed");
+                    Need(view.Js("dr('command-inline','rtl')") == 1, "compact direction inline command changed");
+                    using (var remapped = Draw(view))
+                    {
+                        var afterOne = InlineElementBounds(view, "command-one");
+                        var afterTwo = InlineElementBounds(view, "command-two");
+                        Need(afterOne.Right == BlockContent(view, "command-inline").Right && afterOne.Left > afterTwo.Left && ColoredSamples(remapped) > 0,
+                            "compact direction command did not remap inline flow");
+                    }
+                }
+                return "S.Dr right-origin plain/mixed/wrapped/nowrap/justified lines, physical/logical alignment, nested ordered/unordered/disclosure markers, table parts, source order, paint, hits, and compact dr reflow";
+            });
+            AddProbe(probes, "Direction-aware ellipsis and range geometry", delegate
+            {
+                var path = Path.Combine(folder, "direction-overflow.html");
+                var page = new E().Go(path);
+                var rtl = page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-plain");
+                var table = page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-table");
+                var cell = table.Tb.Rs[0].Cs[0];
+                Need(rtl.S.Dr == "r" && rtl.S.To == "e" && cell.S.Dr == "r" && cell.S.To == "e",
+                    "direction-aware overflow model changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1800);
+                    view.Go(path);
+                    var raw = view.At.X;
+                    using (var image = Draw(view))
+                    {
+                        var ltrContent = BlockContent(view, "ltr-overflow");
+                        var ltrMarker = EllipsisRect(view, "ltr-overflow");
+                        var rtlContent = BlockContent(view, "rtl-plain");
+                        var rtlMarker = EllipsisRect(view, "rtl-plain");
+                        Need(ltrContent.Contains(ltrMarker) && ltrMarker.Left > ltrContent.Left + ltrContent.Width / 2 &&
+                            rtlContent.Contains(rtlMarker) && rtlMarker.Right < rtlContent.Left + rtlContent.Width / 2,
+                            "direction-aware ellipsis edge changed");
+                        var prefix = EllipsisPrefixBounds(view, "rtl-plain");
+                        Need(prefix[1].Right == prefix[0].Right && prefix[1].Width <= prefix[0].Width && prefix[0].Left < rtlContent.Left,
+                            "RTL paint-only prefix geometry changed");
+                        var cluster = EllipsisPrefixText(view, "rtl-cluster");
+                        Need(cluster.Length >= 2 && cluster.Length % 2 == 0 && cluster.EndsWith("e\u0301", StringComparison.Ordinal),
+                            "RTL grapheme truncation changed");
+                        var linkMarker = EllipsisRect(view, "rtl-runs");
+                        var linkPoint = new Point(linkMarker.Left + linkMarker.Width / 2, linkMarker.Top + linkMarker.Height / 2);
+                        Need(FragmentHit(view, "#target").Contains(linkPoint), "RTL elided link hit changed");
+                        var cellMarker = EllipsisRect(view, "rtl-cell");
+                        var cellClip = EllipsisClip(view, "rtl-cell");
+                        Need(cellClip.Contains(cellMarker) && cellMarker.Right < cellClip.Left + cellClip.Width / 2 && ColoredSamples(image) > 0,
+                            "RTL table ellipsis or paint changed");
+                    }
+
+                    var automation = typeof(V).GetMethod("AutomationText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, null);
+                    var source = (string)automation.GetType().GetField("X").GetValue(automation);
+                    var first = AutomationRangeRect(view, automation, source, "RangeFirst");
+                    var second = AutomationRangeRect(view, automation, source, "RangeSecond");
+                    var third = AutomationRangeRect(view, automation, source, "RangeThird");
+                    var partial = AutomationRangeRect(view, automation, source, "Range");
+                    var north = AutomationRangeRect(view, automation, source, "Northward");
+                    var south = AutomationRangeRect(view, automation, source, "Southward");
+                    var east = AutomationRangeRect(view, automation, source, "Eastward");
+                    Need(source == raw && source.IndexOf('\u2026') < 0 &&
+                        first.Left > second.Left && second.Left > third.Left && first.Top == second.Top && second.Top == third.Top &&
+                        partial.Width > 0 && partial.Width < first.Width && partial.Right >= first.Right - 1,
+                        "RTL logical or partial range geometry changed");
+                    Need(north.Top < south.Top && south.Top < east.Top && Math.Abs(north.Right - south.Right) <= 2 && Math.Abs(south.Right - east.Right) <= 2 &&
+                        AutomationWordAtPoint(view, automation, first) == "RangeFirst" && AutomationWordAtPoint(view, automation, third) == "RangeThird",
+                        "RTL wrapped range or point mapping changed");
+
+                    var commandContent = BlockContent(view, "command-overflow");
+                    var before = EllipsisRect(view, "command-overflow");
+                    Need(before.Left > commandContent.Left + commandContent.Width / 2 && view.Js("dr('command-overflow','rtl')") == 1,
+                        "LTR overflow command baseline changed");
+                    using (var image = Draw(view))
+                    {
+                        commandContent = BlockContent(view, "command-overflow");
+                        var after = EllipsisRect(view, "command-overflow");
+                        Need(after.Right < commandContent.Left + commandContent.Width / 2 && view.At.X == raw && ColoredSamples(image) > 0,
+                            "compact direction command did not remap ellipsis geometry");
+                    }
+                }
+                return "bounded LTR/RTL physical inline-end ellipsis, grapheme-safe right-aligned paint prefixes, retained link hits, table clips, full logical text, direction-aware partial/wrapped/point TextPattern geometry, and compact dr reflow";
+            });
+            AddProbe(probes, "Bounded grid layout", delegate
+            {
+                var path = Path.Combine(folder, "grid.html");
+                var page = new E().Go(path);
+                var equal = page.Bs.First(block => block.El != null && block.El.Av("id") == "equal");
+                var mixed = page.Bs.First(block => block.El != null && block.El.Av("id") == "mixed");
+                var span = page.Bs.First(block => block.El != null && block.El.Av("id") == "mixed-four");
+                var rows = page.Bs.First(block => block.El != null && block.El.Av("id") == "rows");
+                var rowSpan = page.Bs.First(block => block.El != null && block.El.Av("id") == "rows-b");
+                var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid");
+                Need(equal.S.D == "grid" && equal.S.Gc == 3 && equal.S.Gv(0) == -1 && equal.S.Gv(2) == -1 && equal.S.Rg == 9 && equal.S.Gp == 6, "equal grid aliases changed");
+                Need(mixed.S.Gc == 3 && mixed.S.Gv(0) == 100 && mixed.S.Gv(1) == -1 && mixed.S.Gv(2) == -2, "mixed grid tracks changed");
+                Need(span.S.Gl == 2 && span.S.Gs == 2 && rows.S.Rc == 3 && rows.S.Rv(0) == 30 && rows.S.Rv(1) == -1 && rows.S.Rv(2) == -2 && rowSpan.S.Rl == 2 && rowSpan.S.Rs == 2, "grid row or placement aliases changed");
+                Need(invalid.S.Gc == 0 && invalid.S.Rc == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "limit").S.Gc == 8 && page.Bs.First(block => block.El != null && block.El.Av("id") == "limit").S.Rc == 8, "grid bounds changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var equalOne = BlockOuter(view, "equal-one");
+                        var equalTwo = BlockOuter(view, "equal-two");
+                        var equalFour = BlockOuter(view, "equal-four");
+                        var mixedOne = BlockOuter(view, "mixed-one");
+                        var mixedTwo = BlockOuter(view, "mixed-two");
+                        var mixedThree = BlockOuter(view, "mixed-three");
+                        var mixedFour = BlockOuter(view, "mixed-four");
+                        var orderOne = BlockOuter(view, "order-one");
+                        var orderTwo = BlockOuter(view, "order-two");
+                        var orderThree = BlockOuter(view, "order-three");
+                        var rowsA = BlockOuter(view, "rows-a");
+                        var rowsB = BlockOuter(view, "rows-b");
+                        var rowsC = BlockOuter(view, "rows-c");
+                        var autoRows = BlockOuter(view, "auto-rows");
+                        var autoRowA = BlockOuter(view, "auto-row-a");
+                        var autoRowB = BlockOuter(view, "auto-row-b");
+                        var autoRowC = BlockOuter(view, "auto-row-c");
+                        Need(equalOne.Width == 106 && equalTwo.Left - equalOne.Right == 6 && equalFour.Width == 218 && equalFour.Top - equalOne.Bottom == 9, "equal grid geometry changed");
+                        Need(mixedOne.Width == 100 && mixedTwo.Width == 80 && mixedThree.Width == 160 && mixedFour.Width == 250 && mixedFour.Left == mixedTwo.Left, "mixed grid geometry changed");
+                        Need(orderTwo.Left < orderThree.Left && orderOne.Top > orderTwo.Bottom, "ordered grid placement changed");
+                        Need(rowsA.Width == 198 && rowsA.Height == 30 && rowsB.Width == 198 && rowsB.Height == 112 && rowsC.Width == 96 && rowsC.Height == 70 && rowsB.Left - rowsC.Right == 6 && rowsB.Bottom == rowsC.Bottom, "two-axis grid row geometry changed");
+                        Need(autoRowA.Width == 240 && autoRowA.Height == 20 && autoRowB.Top - autoRowA.Bottom == 5 && autoRowB.Top == autoRowC.Top && autoRowB.Bottom == autoRowC.Bottom && autoRowC.Bottom == autoRows.Bottom, "auto-height grid row settling changed");
+                        Need(BlockOuter(view, "after-grid").Top > BlockOuter(view, "grid-target").Bottom && ColoredSamples(image) > 0, "grid following flow or paint changed");
+                    }
+                    var wide = BlockOuter(view, "responsive-one").Width;
+                    var field = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "grid-field");
+                    field.V = "Retained benchmark grid field";
+                    view.Size = new Size(360, 2200);
+                    using (var image = Draw(view)) Need(BlockOuter(view, "responsive-one").Width < wide && Object.ReferenceEquals(field, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "grid-field")) && field.V == "Retained benchmark grid field" && ColoredSamples(image) > 0, "narrow grid reflow or field retention changed");
+                }
+                return "Gd/Gc/Gv columns, Rd/Rc/Rv rows, Gl/Gs and Rl/Rs two-axis placement, bounded px/fr/repeat/minmax tracks, gaps, spans, occupancy, paint, resize, and flow";
+            });
+            AddProbe(probes, "Bounded named grid areas", delegate
+            {
+                var path = Path.Combine(folder, "grid-areas.html");
+                var page = new E().Go(path);
+                var dashboard = page.Bs.First(block => block.El != null && block.El.Av("id") == "dashboard");
+                var head = page.Bs.First(block => block.El != null && block.El.Av("id") == "area-head");
+                var main = page.Bs.First(block => block.El != null && block.El.Av("id") == "area-main");
+                Need(dashboard.S.Aa == 4 && dashboard.S.Ar == 3 && dashboard.S.Ac == 3 && dashboard.S.Ag("head", 0) == 1 && dashboard.S.Ag("head", 3) == 3 && dashboard.S.Ag("main", 1) == 2 && dashboard.S.Ag("main", 3) == 2, "named grid area aliases changed");
+                Need(head.S.An == "head" && main.S.An == "main" && page.Bs.First(block => block.El != null && block.El.Av("id") == "area-auto").S.An == "", "named grid item aliases changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "bad-uneven").S.Aa == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "bad-shape").S.Aa == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "too-many").S.Aa == 0, "invalid named grid templates changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1500);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var dashboardRect = BlockOuter(view, "dashboard");
+                        var headRect = BlockOuter(view, "area-head");
+                        var navRect = BlockOuter(view, "area-nav");
+                        var mainRect = BlockOuter(view, "area-main");
+                        var footRect = BlockOuter(view, "area-foot");
+                        var autoRect = BlockOuter(view, "area-auto");
+                        Need(headRect.Width == 360 && headRect.Height == 40 && navRect.Width == 80 && navRect.Height == 78 && mainRect.Width == 272 && mainRect.Height == 78 && footRect.Width == 176 && footRect.Height == 50 && autoRect.Width == 176 && autoRect.Height == 50, "named grid area geometry changed");
+                        Need(mainRect.Left - navRect.Right == 8 && mainRect.Top - headRect.Bottom == 6 && footRect.Top - navRect.Bottom == 6 && autoRect.Left - footRect.Right == 8 && autoRect.Bottom == dashboardRect.Bottom, "named grid placement or gaps changed");
+                        var left = BlockOuter(view, "implicit-left");
+                        var right = BlockOuter(view, "implicit-right");
+                        Need(left.Width == 96 && right.Width == 96 && right.Left - left.Right == 8 && ColoredSamples(image) > 0, "named implicit columns or paint changed");
+                    }
+                }
+                return "Aa/Ar/Ac/Ag area templates plus An item names, rectangular validation, dot cells, definite-first placement, implicit columns, bounds, paint, hits, and flow";
+            });
+            AddProbe(probes, "Bounded named grid lines", delegate
+            {
+                var path = Path.Combine(folder, "grid-lines.html");
+                var page = new E().Go(path);
+                var layout = page.Bs.First(block => block.El != null && block.El.Av("id") == "line-layout");
+                var head = page.Bs.First(block => block.El != null && block.El.Av("id") == "line-head");
+                var area = page.Bs.First(block => block.El != null && block.El.Av("id") == "area-lines");
+                Need(layout.S.Gnc == 7 && layout.S.Rnc == 5 && layout.S.Gx("edge") == 1 && layout.S.Gx("main-end") == 4 && layout.S.Rx("footer-start") == 3 && head.S.Gn == "edge" && head.S.Ge == "edge-end", "named grid line aliases changed");
+                Need(area.S.Gx("lead-start") == 1 && area.S.Gx("lead-end") == 2 && area.S.Rx("lead-end") == 2, "area-generated named lines changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "bad-duplicate").S.Gx("keep") == 1 && page.Bs.First(block => block.El != null && block.El.Av("id") == "too-many-lines").S.Gc == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "line-limit").S.Gnc == 16, "named grid line validation changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1700);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var layoutRect = BlockOuter(view, "line-layout");
+                        var headRect = BlockOuter(view, "line-head");
+                        var navRect = BlockOuter(view, "line-nav");
+                        var mainRect = BlockOuter(view, "line-main");
+                        var footRect = BlockOuter(view, "line-foot");
+                        var autoRect = BlockOuter(view, "line-auto");
+                        Need(headRect.Width == 360 && headRect.Height == 40 && navRect.Width == 80 && navRect.Height == 78 && mainRect.Width == 272 && mainRect.Height == 78 && footRect.Width == 176 && footRect.Height == 50 && autoRect.Width == 176 && autoRect.Height == 50, "named grid line geometry changed");
+                        Need(mainRect.Left - navRect.Right == 8 && mainRect.Top - headRect.Bottom == 6 && footRect.Top - navRect.Bottom == 6 && autoRect.Left - footRect.Right == 8 && autoRect.Bottom == layoutRect.Bottom, "named grid line placement or gaps changed");
+                        var lead = BlockOuter(view, "area-line-lead");
+                        var story = BlockOuter(view, "area-line-story");
+                        var implicitOne = BlockOuter(view, "implicit-row-one");
+                        var implicitThree = BlockOuter(view, "implicit-row-three");
+                        Need(lead.Width == 96 && story.Width == 96 && story.Left - lead.Right == 8 && implicitThree.Top > implicitOne.Bottom && ColoredSamples(image) > 0, "area-generated lines, implicit numeric rows, or paint changed");
+                    }
+                }
+                return "Gnc/Rnc/Gx/Rx templates plus Gn/Ge/Rn/Re item names, area-generated edges, unique validation, repeats, definite-first placement, bounds, paint, hits, and flow";
+            });
+            AddProbe(probes, "Bounded grid auto flow", delegate
+            {
+                var path = Path.Combine(folder, "grid-flow.html");
+                var page = new E().Go(path);
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "row-sparse").S.Gf == "r" && page.Bs.First(block => block.El != null && block.El.Av("id") == "row-dense").S.Gf == "d" && page.Bs.First(block => block.El != null && block.El.Av("id") == "column-flow").S.Gf == "c" && page.Bs.First(block => block.El != null && block.El.Av("id") == "column-dense").S.Gf == "x", "grid auto-flow aliases changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "flow-reset").S.Gf == "r" && page.Bs.First(block => block.El != null && block.El.Av("id") == "flow-invalid").S.Gf == "c", "grid auto-flow validation changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1900);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var sparseA = BlockOuter(view, "row-sparse-a");
+                        var sparseB = BlockOuter(view, "row-sparse-b");
+                        var sparseC = BlockOuter(view, "row-sparse-c");
+                        var denseA = BlockOuter(view, "row-dense-a");
+                        var denseB = BlockOuter(view, "row-dense-b");
+                        var denseC = BlockOuter(view, "row-dense-c");
+                        Need(sparseA.Width == 198 && sparseC.Width == 96 && sparseC.Top == sparseB.Top && denseA.Width == 198 && denseC.Top == denseA.Top && denseB.Top > denseA.Bottom, "row sparse or dense placement changed");
+                        var one = BlockOuter(view, "column-one");
+                        var two = BlockOuter(view, "column-two");
+                        var three = BlockOuter(view, "column-three");
+                        var five = BlockOuter(view, "column-five");
+                        Need(one.Width == 93 && three.Width == 93 && five.Width == 94 && one.Left == two.Left && three.Left - one.Right == 10, "column flow implicit tracks changed");
+                        Need(BlockOuter(view, "column-sparse-c").Left == BlockOuter(view, "column-sparse-b").Left && BlockOuter(view, "column-dense-c").Left == BlockOuter(view, "column-dense-a").Left, "column dense placement changed");
+                        var eight = BlockOuter(view, "ceiling-eight");
+                        var nine = BlockOuter(view, "ceiling-nine");
+                        Need(eight.Left == nine.Left && nine.Top > eight.Top && ColoredSamples(image) > 0, "column flow ceiling or paint changed");
+                    }
+                }
+                return "Gf r/d/c/x flow, sparse cursors, dense backfill, row/column swapping, equal implicit columns, eight-column overflow, bounds, paint, hits, and flow";
+            });
+            AddProbe(probes, "Bounded grid auto tracks", delegate
+            {
+                var path = Path.Combine(folder, "grid-auto-tracks.html");
+                var page = new E().Go(path);
+                var pattern = page.Bs.First(block => block.El != null && block.El.Av("id") == "track-pattern").S;
+                Need(pattern.Gac == 2 && pattern.Gav(0) == 40 && pattern.Gav(1) == -1 && pattern.Rac == 2 && pattern.Rav(0) == 30 && pattern.Rav(1) == -2, "grid auto-track aliases changed");
+                var mixed = page.Bs.First(block => block.El != null && block.El.Av("id") == "auto-mix").S;
+                var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "track-invalid").S;
+                Need(mixed.Gav(0) == S.Av && mixed.Gav(1) == -2 && invalid.Gav(0) == 35 && invalid.Gav(1) == -2 && invalid.Rav(0) == 30 && invalid.Rav(1) == S.Av, "grid auto-track auto or invalid preservation changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "track-reset").S.Gac == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "track-limit").S.Gac == 8, "grid auto-track reset or bounds changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1700);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var patternA = BlockOuter(view, "pattern-a");
+                        var patternB = BlockOuter(view, "pattern-b");
+                        var patternC = BlockOuter(view, "pattern-c");
+                        var patternD = BlockOuter(view, "pattern-d");
+                        var patternE = BlockOuter(view, "pattern-e");
+                        Need(patternA.Size == new Size(60, 20) && patternB.Size == new Size(40, 30) && patternC.Size == new Size(60, 105) && patternD.Size == new Size(40, 30) && patternE.Size == new Size(60, 20), "repeating grid auto-track geometry changed");
+                        var mixA = BlockOuter(view, "auto-mix-a");
+                        var mixB = BlockOuter(view, "auto-mix-b");
+                        var mixC = BlockOuter(view, "auto-mix-c");
+                        var mixD = BlockOuter(view, "auto-mix-d");
+                        var mixE = BlockOuter(view, "auto-mix-e");
+                        Need(mixA.Width == 50 && mixB.Width == 25 && mixC.Width == 50 && mixD.Width == 25 && mixE.Width == 50, "mixed auto and fraction implicit columns changed");
+                        var rowCycle = BlockOuter(view, "row-cycle");
+                        var rowA = BlockOuter(view, "row-cycle-a");
+                        var rowC = BlockOuter(view, "row-cycle-c");
+                        var rowE = BlockOuter(view, "row-cycle-e");
+                        var largeGap = BlockOuter(view, "row-large-gap");
+                        var largeGapA = BlockOuter(view, "row-large-gap-a");
+                        var largeGapB = BlockOuter(view, "row-large-gap-b");
+                        var largeGapC = BlockOuter(view, "row-large-gap-c");
+                        var areaLead = BlockOuter(view, "area-lead");
+                        var areaStory = BlockOuter(view, "area-story");
+                        var areaAction = BlockOuter(view, "area-action");
+                        Need(rowCycle.Height == 135 && rowA.Height == 35 && rowC.Height == 55 && rowE.Height == 35 && largeGap.Height == 120 && largeGapA.Height == 10 && largeGapB.Height == 20 && largeGapC.Height == 10 && largeGapB.Top - largeGapA.Bottom == 40 && areaLead.Width == 50 && areaStory.Width == 30 && areaAction.Width == 100 && ColoredSamples(image) > 0, "implicit row settling, large gaps, area tracks, or paint changed");
+                    }
+                }
+                return "S.Av plus Gac/Gav/Rac/Rav repeating pixel, auto, integer-fr, and minmax patterns; implicit endpoints, area tracks, row settlement, validation, bounds, paint, hits, and flow";
+            });
+            AddProbe(probes, "Bounded grid shorthands", delegate
+            {
+                var path = Path.Combine(folder, "grid-shorthand.html");
+                var page = new E().Go(path);
+                var explicitGrid = page.Bs.First(block => block.El != null && block.El.Av("id") == "explicit-grid").S;
+                var preserved = page.Bs.First(block => block.El != null && block.El.Av("id") == "template-preserve").S;
+                Need(explicitGrid.Rc == 2 && explicitGrid.Rv(0) == 30 && explicitGrid.Rv(1) == -1 && explicitGrid.Gc == 3 && explicitGrid.Gv(0) == 80 && explicitGrid.Gv(1) == -1 && explicitGrid.Gv(2) == -2 && explicitGrid.Gf == "r" && explicitGrid.Gac == 0, "explicit grid shorthand aliases changed");
+                Need(preserved.Rc == 2 && preserved.Gc == 2 && preserved.Gf == "x" && preserved.Gav(0) == 25 && preserved.Rav(0) == 35, "grid-template shorthand preservation changed");
+                var area = page.Bs.First(block => block.El != null && block.El.Av("id") == "area-grid").S;
+                var rowFlow = page.Bs.First(block => block.El != null && block.El.Av("id") == "row-flow-grid").S;
+                var columnFlow = page.Bs.First(block => block.El != null && block.El.Av("id") == "column-flow-grid").S;
+                Need(area.Aa == 3 && area.Ar == 2 && area.Ac == 2 && area.Ag("head", 3) == 2 && rowFlow.Gf == "d" && rowFlow.Gc == 3 && rowFlow.Rac == 2 && columnFlow.Gf == "x" && columnFlow.Rc == 2 && columnFlow.Gac == 2, "area or auto-flow shorthand aliases changed");
+                var explicitAuto = page.Bs.First(block => block.El != null && block.El.Av("id") == "explicit-auto").S;
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "grid-reset").S;
+                var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid-grid").S;
+                Need(explicitAuto.Rv(0) == S.Av && explicitAuto.Gv(0) == S.Av && reset.Gc == 0 && reset.Rc == 0 && reset.Gac == 0 && reset.Gf == "r" && reset.Gp == 7 && invalid.Gc == 2 && invalid.Rc == 1 && invalid.Gac == 1 && invalid.Rac == 1 && invalid.Gf == "c", "grid shorthand auto, reset, or atomic validation changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2000);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var explicitA = BlockOuter(view, "explicit-a");
+                        var explicitB = BlockOuter(view, "explicit-b");
+                        var explicitC = BlockOuter(view, "explicit-c");
+                        var explicitF = BlockOuter(view, "explicit-f");
+                        Need(explicitA.Size == new Size(80, 30) && explicitB.Size == new Size(66, 30) && explicitC.Size == new Size(134, 30) && explicitF.Size == new Size(134, 65), "explicit grid shorthand geometry changed");
+                        var areaHead = BlockOuter(view, "area-head");
+                        var areaNav = BlockOuter(view, "area-nav");
+                        var areaMain = BlockOuter(view, "area-main");
+                        Need(areaHead.Size == new Size(300, 30) && areaNav.Size == new Size(90, 65) && areaMain.Size == new Size(200, 65), "area grid shorthand geometry changed");
+                        var rowA = BlockOuter(view, "row-flow-a");
+                        var rowB = BlockOuter(view, "row-flow-b");
+                        var rowC = BlockOuter(view, "row-flow-c");
+                        var columnA = BlockOuter(view, "column-flow-a");
+                        var columnB = BlockOuter(view, "column-flow-b");
+                        var columnC = BlockOuter(view, "column-flow-c");
+                        var columnE = BlockOuter(view, "column-flow-e");
+                        Need(rowA.Size == new Size(180, 30) && rowB.Size == new Size(180, 65) && rowC.Size == new Size(110, 30) && rowC.Top == rowA.Top && columnA.Size == new Size(40, 25) && columnB.Size == new Size(40, 70) && columnC.Size == new Size(200, 25) && columnE.Size == new Size(40, 25) && ColoredSamples(image) > 0, "auto-flow shorthand geometry or paint changed");
+                    }
+                }
+                return "Atomic grid-template/grid explicit and quoted-area forms, row/column auto-flow dense forms, automatic patterns, reset boundaries, explicit auto tracks, geometry, paint, hits, and flow";
+            });
+            AddProbe(probes, "Bounded grid item alignment", delegate
+            {
+                var path = Path.Combine(folder, "grid-alignment.html");
+                var page = new E().Go(path);
+                var place = page.Bs.First(block => block.El != null && block.El.Av("id") == "place-grid").S;
+                var placeB = page.Bs.First(block => block.El != null && block.El.Av("id") == "place-b").S;
+                var placeC = page.Bs.First(block => block.El != null && block.El.Av("id") == "place-c").S;
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic-items").S;
+                var atomicSelf = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic-self").S;
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset-items").S;
+                var resetSelf = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset-self").S;
+                var two = page.Bs.First(block => block.El != null && block.El.Av("id") == "two-items").S;
+                var twoSelf = page.Bs.First(block => block.El != null && block.El.Av("id") == "two-self").S;
+                Need(place.Ji == "c" && place.Ai == "c" && placeB.Js == "e" && placeB.As == "e" && placeC.Js == "t" && placeC.As == "t", "grid alignment aliases changed");
+                Need(atomic.Ji == "e" && atomic.Ai == "s" && atomicSelf.Js == "e" && atomicSelf.As == "s" && reset.Ji == "t" && reset.Ai == "t" && resetSelf.Js == "" && resetSelf.As == "", "grid alignment atomic/reset state changed");
+                Need(two.Ai == "s" && two.Ji == "e" && twoSelf.As == "e" && twoSelf.Js == "c", "grid two-value place axis order changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1400);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var grid = BlockOuter(view, "place-grid");
+                        var a = BlockOuter(view, "place-a");
+                        var b = BlockOuter(view, "place-b");
+                        var c = BlockOuter(view, "place-c");
+                        var d = BlockOuter(view, "place-d");
+                        Need(a.Size == new Size(40, 20) && a.Left - grid.Left == 50 && a.Top - grid.Top == 40 && b.Size == new Size(50, 30) && b.Left - grid.Left == 250 && b.Top - grid.Top == 70, "grid center/end alignment geometry changed");
+                        Need(c.Size == new Size(140, 100) && c.Left == grid.Left && c.Top - grid.Top == 110 && d.Size == new Size(60, 40) && d.Left - grid.Left == 150 && d.Top - grid.Top == 110, "grid stretch/start alignment geometry changed");
+                        var fit = BlockOuter(view, "fit-grid");
+                        var fitText = BlockOuter(view, "fit-text");
+                        Need(fitText.Width > 1 && fitText.Width < fit.Width && fitText.Left - fit.Left == (fit.Width - fitText.Width) / 2 && fitText.Height < fit.Height && fitText.Top - fit.Top == (fit.Height - fitText.Height) / 2, "grid auto-size alignment changed");
+                        var fitClamp = BlockOuter(view, "fit-clamp-grid");
+                        var fitClampText = BlockOuter(view, "fit-clamp-text");
+                        Need(fitClampText.Width == 100 && fitClampText.Left == fitClamp.Left, "grid auto-fit minimum clamp changed");
+                        Need(ColoredSamples(image) > 0, "grid alignment paint changed");
+                    }
+                }
+                return "Ji/Js plus Ai/As start, center, end, and stretch defaults/overrides; atomic place-items/place-self, auto fit, exact geometry, paint, hits, and flow";
+            });
+            AddProbe(probes, "Bounded grid content alignment", delegate
+            {
+                var path = Path.Combine(folder, "grid-content-alignment.html");
+                var page = new E().Go(path);
+                var center = page.Bs.First(block => block.El != null && block.El.Av("id") == "center-grid").S;
+                var axis = page.Bs.First(block => block.El != null && block.El.Av("id") == "axis-grid").S;
+                var between = page.Bs.First(block => block.El != null && block.El.Av("id") == "between-grid").S;
+                var mixed = page.Bs.First(block => block.El != null && block.El.Av("id") == "mixed-grid").S;
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic-content").S;
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset-content").S;
+                Need(center.Al == "c" && center.Jc == "c" && axis.Al == "e" && axis.Jc == "s", "grid content center or axis aliases changed");
+                Need(between.Al == "b" && between.Jc == "b" && mixed.Al == "a" && mixed.Jc == "v", "grid content distribution aliases changed");
+                Need(atomic.Al == "e" && atomic.Jc == "c" && reset.Al == "s" && reset.Jc == "s", "grid content atomic/reset state changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var centerGrid = BlockOuter(view, "center-grid");
+                        var centerA = BlockOuter(view, "center-a");
+                        var centerD = BlockOuter(view, "center-d");
+                        Need(centerA.Size == new Size(80, 40) && centerA.Left - centerGrid.Left == 55 && centerA.Top - centerGrid.Top == 55 && centerD.Left - centerGrid.Left == 145 && centerD.Top - centerGrid.Top == 105, "grid centered content geometry changed");
+                        var betweenGrid = BlockOuter(view, "between-grid");
+                        var betweenB = BlockOuter(view, "between-b");
+                        var betweenC = BlockOuter(view, "between-c");
+                        Need(betweenB.Left - betweenGrid.Left == 200 && betweenC.Top - betweenGrid.Top == 160, "grid space-between content geometry changed");
+                        var mixedGrid = BlockOuter(view, "mixed-grid");
+                        var mixedA = BlockOuter(view, "mixed-a");
+                        var mixedB = BlockOuter(view, "mixed-b");
+                        var mixedC = BlockOuter(view, "mixed-c");
+                        Need(mixedA.Left - mixedGrid.Left == 40 && mixedA.Top - mixedGrid.Top == 30 && mixedB.Left - mixedGrid.Left == 160 && mixedC.Top - mixedGrid.Top == 130 && ColoredSamples(image) > 0, "grid around/evenly content geometry or paint changed");
+                    }
+                }
+                return "Al/Jc start, center, end, between, around, and evenly track-group distribution; atomic place-content, exact geometry, paint, hits, and flow";
+            });
+            AddProbe(probes, "Bounded inline SVG", delegate
+            {
+                var path = Path.Combine(folder, "svg.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "vector");
+                var graphic = engine.Ax(page, ById(page.D, "vector"));
+                Need(block.Vg != null && block.Vg.Vb && block.Vg.W == 320D && block.Vg.H == 180D && block.Vg.Ss.Count == 10, "SVG model or bounds changed");
+                Need(block.Vg.Ss[6].K == "path" && block.Vg.Ss[6].D.Count == 5 && block.Vg.Ss[7].U.Fragment == "#svg-target", "SVG path or linked shape changed");
+                Need(graphic != null && graphic.K == "img" && graphic.N == "Inline SVG status chart", "SVG accessibility mapping changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 760);
+                    view.Go(path);
+                    using (var image = Draw(view)) Need(BlockContent(view, "vector").Size == new Size(320, 180) && ColoredSamples(image) > 0, "SVG layout or paint changed");
+                }
+                return "Vg/Vs/Vp aliases, viewBox meet sizing, 128 shapes/points, six primitives, text, straight/cubic paths, inherited paint/opacity, links, accessibility, and GDI paint";
+            });
+            AddProbe(probes, "SVG geometry and transforms", delegate
+            {
+                var path = Path.Combine(folder, "svg-geometry.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "geometry");
+                var shapes = block.Vg.Ss;
+                Need(block.Vg.A == "mm" && block.Vg.M == "m" && shapes.Count == 10, "SVG geometry model or defaults changed");
+                Need(shapes[0].D.Count == 3 && shapes[0].D[1].K == 'C' && shapes[0].D[2].K == 'C' && shapes[0].D[2].A == 50D && shapes[0].D[2].B == 60D, "SVG cubic or smooth control changed");
+                Need(shapes[1].D.Count == 3 && shapes[1].D[2].K == 'Q' && shapes[1].D[2].A == 55D && shapes[1].D[2].B == 100D, "SVG quadratic or smooth control changed");
+                Need(shapes[2].D.Count >= 2 && shapes[2].D.Skip(1).All(step => step.K == 'C'), "SVG arc conversion changed");
+                Need(shapes[3].M[0] == 1.5D && shapes[3].M[3] == 1.5D && shapes[3].M[4] == 120D && shapes[3].M[5] == 10D, "SVG cumulative transform changed");
+                Need(shapes[7].U != null && shapes[7].U.Fragment == "#geometry-target" && shapes[8].M[4] == 132D && shapes[9].M[0] == 1D, "SVG link, inline transform, or invalid fallback changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1100);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "geometry").Size == new Size(360, 200), "SVG transformed viewport size changed");
+                        Need(!FragmentHit(view, "#geometry-target").IsEmpty, "SVG transformed link hit changed");
+                        Need(ColorDistance(image.GetPixel(BlockContent(view, "aspect-none").Right - 4, BlockContent(view, "aspect-none").Top + 50), Color.FromArgb(220, 38, 38)) < 12, "SVG preserveAspectRatio none paint changed");
+                        Need(ColorDistance(image.GetPixel(BlockContent(view, "aspect-min").Left + 50, BlockContent(view, "aspect-min").Top + 50), Color.FromArgb(22, 163, 74)) < 12, "SVG aligned meet paint changed");
+                        Need(ColorDistance(image.GetPixel(BlockContent(view, "aspect-slice").Left + 100, BlockContent(view, "aspect-slice").Top + 50), Color.FromArgb(37, 99, 235)) < 12, "SVG slice clipping paint changed");
+                    }
+                }
+                return "C/S/Q/T/A paths, inherited matrix/translate/scale/rotate/skew transforms, preserveAspectRatio none/meet/slice, clipping, accessibility links, and bounded invalid fallback";
+            });
+            AddProbe(probes, "SVG gradient paint servers", delegate
+            {
+                var path = Path.Combine(folder, "svg-gradients.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "gradient-vector");
+                Need(block.Vg != null && block.Vg.Ds.Count == 5 && block.Vg.Ss.Count == 8, "SVG gradient model or invalid rejection changed");
+                Need(block.Vg.Ds[0].K == "l" && block.Vg.Ds[0].Ss.Count == 3 && block.Vg.Ds[0].Ss[1].C == "#16a34a" && Math.Abs(block.Vg.Ds[0].Ss[1].A - .6D) < .001D, "SVG linear stops or CSS paint changed");
+                Need(block.Vg.Ds[1].Ss.Count == 3 && block.Vg.Ds[2].U == "u" && block.Vg.Ds[3].K == "r" && block.Vg.Ds[3].P[3] == .35D, "SVG inherited, user-space, or radial gradient changed");
+                Need(block.Vg.Ss[0].Fd == block.Vg.Ds[0] && block.Vg.Ss[4].Sd == block.Vg.Ds[4] && block.Vg.Ss[5].U.Fragment == "#gradient-target" && block.Vg.Ss[6].F == "none" && block.Vg.Ss[7].F == "none", "SVG gradient references or fail-closed state changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 700);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "gradient-vector").Size == new Size(360, 220) && ColoredSamples(image) > 0, "SVG gradient layout or paint changed");
+                        Need(!FragmentHit(view, "#gradient-target").IsEmpty, "SVG gradient link hit changed");
+                    }
+                }
+                return "Vg.Ds, Vs.Fd/Sd, Vd/Vt aliases, bounded local inheritance and cycles, object/user units, transforms, CSS stops/opacity/currentColor, linear/radial fill and stroke paint, links, and invalid fallback";
+            });
+            AddProbe(probes, "SVG reusable geometry and clips", delegate
+            {
+                var path = Path.Combine(folder, "svg-use-clips.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "reuse-vector");
+                var shapes = block.Vg.Ss;
+                Need(block.Vg != null && block.Vg.Cs.Count == 4 && shapes.Count == 14, "SVG use expansion or clip model changed");
+                Need(shapes[0].M[4] == 5D && shapes[0].F == "#dc2626" && shapes[2].M[0] == 1.2D && shapes[4].M[4] == 85D && shapes[6].M[4] == 113D, "SVG group, symbol, or nested use matrix changed");
+                Need(block.Vg.Cs[0].U == "u" && block.Vg.Cs[0].M[4] == 2D && block.Vg.Cs[1].U == "b" && block.Vg.Cs[2].Ss[0].M[4] == 125D && block.Vg.Cs[3].Ss.Count == 2, "SVG clip units, transform, use, or union changed");
+                Need(shapes[8].Cp == block.Vg.Cs[0] && shapes[9].Cp == block.Vg.Cs[1] && shapes[10].Cp == block.Vg.Cs[2] && shapes[11].Cp == block.Vg.Cs[3] && shapes[13].Cl && shapes[13].Cp == null, "SVG clip attachment or fail-closed state changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 720);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "reuse-vector").Size == new Size(360, 240) && ColoredSamples(image) > 0, "SVG reusable clip layout or paint changed");
+                        Need(!FragmentHit(view, "#clip-target").IsEmpty, "SVG clipped link hit changed");
+                    }
+                }
+                return "Vg.Cs, Vs.Cp/Cl/Cm, Vc aliases, bounded group/symbol/nested use expansion, x/y and transforms, cycle rejection, user/object clip units, reusable clip geometry, CSS/group attachment, paint, links, and unresolved fallback";
+            });
+            AddProbe(probes, "SVG stroke and winding styles", delegate
+            {
+                var path = Path.Combine(folder, "svg-strokes.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "stroke-vector");
+                var shapes = block.Vg.Ss;
+                Need(block.Vg != null && block.Vg.Cs.Count == 1 && shapes.Count == 13, "SVG stroke fixture or model changed");
+                Need(shapes[0].Fr == "e" && shapes[1].Fr == "n" && block.Vg.Cs[0].Ss[0].Fr == "e", "SVG fill or clip winding changed");
+                Need(shapes[3].Lc == "b" && shapes[4].Lc == "r" && shapes[5].Lc == "s" && shapes[6].Lj == "m" && shapes[6].Ml == 64D && shapes[7].Lj == "r" && shapes[8].Lj == "b", "SVG cap, join, or bounded miter state changed");
+                Need(shapes[9].S == "#0f766e" && shapes[9].W == 5D && shapes[9].Do == 3D && shapes[9].Da.Count == 6 && shapes[9].Da[0] == 8D && shapes[9].Da[3] == 8D, "SVG stylesheet dash cascade changed");
+                Need(shapes[10].F == "#f97316" && shapes[10].S == "#7c3aed" && shapes[10].W == 2D && shapes[11].Da.Count == 2 && shapes[12].Da.Count == 0, "SVG important paint or inherited dash state changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 760);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "stroke-vector").Size == new Size(360, 260) && ColoredSamples(image) > 0, "SVG stroke layout or paint changed");
+                        Need(!FragmentHit(view, "#stroke-target").IsEmpty, "SVG capped stroke link hit changed");
+                    }
+                }
+                return "Vs.Fr/Lc/Lj/Ml/Da/Do aliases, bounded stylesheet/presentation/inline cascade, variables, important priority, nonzero/evenodd fill and clips, butt/round/square caps, miter/round/bevel joins, miter limits, dash repetition/offset/inheritance/clearing, paint, and links";
+            });
+            AddProbe(probes, "Forms and validation", delegate
+            {
+                var engine = new E();
+                var forms = engine.Go(Path.Combine(folder, "forms.html"));
+                var validation = engine.Go(Path.Combine(folder, "form-validation.html"));
+                var widgets = engine.Go(Path.Combine(folder, "form-widgets.html"));
+                Need(forms.Fs.Count == 9 && validation.Fs.Count == 12 && widgets.Fs.Count == 10, "field models changed");
+                Need(validation.Fs[0].Rq && validation.Fs[0].Ok, "validation state is missing");
+                return "31 fields across basic, validation, and richer-widget fixtures";
+            });
+            AddProbe(probes, "Native field edit commands", delegate
+            {
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1000);
+                    view.Go(Path.Combine(folder, "editing.html"));
+                    using (var image = Draw(view)) { }
+                    var start = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var field = view.At.Fs.First(item => item.El.Av("id") == "text");
+                    start.Invoke(view, new object[] { field });
+                    Need(view.Ce("de") && view.Ec("de") == 1 && field.V == "", "selected field delete failed");
+                    Need(view.Ec("un") == 1 && field.V == "Lea field text" && !view.Ce("un") && view.Ce("re"), "native undo state failed");
+                    Need(view.Ec("re") == 1 && field.V == "", "native redo failed");
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "notes") });
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "readonly") });
+                    Need(view.Ce("cp") && !view.Ce("cu") && !view.Ce("pa"), "readonly command state failed");
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "secret") });
+                    Need(!view.Ce("cp") && !view.Ce("cu"), "password command state failed");
+                }
+                return "Ce/Ec two-letter commands, native one-level undo/redo, readonly/password guards, shared-font field switching; probe does not touch clipboard";
+            });
+            AddProbe(probes, "Bounded supplied paste", delegate
+            {
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1000);
+                    view.Go(Path.Combine(folder, "editing.html"));
+                    using (var image = Draw(view)) { }
+                    var start = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var field = view.At.Fs.First(item => item.El.Av("id") == "limited");
+                    start.Invoke(view, new object[] { field });
+                    Need(view.Pa("1234567\ud83d\ude00") == 1 && field.V == "1234567", "Pa split a surrogate at maxlength");
+                    Need(view.Ec("un") == 1 && field.V == "1234", "Pa lost native undo");
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "notes") });
+                    Need(view.Pa("One\r\nTwo") == 1, "Pa multiline dispatch");
+                    Need(view.At.Fs.First(item => item.El.Av("id") == "notes").V == "One\r\nTwo", "Pa lost line breaks");
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "readonly") });
+                    Need(view.Pa("blocked") == 0, "Pa overwrote readonly field");
+                    view.Dispose();
+                    Need(view.Pa("blocked") == 0, "Pa ran after disposal");
+                }
+                return "Pa host-supplied text, maxlength/Unicode, multiline, native undo, protected/disposed targets; no clipboard access";
+            });
+            AddProbe(probes, "Named native stylesheets", delegate
+            {
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "stylesheets.html"));
+                    var page = view.At;
+                    var field = page.Fs.First(item => item.El.Av("id") == "field");
+                    field.V = "Retained stylesheet data";
+                    Need(view.Ss("theme", "#panel{width:222px;background:#d7263d}") == 1 && view.Sn == 1 && view.Dg().Sn == 1, "Ss/Sn diagnostics");
+                    using (var image = Draw(view)) { }
+                    Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "panel").S.W == 222, "injected rule did not reach renderer");
+                    Need(view.Ss("theme", new string('x', 65537)) == 0 && view.Sn == 1, "oversized sheet changed retained state");
+                    Need(view.Sd("theme") == 1 && view.Sn == 0 && field.V == "Retained stylesheet data" && page.Fs.Contains(field), "Sd lost retained fields");
+                }
+                return "Ss/Sd/Sn named sheets, native computed/paint route, atomic source bound, retained field identity, and diagnostics";
+            });
+            AddProbe(probes, "View load admission", delegate
+            {
+                using (var view = NewView())
+                {
+                    var ready = 0;
+                    view.Done += delegate { Need(view.Cn && !view.Busy, "Done before ready"); ready++; };
+                    Need(view.Cn, "new view cannot navigate");
+                    var work = view.GoA(Path.Combine(folder, "load-lifecycle.html"));
+                    Need(work.IsCompleted || (!view.Cn && view.Busy), "pending view load has no owner");
+                    var end = DateTime.UtcNow.AddSeconds(10);
+                    while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                    Need(work.IsCompleted, "view load timeout");
+                    work.GetAwaiter().GetResult();
+                    Need(ready == 1 && view.Cn && !view.Busy, "completion did not restore admission");
+                    view.Dispose();
+                    Need(!view.Cn, "disposed view accepts navigation");
+                }
+                return "Cn admission, Busy through presentation, ready callback, and disposed guard; deterministic overlap/handoff regressions run in Lea.Tests --loads";
+            });
+            AddProbe(probes, "Bounded picture retention", delegate
+            {
+                using (var view = NewView())
+                {
+                    var work = view.GoA(Path.Combine(folder, "image-loading.html"));
+                    var end = DateTime.UtcNow.AddSeconds(10);
+                    while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                    Need(work.IsCompleted, "picture fixture timeout");
+                    work.GetAwaiter().GetResult();
+                    using (var image = Draw(view)) { }
+                    Need(view.Ic == 1 && view.Ib == 4 && view.At.Fs[0].V == "Retained image data", "deduplicated picture accounting or field data changed");
+                    view.Go(Path.Combine(folder, "second.html"));
+                    Need(view.Ic == 0 && view.Ib == 0, "unreferenced image memory retained");
+                }
+                return "Ic/Ib bitmap count/bytes, shared embedded source, retained fields, native paint, and page replacement; streaming/deadline/cache-limit regressions run in Lea.Tests --pics";
+            });
+            AddProbe(probes, "Native image preflight", delegate
+            {
+                using (var view = NewView())
+                {
+                    var work = view.GoA(Path.Combine(folder, "image-preflight.html"));
+                    var end = DateTime.UtcNow.AddSeconds(10);
+                    while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                    Need(work.IsCompleted, "image preflight fixture timeout");
+                    work.GetAwaiter().GetResult();
+                    using (var image = Draw(view)) Need(ColoredSamples(image) > 0, "image preflight fixture is blank");
+                    Need(view.Ip == 8388608 && view.Im == 128L * 1024 * 1024 && view.Ic == 1 && view.If == 1 &&
+                        view.In == 1 && view.Ib == 4 && view.It == 4 && view.Ii && File.Exists(view.Ie) &&
+                        view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 0 && view.Ij &&
+                        view.Ih == 192L * 1024 * 1024 && view.Ipm > 0 && view.Ipm <= view.Ih && view.Irt && view.Ili &&
+                        view.Isp && view.Ihl && view.Ias && view.Icp && view.Icr == 2500 &&
+                        (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih &&
+                        view.Iac && view.Ind && view.Ial && view.Iad && view.Icl == 384L * 1024 * 1024 &&
+                        view.Ihm > 0 && view.Icm >= view.Ihm + view.Ipk && view.Icm <= view.Icl &&
+                        view.At.Fs[0].V == "Retained preflight data",
+                        "image restricted-launch aliases, worker admission, or retained accounting changed");
+                }
+                using (var released = NewView()) Need(released.It == 0, "image preflight fixture leaked process reservation");
+                return "Pi preflight, hardened-worker and Icl/Ihm/Icm/Iad combined-memory aliases, one native decode, one pre-native rejection, retained fields, paint, and disposal";
+            });
+            AddProbe(probes, "Combined image memory admission", delegate
+            {
+                using (var view = NewView())
+                {
+                    var oldLimit = view.Icl;
+                    try
+                    {
+                        view.Icl = 1;
+                        Need(view.Icl == 128L * 1024 * 1024, "combined image-memory minimum changed");
+                        view.Icl = Int64.MaxValue;
+                        Need(view.Icl == 1024L * 1024 * 1024, "combined image-memory maximum changed");
+                        view.Icl = 128L * 1024 * 1024;
+                        typeof(V).GetField("picHostMemoryProbe", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view,
+                            new Func<long>(() => view.Icl));
+                        var work = view.GoA(Path.Combine(folder, "image-preflight.html"));
+                        var end = DateTime.UtcNow.AddSeconds(10);
+                        while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                        Need(work.IsCompleted, "combined image-memory fixture timeout");
+                        work.GetAwaiter().GetResult();
+                        Need(view.Ic == 0 && view.If == 2 && view.In == 0 && view.It == 0 && !view.Iad &&
+                            view.Ihm == view.Icl && view.Ipm > 0 && view.Ipk > 0 && view.Icm > view.Icl,
+                            "combined host/helper projection reached native decode");
+                    }
+                    finally { view.Icl = oldLimit; }
+                }
+                return "Icl bounded combined ceiling, Ihm host sample, Icm conservative host/helper/reserve projection, Iad denial, zero native payload admissions, and reservation cleanup";
+            });
+            AddProbe(probes, "Zero-capability image sandbox", delegate
+            {
+                var listener = new TcpListener(IPAddress.Loopback, 0);
+                var canary = Path.Combine(Path.GetTempPath(), "lea-image-container-" + Guid.NewGuid().ToString("N") + ".txt");
+                try
+                {
+                    File.WriteAllText(canary, "host-only image sandbox canary");
+                    listener.Start();
+                    var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+                    using (var view = NewView())
+                    {
+                        typeof(V).GetField("picWorkerArgs", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view,
+                            "--pipe --network-probe=" + port + " --file-probe=" +
+                            Convert.ToBase64String(Encoding.UTF8.GetBytes(canary)));
+                        var work = view.GoA(Path.Combine(folder, "image-preflight.html"));
+                        var end = DateTime.UtcNow.AddSeconds(10);
+                        while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                        Need(work.IsCompleted, "image AppContainer fixture timeout");
+                        work.GetAwaiter().GetResult();
+                        Need(view.Ic == 1 && view.In == 1 && view.Iac && view.Ind && view.Ial &&
+                            (view.Img & 48) == 48 && !listener.Pending() && File.Exists(canary),
+                            "zero-capability worker reached loopback or a host-owned file");
+                    }
+                }
+                finally
+                {
+                    listener.Stop();
+                    if (File.Exists(canary)) File.Delete(canary);
+                }
+                return "Iac/Ind zero-capability AppContainer, exact helper-file RX ACL, active denied loopback/host-file probes, bounded native decode, and no added runtime";
+            });
+            AddProbe(probes, "Bounded document input", delegate
+            {
+                using (var view = NewView())
+                {
+                    var work = view.GoA(Path.Combine(folder, "input-loading.html"));
+                    var end = DateTime.UtcNow.AddSeconds(10);
+                    while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                    Need(work.IsCompleted, "input fixture timeout");
+                    work.GetAwaiter().GetResult();
+                    using (var image = Draw(view)) { }
+                    Need(view.Hm == 4194304 && view.Csm == 262144 && view.Cn && !view.Busy && view.Le == null,
+                        "input limit aliases or completion changed");
+                    Need(view.At.S.Bg == "#f4f6f8" && view.At.Fs[0].V == "Retained bounded input", "linked CSS or retained input changed");
+                }
+                return "Hm/Csm document/sheet ceilings, local asynchronous input, linked CSS, native paint, and retained fields; wire/decoded/deadline/origin regressions run in Lea.Tests --input";
+            });
+            AddProbe(probes, "Exact cache identity", delegate
+            {
+                var path = Path.Combine(folder, "cache-identity.html");
+                var page = new E().Go(path);
+                Need(page.Ls.Count == 4, "cache identity fixture links changed");
+                var keys = typeof(E).GetMethod("CacheKey", BindingFlags.Static | BindingFlags.NonPublic);
+                Need(keys != null, "cache key helper is unavailable");
+                var first = (string)keys.Invoke(null, new object[] { page.Ls[0].U });
+                var second = (string)keys.Invoke(null, new object[] { page.Ls[1].U });
+                var third = (string)keys.Invoke(null, new object[] { page.Ls[2].U });
+                var fragment = (string)keys.Invoke(null, new object[] { page.Ls[3].U });
+                Need(first != second && second != third && third == fragment,
+                    "path/query case or fragment representation identity changed");
+                Need(page.Ls[0].U.AbsolutePath.EndsWith("/Case/Resource.html", StringComparison.Ordinal) &&
+                    page.Ls[1].U.AbsolutePath.EndsWith("/case/Resource.html", StringComparison.Ordinal) &&
+                    page.Ls[1].U.Query == "?Mode=Upper" && page.Ls[2].U.Query == "?Mode=upper",
+                    "authored URL case was not retained");
+                using (var view = NewView())
+                {
+                    view.Go(path);
+                    using (var image = Draw(view)) Need(view.Bc > 0 && ColoredSamples(image) > 0, "cache identity fixture is blank");
+                }
+                return "ordinal path/query keys after URI canonicalization, fragment stripping, authored link case, native layout, and network/disk regressions in Lea.Tests --cache";
+            });
+            AddProbe(probes, "Bounded Lea scripting", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "events-vars.html"));
+                Need(page.T == "Lea safe events" && page.Vs.Count == 2, "page commands did not run");
+                Need(engine.Ck(page, ById(page.D, "go")) == 3 && page.T == "Clicked Lea", "click commands did not run");
+                return page.Jc + " safe commands and " + page.Vs.Count + " variables after click";
+            });
+            AddProbe(probes, "Literal DOM compatibility", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "dom-bridge.html"));
+                var status = ById(page.D, "status");
+                var name = page.Fs.First(item => item.El != null && item.El.Av("id") == "name");
+                Need(page.Jc == 11 && status.C[0].X == "DOM ready" && name.V == "DOM value", "initial DOM assignments changed");
+                Need(page.Bs.First(block => Object.ReferenceEquals(block.El, status)).S.Bg == "#e0f2fe" && page.Bs.First(block => Object.ReferenceEquals(block.El, status)).S.Fs == 19, "DOM style assignments changed");
+                Need(page.Fs.First(item => item.El.Av("id") == "agree").C && page.Fs.First(item => item.El.Av("id") == "locked").Ds && ById(page.D, "more").Op, "DOM state assignments changed");
+                Need(Object.ReferenceEquals(engine.Kp(page), name.El) && engine.Ck(page, ById(page.D, "apply")) == 9, "DOM focus or onclick translation changed");
+                Need(status.C[0].X == "Clicked DOM" && name.V == "Clicked value" && status.Av("class").Length == 0, "DOM onclick mutation changed");
+                Need(engine.Js(page, "document.getElementById('status').innerHTML='bad'; document.getElementById(id).textContent='bad'; document.getElementById('status').style.visibility='hidden';") == 0, "unsupported DOM syntax was accepted");
+                return "getElementById literal text, value, booleans, classList, focus, three styles, 20 accepted commands, and rejected arbitrary DOM APIs";
+            });
+            AddProbe(probes, "Display and location compatibility", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "display-navigation.html"));
+                Need(!page.Bs.Any(block => block.El != null && block.El.Av("id") == "panel") &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid").S.D == "grid", "authored display filtering changed");
+                Need(engine.Ck(page, ById(page.D, "show")) == 1 && page.Bs.First(block => block.El != null && block.El.Av("id") == "panel").S.D == "block", "compact display command failed");
+                Need(engine.Ck(page, ById(page.D, "hide")) == 1 && !page.Bs.Any(block => block.El != null && block.El.Av("id") == "panel"), "DOM display none failed");
+                Need(engine.Ck(page, ById(page.D, "flex")) == 1 && page.Bs.First(block => block.El != null && block.El.Av("id") == "row").S.D == "flex", "DOM flex display failed");
+                Need(engine.Ck(page, ById(page.D, "clear")) == 1 && page.Bs.First(block => block.El != null && block.El.Av("id") == "row").S.D == "block" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "row").S.F == "#123f8c", "DOM display reset lost the cascade");
+                Need(engine.Ck(page, ById(page.D, "href")) == 1 && engine.Gt(page) == new Uri(new Uri(Path.Combine(folder, "go-target.html")).AbsoluteUri + "#href"), "location href request changed");
+                Need(engine.Ck(page, ById(page.D, "assign")) == 1 && engine.Gt(page) == new Uri(new Uri(Path.Combine(folder, "go-target.html")).AbsoluteUri + "#assign"), "location assign request changed");
+                Need(engine.Js(page, "location='go-target.html?mode=one#both'") == 1 && engine.Gt(page) == new UriBuilder(new Uri(Path.Combine(folder, "go-target.html"))) { Query = "mode=one", Fragment = "both" }.Uri, "direct location query or fragment changed");
+                Need(engine.Js(page, "dp('row','contents'); location.href=target; location.replace('go-target.html');") == 0 && engine.Gt(page) == null, "display or location boundary changed");
+                return "dp plus literal style.display, empty reset, retained inline style, validated modes, href/assign mapping, and existing guarded go requests";
+            });
+            AddProbe(probes, "Percentage and calculated widths", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "calculated-widths.html"));
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var outer = block("outer");
+                var minimum = block("minimum");
+                var maximum = block("maximum");
+                Need(outer != null && outer.S.Wp == 100 && outer.S.Wo == -60, "calculated parent width model changed");
+                Need(minimum != null && minimum.S.Wp == 20 && minimum.S.Wnp == 50 && minimum.S.Wno == -10, "calculated minimum width model changed");
+                Need(maximum != null && maximum.S.Wp == 100 && maximum.S.Wxp == 75 && maximum.S.Wxo == 5, "calculated maximum width model changed");
+                Need(block("invalid").S.W == 240 && block("variable").S.Wp == 75 && block("inherit-child").S.Wp == 60, "width cascade, variable, or inheritance changed");
+                Need(engine.Ck(page, ById(page.D, "set-width")) == 1 && block("command").S.Wp == 100 && block("command").S.Wo == -120, "compact wd command failed");
+                Need(engine.Ck(page, ById(page.D, "dom-width")) == 1 && block("command").S.Wp == 50, "literal DOM width command failed");
+                Need(engine.Ck(page, ById(page.D, "clear-width")) == 1 && block("command").S.W == 280 && block("command").S.Wp == 0 && block("command").S.F == "#123f8c", "width reset lost authored or inline state");
+                Need(engine.Js(page, "wd('command','min(max(100px,200px),400px)'); document.getElementById('command').style.width='101%';") == 0 && block("command").S.W == 280, "nested or out-of-range width expression was accepted");
+                return "wd plus literal style.width, 1..100 percent, calc(P% +/- 0..2000px), min/max, variables, inheritance, reset, and strict expression bounds";
+            });
+            AddProbe(probes, "Percentage and calculated heights", delegate
+            {
+                var path = Path.Combine(folder, "calculated-heights.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var minimum = block("minimum");
+                var maximum = block("maximum");
+                Need(block("viewport").S.Hp == 50 && block("minus").S.Ho == -80 && block("plus").S.Ho == 20, "calculated height model changed");
+                Need(minimum.S.Hp == 20 && minimum.S.Hnp == 50 && minimum.S.Hno == -10, "calculated minimum height model changed");
+                Need(maximum.S.Hp == 100 && maximum.S.Hxp == 75 && maximum.S.Hxo == 5, "calculated maximum height model changed");
+                Need(block("invalid").S.H == 140 && block("variable").S.Hp == 75 && block("inherit-child").S.Hp == 60, "height cascade, variable, or inheritance changed");
+                using (var view = new V { Size = new Size(760, 1000) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    var outer = BlockContent(view, "outer");
+                    Need(outer.Height == 400 && BlockContent(view, "half").Height == 200 && BlockContent(view, "minus").Height == 320, "calculated block height geometry changed");
+                    Need(BlockContent(view, "flex-row-a").Height == 120 && BlockContent(view, "flex-column-b").Height == 140 && BlockContent(view, "sized-table").Height == 180,
+                        "calculated flex or table height geometry changed");
+                    Need(BlockContent(view, "absolute-height").Height == 150 && BlockContent(view, "fixed-height").Height == 250 &&
+                        BlockContent(view, "height-field").Height == 100 && BlockContent(view, "height-image").Height == 100,
+                        "calculated positioned, field, or image height geometry changed");
+                    Need(engine.Ck(page, ById(page.D, "set-height")) == 1 && block("command").S.Hp == 100 && block("command").S.Ho == -120, "compact ht command failed");
+                    Need(view.Ck(ById(view.At.D, "set-height")) == 1, "view compact ht command failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "command").Height == 280, "compact ht reflow changed");
+                }
+                Need(engine.Ck(page, ById(page.D, "dom-height")) == 1 && block("command").S.Hp == 50, "literal DOM height command failed");
+                Need(engine.Ck(page, ById(page.D, "clear-height")) == 1 && block("command").S.H == 180 && block("command").S.Hp == 0 && block("command").S.F == "#123f8c", "height reset lost authored or inline state");
+                Need(engine.Js(page, "ht('command','min(max(100px,200px),400px)'); document.getElementById('command').style.height='101%';") == 0 && block("command").S.H == 180, "nested or out-of-range height expression was accepted");
+                return "ht plus literal style.height, definite viewport/parent resolution, auto fallback, flex/grid/table/aspect-ratio geometry, min/max, variables, inheritance, reset, and strict bounds";
+            });
+            AddProbe(probes, "Bounded viewport units", delegate
+            {
+                var path = Path.Combine(folder, "viewport-units.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("vw").S.Wp == 50 && block("vw").S.Wu == 1 && block("vh-width").S.Wu == 2 &&
+                    block("vmin-width").S.Wu == 3 && block("vmax-width").S.Wu == 4, "viewport width unit model changed");
+                Need(block("vh").S.Hp == 50 && block("vh").S.Hu == 2 && block("vw-height").S.Hu == 1 &&
+                    block("vmin-height").S.Hu == 3 && block("vmax-height").S.Hu == 4, "viewport height unit model changed");
+                Need(block("calc-width").S.Wo == -20 && block("calc-height").S.Ho == -20 &&
+                    block("minimum-width").S.Wnu == 1 && block("maximum-height").S.Hxu == 2, "viewport calc or min/max model changed");
+                Need(block("inherit-child").S.Wu == 3 && block("inherit-child").S.Hu == 4 &&
+                    block("variable").S.Wu == 4 && block("variable").S.Hu == 3 && block("invalid").S.W == 140 && block("invalid").S.H == 90,
+                    "viewport inheritance, variable, or atomic fallback changed");
+                using (var view = new V { Size = new Size(800, 600) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "vw").Width == 400 && BlockContent(view, "vh-width").Width == 150 &&
+                        BlockContent(view, "vh").Height == 300 && BlockContent(view, "vw-height").Height == 200,
+                        "viewport primary or cross-axis geometry changed");
+                    Need(BlockContent(view, "vmin-width").Width == 60 && BlockContent(view, "vmax-height").Height == 80 &&
+                        BlockContent(view, "auto-viewport-child").Height == 150, "vmin/vmax or auto-parent geometry changed");
+                    Need(BlockContent(view, "flex-a").Size == new Size(200, 150) && BlockContent(view, "grid-a").Size == new Size(200, 150) &&
+                        BlockContent(view, "viewport-table").Size == new Size(400, 150), "viewport flex, grid, or table geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-viewport")) == 2, "viewport compact commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "command").Size == new Size(380, 280), "viewport compact command reflow changed");
+                    view.Size = new Size(640, 400);
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "vw").Width == 320 && BlockContent(view, "vh").Height == 200 &&
+                        BlockContent(view, "fixed").Size == new Size(40, 64), "viewport resize geometry changed");
+                }
+                Need(engine.Js(page, "wd('command','101vw'); ht('command','20dvh')") == 0, "unsupported viewport values were accepted");
+                return "vw/vh/vmin/vmax plus calc offsets, cross-axis sizing, lazy unit aliases, min/max, variables, inheritance, layout families, commands, and live resize";
+            });
+            AddProbe(probes, "Bounded font-relative dimensions", delegate
+            {
+                var path = Path.Combine(folder, "font-relative-units.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.Rf == 20 && block("em-size").S.Wu == 5 && block("em-size").S.Hu == 5 &&
+                    block("rem-size").S.Wu == 6 && block("rem-size").S.Hu == 6, "font-relative unit or root-font model changed");
+                Need(block("calc-font").S.Wo == -20 && block("calc-font").S.Ho == 10 &&
+                    block("minimum-font-width").S.Wnu == 5 && block("maximum-root-height").S.Hxu == 6,
+                    "font-relative calc or min/max model changed");
+                Need(block("font-inherit-child").S.Wu == 5 && block("font-inherit-child").S.Hu == 6 &&
+                    block("font-variable").S.Wu == 5 && block("font-variable").S.Hu == 6 &&
+                    block("font-invalid").S.W == 130 && block("invalid-font-size").S.Fs == 18,
+                    "font-relative inheritance, variable, or atomic fallback changed");
+                using (var view = new V { Size = new Size(800, 600) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(view.Rf == 20 && BlockContent(view, "em-size").Size == new Size(180, 72) &&
+                        BlockContent(view, "rem-size").Size == new Size(200, 80) && BlockContent(view, "calc-font").Size == new Size(160, 110),
+                        "font-relative primary or calculated geometry changed");
+                    Need(BlockContent(view, "font-flex-a").Size == new Size(120, 60) &&
+                        BlockContent(view, "font-grid-a").Size == new Size(200, 60) && BlockContent(view, "font-table").Size == new Size(400, 108),
+                        "font-relative flex, grid, or table geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-font-size")) == 2, "font-relative compact commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "font-command").Size == new Size(140, 100), "font-relative command reflow changed");
+                    Need(view.Ck(ById(view.At.D, "clear-font-size")) == 2 && view.Ck(ById(view.At.D, "grow-font")) == 1,
+                        "font-relative reset or font mutation command failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "font-command").Size == new Size(200, 120) && BlockContent(view, "font-mutable").Size == new Size(200, 80),
+                        "font-relative reset or font mutation geometry changed");
+                    var field = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "font-field");
+                    field.V = "Retained benchmark font value";
+                    view.Size = new Size(640, 500);
+                    using (var image = Draw(view)) { }
+                    Need(view.Rf == 16 && BlockContent(view, "rem-size").Size == new Size(160, 64) &&
+                        BlockContent(view, "em-size").Size == new Size(180, 72), "responsive rem/em geometry changed");
+                    Need(Object.ReferenceEquals(field, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "font-field")) &&
+                        field.V == "Retained benchmark font value", "root-font rebuild lost field state");
+                }
+                Need(engine.Js(page, "wd('font-command','101em'); ht('font-command','1.5rem')") == 0,
+                    "unsupported font-relative values were accepted");
+                return "em/rem dimensions plus root-font state, calc offsets, lazy aliases, min/max, variables, inheritance, layout families, commands, font mutation, and responsive rebuild";
+            });
+            AddProbe(probes, "Bounded CSS size functions", delegate
+            {
+                var path = Path.Combine(folder, "size-functions.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var minimum = block("min-two").S;
+                var clamp = block("clamp-main").S;
+                Need(minimum.Wk == 1 && minimum.Hk == 1 && minimum.Wq(0) == 2 && minimum.Wv(0, 0, 1) == 75 && minimum.Wv(0, 1, 0) == 500,
+                    "minimum function model changed");
+                Need(clamp.Wk == 3 && clamp.Hk == 3 && clamp.Wq(0) == 3 && clamp.Wv(0, 1, 1) == 50 &&
+                    block("max-three").S.Wk == 2 && block("max-three").S.Wq(0) == 3, "maximum or clamp model changed");
+                Need(block("function-limits").S.Wnk == 2 && block("function-limits").S.Wxk == 1 &&
+                    block("function-inherit-child").S.Wk == 3 && block("function-variable").S.Hk == 3 &&
+                    block("function-invalid").S.W == 130 && block("function-invalid").S.Wk == 0,
+                    "function constraint, inheritance, variable, or fallback model changed");
+                using (var view = new V { Size = new Size(800, 600) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "min-two").Size == new Size(450, 260) &&
+                        BlockContent(view, "max-two").Size == new Size(280, 140) &&
+                        BlockContent(view, "clamp-main").Size == new Size(300, 180) &&
+                        BlockContent(view, "clamp-font").Size == new Size(360, 80), "primary size function geometry changed");
+                    Need(BlockContent(view, "function-limits").Size == new Size(480, 300) &&
+                        BlockContent(view, "function-flex-a").Size == new Size(120, 60) &&
+                        BlockContent(view, "function-grid-a").Size == new Size(200, 90) &&
+                        BlockContent(view, "function-table").Size == new Size(500, 100), "constraint or layout-family function geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-function-size")) == 2, "compact size function commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "function-command").Size == new Size(350, 70), "compact size function command reflow changed");
+                    Need(view.Ck(ById(view.At.D, "clear-function-size")) == 2, "size function reset failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "function-command").Size == new Size(220, 120) &&
+                        BlockContent(view, "live-function").Size == new Size(400, 60) &&
+                        BlockContent(view, "media-function").Size == new Size(320, 80), "size function reset, live, or media geometry changed");
+                    var field = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "function-field");
+                    field.V = "Retained benchmark function value";
+                    view.Size = new Size(640, 500);
+                    using (var image = Draw(view)) { }
+                    Need(view.Rf == 16 && BlockContent(view, "live-function").Size == new Size(320, 50) &&
+                        BlockContent(view, "media-function").Size == new Size(384, 80),
+                        "responsive size function geometry changed");
+                    Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "media-function").S.Wk == 2,
+                        "responsive size function record was not replaced");
+                    Need(Object.ReferenceEquals(field, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "function-field")) &&
+                        field.V == "Retained benchmark function value", "size function rebuild lost field state");
+                }
+                Need(engine.Js(page, "wd('function-command','min(100px)'); ht('function-command','clamp(20px,30px)')") == 0,
+                    "unsupported size functions were accepted");
+                return "min/max with two or three bounded terms, three-term clamp, lazy Wk/Hk and Wq/Hq/Wv/Hv aliases, mixed units/calc, min/max properties, layout families, commands, media replacement, and resize";
+            });
+            AddProbe(probes, "Bounded logical sizing and insets", delegate
+            {
+                var path = Path.Combine(folder, "logical-sizing-insets.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var size = block("logical-size").S;
+                Need(size.Wp == 50 && size.Wo == 20 && size.Wn == 180 && size.Wx == 240 &&
+                    size.Hp == 50 && size.Hn == 120 && size.Hx == 160, "logical size record mapping changed");
+                Need(block("order-physical").S.W == 140 && block("order-logical").S.W == 120 &&
+                    block("important").S.W == 110 && block("important").S.H == 80, "logical source order or important cascade changed");
+                var axis = block("axis-position").S;
+                var invalid = block("invalid-position").S;
+                Need(axis.Lt == 24 && axis.Rt == 30 && axis.Tp == 18 && axis.Bm == 26 &&
+                    invalid.Lt == 11 && invalid.Rt == 13 && invalid.Tp == 19 && invalid.Bm == 21,
+                    "logical axis inset mapping or atomic fallback changed");
+                using (var view = new V { Size = new Size(760, 900) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "logical-size").Size == new Size(220, 150) &&
+                        BlockContent(view, "variable").Size == new Size(285, 75) &&
+                        BlockContent(view, "inherit-child").Size == new Size(144, 48),
+                        "logical size geometry changed");
+                    var shell = BlockContent(view, "position-shell");
+                    var placed = BlockContent(view, "axis-position");
+                    Need(placed.Left - shell.Left == 24 && placed.Top - shell.Top == 18 && placed.Size == new Size(346, 196),
+                        "logical inset geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-logical")) == 2, "short logical size commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "command").Height == 120, "logical command view reflow changed");
+                    Need(view.Ck(ById(view.At.D, "dom-logical")) == 2 && view.Ck(ById(view.At.D, "clear-logical")) == 2,
+                        "familiar logical DOM style or reset failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "command").Size == new Size(210, 90), "logical DOM reset geometry changed");
+                }
+                Need(engine.Ck(page, ById(page.D, "set-logical")) == 2 && block("command").S.Wp == 50 && block("command").S.H == 120,
+                    "short logical aliases did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "dom-logical")) == 2 && block("command").S.Wp == 25 && block("command").S.H == 70,
+                    "familiar logical DOM styles did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "clear-logical")) == 2 && block("command").S.W == 210 && block("command").S.H == 90,
+                    "logical DOM reset lost authored state");
+                Need(engine.Js(page, "is('command','101%');bs('command','1.5em')") == 0 && block("command").S.W == 210,
+                    "unsupported logical command values were accepted");
+                return "horizontal-tb/LTR inline/block size mapping, min/max, source order, important, variables, inheritance, logical inset axes/longhands, atomic fallback, is/bs, literal DOM styles, shared geometry, and reset";
+            });
+            AddProbe(probes, "Bounded logical margins and padding", delegate
+            {
+                var path = Path.Combine(folder, "logical-box-model.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var axis = block("axis-box").S;
+                Need(axis.Mt == 14 && axis.Mr == 18 && axis.Mb == 16 && axis.Ml == 12 &&
+                    axis.Pt == 6 && axis.Pr == 10 && axis.Pb == 7 && axis.Pl == 8,
+                    "logical box axis mapping changed");
+                var longhand = block("longhand-box").S;
+                Need(longhand.Mt == 23 && longhand.Mr == 22 && longhand.Mb == 24 && longhand.Ml == 21 &&
+                    longhand.Pt == 6 && longhand.Pr == 5 && longhand.Pb == 7 && longhand.Pl == 4,
+                    "logical box longhand mapping changed");
+                var order = block("source-logical").S;
+                var invalid = block("invalid").S;
+                var bounded = block("bounded").S;
+                Need(order.Mt == 16 && order.Mr == 15 && order.Mb == 17 && order.Ml == 14 && order.Pt == 4 && order.Pr == 3 && order.Pb == 5 && order.Pl == 2,
+                    "logical box source order changed");
+                Need(invalid.Mt == 14 && invalid.Mr == 13 && invalid.Mb == 15 && invalid.Ml == -22 && invalid.Pt == 6 && invalid.Pr == 9 && invalid.Pb == 11 && invalid.Pl == 8,
+                    "logical box atomic fallback changed");
+                Need(bounded.Ml == -2000 && bounded.Mr == 2000 && bounded.Pt == 2000 && bounded.Pb == 2000,
+                    "logical box bounds changed");
+                using (var view = new V { Size = new Size(760, 900) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    var shell = BlockContent(view, "geometry-shell");
+                    var content = BlockContent(view, "axis-box");
+                    var outer = BlockOuter(view, "axis-box");
+                    Need(content.Size == new Size(100, 40) && outer.Size == new Size(118, 53) &&
+                        outer.Left - shell.Left == 32 && outer.Top - shell.Top == 44 && content.Left - shell.Left == 40 && content.Top - shell.Top == 50,
+                        "logical box shared geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-axis")) == 4, "short logical box axis commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(138, 53), "logical box command reflow changed");
+                    Need(view.Ck(ById(view.At.D, "dom-edges")) == 8 && view.Ck(ById(view.At.D, "clear-box")) == 12,
+                        "familiar logical box styles or reset failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(125, 43), "logical box DOM reset geometry changed");
+                }
+                Need(engine.Ck(page, ById(page.D, "set-axis")) == 4 && block("command").S.Ml == 12 && block("command").S.Pt == 6,
+                    "short logical box axes did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "set-edges")) == 8 && block("command").S.Mt == 23 && block("command").S.Pl == 4,
+                    "short logical box edges did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "dom-axis")) == 4 && engine.Ck(page, ById(page.D, "dom-edges")) == 8 &&
+                    block("command").S.Ml == 17 && block("command").S.Pb == 12,
+                    "familiar logical box styles did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "clear-box")) == 12 && block("command").S.Ml == 4 && block("command").S.Pb == 2,
+                    "logical box reset lost authored state");
+                Need(engine.Js(page, "mi('command','1px 2px 3px');pi('command','-1px');mis('command','2px 3px');mie('command','auto')") == 0,
+                    "unsupported logical box command values were accepted");
+                return "horizontal-tb/LTR logical margin/padding axes and longhands, signed bounded margins, atomic parsing, source order, important, variables, inheritance, reset, twelve compact/readable commands, familiar DOM styles, and shared geometry";
+            });
+            AddProbe(probes, "Bounded logical borders", delegate
+            {
+                var path = Path.Combine(folder, "logical-borders.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var axis = block("axis").S;
+                Need(axis.Bt == 6 && axis.Br == 4 && axis.Bb == 6 && axis.Bl == 4 && axis.Bsv(0) == "dashed" && axis.Bsv(1) == "solid" &&
+                    axis.Bcv(0) == "#176b4d" && axis.Bcv(3) == "#123f8c", "logical border axis mapping changed");
+                var longhand = block("longhand").S;
+                Need(longhand.Bt == 4 && longhand.Br == 3 && longhand.Bb == 5 && longhand.Bl == 2 &&
+                    longhand.Bsv(0) == "dashed" && longhand.Bsv(2) == "double" && longhand.Bcv(1) == "#176b4d" && longhand.Bcv(3) == "#a13b18",
+                    "logical border longhand mapping changed");
+                var physical = block("physical").S;
+                Need(physical.Bt == 1 && physical.Br == 2 && physical.Bb == 3 && physical.Bl == 4 &&
+                    physical.Bsv(1) == "dashed" && physical.Bcv(2) == "#333333", "physical border component lists changed");
+                var invalid = block("invalid").S;
+                Need(invalid.Br == 7 && invalid.Bl == 8 && invalid.Bsv(0) == "dashed" && invalid.Bsv(3) == "dotted" &&
+                    invalid.Bcv(1) == "#176b4d" && invalid.Bcv(3) == "#a13b18", "logical border atomic fallback changed");
+                var inherited = block("inherit-child").S;
+                Need(inherited.Bt == 2 && inherited.Br == 3 && inherited.Bb == 4 && inherited.Bl == 5 && inherited.Bsv(0) == "dotted" && inherited.Bcv(3) == "#b7791f",
+                    "logical border inheritance changed");
+                using (var view = new V { Size = new Size(760, 900) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockOuter(view, "axis").Size == new Size(108, 52) && BlockOuter(view, "hidden").Size == new Size(109, 24),
+                            "logical border layout changed");
+                        var rounded = BlockOuter(view, "rounded");
+                        Need(ColorDistance(image.GetPixel(rounded.Left + 2, rounded.Top + rounded.Height / 2), Color.FromArgb(161, 59, 24)) < 20 &&
+                            ColorDistance(image.GetPixel(rounded.Left + rounded.Width / 2, rounded.Bottom - 2), Color.FromArgb(183, 121, 31)) < 20,
+                            "mixed rounded logical border paint changed");
+                    }
+                    Need(view.Ck(ById(view.At.D, "set-short")) == 6, "short logical border shorthands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(137, 61), "logical border shorthand reflow changed");
+                    Need(view.Ck(ById(view.At.D, "set-components")) == 18, "short logical border components failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(153, 77), "logical border component reflow changed");
+                    Need(view.Ck(ById(view.At.D, "dom-all")) == 24 && view.Ck(ById(view.At.D, "clear-all")) == 24,
+                        "familiar logical border styles or reset failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(128, 48), "logical border reset geometry changed");
+                }
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 6 && block("command").S.Bl == 6 && block("command").S.Bt == 8,
+                    "short logical border shorthands did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "set-components")) == 18 && block("command").S.Bl == 14 && block("command").S.Bb == 17,
+                    "short logical border components did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "dom-all")) == 24 && block("command").S.Bl == 21 && block("command").S.Bt == 23,
+                    "familiar logical border styles did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "clear-all")) == 24 && block("command").S.Bl == 2 && block("command").S.Bsv(3) == "solid" && block("command").S.Bec == 0,
+                    "logical border reset lost authored state");
+                Need(engine.Js(page, "biw('command','2px bad');biy('command','solid groove');bic('command','red #xyz');siw('command','wide')") == 0,
+                    "unsupported logical border command values were accepted");
+                Need(engine.Js(page, "bi('command','THICK SOLID RED')") == 1 && block("command").S.Bl == 5 && block("command").S.Bsv(3) == "solid",
+                    "case-insensitive logical border keywords changed");
+                return "horizontal-tb/LTR logical border axes and edges, physical per-edge components, bounded atomic parsing, source order, important, variables, inheritance/reset, twenty-four compact/readable commands, familiar DOM styles, mixed rounded paint, and shared geometry";
+            });
+            AddProbe(probes, "Bounded horizontal direction mapping", delegate
+            {
+                var path = Path.Combine(folder, "direction-logical.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var order = block("order").S;
+                Need(order.Dr == "r" && order.Mr == 11 && order.Pl == 13 && order.Br == 3 && order.R0 == 17,
+                    "direction pre-cascade or logical source-order mapping changed");
+                var boxes = block("boxes").S;
+                var borders = block("borders").S;
+                var radii = block("radii").S;
+                Need(boxes.Mr == 31 && boxes.Ml == 33 && boxes.Pr == 41 && boxes.Pl == 43,
+                    "RTL logical box mapping changed");
+                Need(borders.Bt == 52 && borders.Br == 51 && borders.Bb == 54 && borders.Bl == 53 &&
+                    borders.Bsv(1) == "dashed" && borders.Bcv(3) == "#a13b18", "RTL logical border mapping changed");
+                Need(radii.R0 == 62 && radii.R1 == 61 && radii.R2 == 63 && radii.R3 == 64,
+                    "RTL logical radius mapping changed");
+                var inherited = block("child").S;
+                Need(inherited.Dr == "l" && inherited.Ml == 31 && inherited.Mr == 33 && inherited.Bl == 51 && inherited.Br == 53 &&
+                    inherited.R0 == 62 && inherited.R1 == 61 && inherited.R2 == 64 && inherited.R3 == 63,
+                    "cross-direction logical inheritance changed");
+                Need(block("variable").S.Dr == "r" && block("variable").S.Ta == "s" && block("important").S.Dr == "l" &&
+                    block("align-start").S.Ta == "s" && block("align-end").S.Ta == "e", "direction cascade or start/end alignment changed");
+                using (var view = new V { Size = new Size(760, 1200) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(view.Ck(ById(view.At.D, "set-short")) == 1, "short direction command failed");
+                    using (var image = Draw(view)) { }
+                    var command = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "command").S;
+                    Need(command.Dr == "r" && command.Mr == 5 && command.R1 == 6,
+                        "direction command did not rebuild WinForms logical geometry");
+                }
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").S.Dr == "r" && block("command").S.Mr == 5 && block("command").S.R1 == 6,
+                    "short direction alias did not remap logical styles");
+                Need(engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command").S.Dr == "l" && block("command").S.Ml == 5,
+                    "readable direction alias did not restore LTR mapping");
+                Need(engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command").S.Dr == "r" &&
+                    engine.Ck(page, ById(page.D, "clear-dom")) == 1 && block("command").S.Dr == "l",
+                    "literal DOM direction or empty reset changed");
+                Need(engine.Js(page, "dr('rtl')") == 1 && block("body-probe").S.Dr == "r" && block("body-probe").S.Mr == 9,
+                    "body direction alias did not reach descendants");
+                Need(engine.Js(page, "dr('command','sideways')") == 0, "unsupported direction was accepted");
+                return "inherited ltr/rtl direction with HTML dir, variables, important and pre-cascade resolution, remapped logical insets/boxes/borders/radii, cross-direction inherit, start/end alignment, dr/readable/DOM commands, and reset";
+            });
+            AddProbe(probes, "Bounded sticky positioning", delegate
+            {
+                var path = Path.Combine(folder, "sticky-positioning.html");
+                var page = new E().Go(path);
+                var stickyBlock = page.Bs.First(block => block.El != null && block.El.Av("id") == "sticky");
+                var railBlock = page.Bs.First(block => block.El != null && block.El.Av("id") == "rail");
+                Need(stickyBlock.S.Pn == "k" && stickyBlock.S.Tp == 14 && Object.ReferenceEquals(stickyBlock.Up, railBlock), "sticky style or containing block changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "bottom").S.Bm == 12 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid").S.Pn == "r", "bottom inset or atomic position fallback changed");
+                using (var view = new V { Size = new Size(720, 300) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    var before = BlockOuter(view, "sticky");
+                    var childBefore = BlockOuter(view, "sticky-child");
+                    var follower = BlockOuter(view, "follower");
+                    view.Sc(360);
+                    using (var image = Draw(view)) { }
+                    var moved = BlockOuter(view, "sticky");
+                    var child = BlockOuter(view, "sticky-child");
+                    var hit = ElementHit(view, "sticky-link");
+                    var bounds = view.Ab(view.Ax(ById(view.At.D, "sticky-link")));
+                    Need(moved.Top == view.Sy + 14 && child.Top - moved.Top == childBefore.Top - before.Top &&
+                        follower == BlockOuter(view, "follower"), "sticky shared geometry or normal flow changed");
+                    Need(!hit.IsEmpty && !bounds.IsEmpty && bounds.IntersectsWith(hit), "sticky hit or accessibility geometry changed");
+                    view.Sc(Int32.MaxValue);
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "sticky").Bottom == BlockContent(view, "rail").Bottom, "sticky containing-block clamp changed");
+                }
+                return "Pn=k, signed top/bottom state, normal flow, shared descendants/hits/accessibility, root scroll pinning, and parent clamp";
+            });
+            AddProbe(probes, "Host-controlled go requests", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "go-command.html"));
+                var target = new Uri(Path.Combine(folder, "go-target.html"));
+                Need(engine.Ck(page, ById(page.D, "relative")) == 1, "relative go command failed");
+                Need(engine.Gt(page) == target && engine.Gt(page) == null, "go request was not resolved and consumed once");
+                Need(engine.Ck(page, ById(page.D, "unsafe")) == 0 && engine.Gt(page) == null, "unsafe go scheme was accepted");
+                return "Relative file and HTTPS requests accepted; one pending request; unsafe schemes rejected";
+            });
+            AddProbe(probes, "Bounded network timeout", delegate
+            {
+                var engine = new E();
+                Need(engine.Tm == 15000, "default timeout changed");
+                engine.Tm = 1;
+                Need(engine.Tm == 100, "minimum timeout changed");
+                engine.Tm = Int32.MaxValue;
+                Need(engine.Tm == 60000, "maximum timeout changed");
+                return "Tm defaults to 15000 ms and clamps to 100-60000 ms";
+            });
+            AddProbe(probes, "Bounded persistent cache", delegate
+            {
+                var path = Path.Combine(Path.GetTempPath(), "lea-bench-cache-" + Guid.NewGuid().ToString("N"));
+                try
+                {
+                    using (var server = new CacheServer())
+                    {
+                        var defaults = new E();
+                        Need(defaults.Cd == "" && defaults.Cx == 32 && defaults.Cb == 16L * 1024 * 1024, "persistent cache defaults changed");
+                        var freshUrl = new Uri(server.U, "?fresh=1");
+                        var seed = new E { Cd = path, Cm = 0 };
+                        var first = seed.Go(freshUrl);
+                        Need(!first.Ca && seed.Dc == 1 && seed.Db > 0 && seed.Cc == 0, "persistent seed was not stored");
+                        var requests = server.Hits;
+                        var restarted = new E { Cd = path, Cm = 0 };
+                        var hit = restarted.Go(freshUrl);
+                        Need(hit.Ca && hit.H == first.H && server.Hits == requests && restarted.Dg(hit).Dh == 1, "persistent restart hit failed");
+
+                        var etagUrl = new Uri(server.U, "?etag=1");
+                        new E { Cd = path }.Go(etagUrl);
+                        requests = server.Hits;
+                        var validator = new E { Cd = path };
+                        var validated = validator.Go(etagUrl);
+                        Need(validated.Ca && server.Hits == requests + 1 && server.LastIfNoneMatch == "\"lea-bench\"", "persistent ETag validation failed");
+                        Need(validator.Dg(validated).Rs.Any(line => line.Contains(" disk304 ")), "persistent validator diagnostics are missing");
+                        return "Cd opt-in; 32 entries/16 MB defaults; restart hit; ETag disk304; Dc/Db/Dh diagnostics";
+                    }
+                }
+                finally
+                {
+                    if (Directory.Exists(path)) Directory.Delete(path, true);
+                }
+            });
+            AddProbe(probes, "Bounded class mutations", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "class-commands.html"));
+                Need(page.Jc == 7 && engine.Q(page, "#panel.hot") != null && engine.Q(page, "#remove.old") == null, "page class or scoped style commands changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "panel").S.F == "#0f4c81", "page scoped foreground command changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Preserved benchmark value";
+                Need(engine.Js(page, "rc('panel','hot'); ac('field','hot'); tc('toggle','hot');") == 3, "host class commands changed");
+                Need(engine.Js(page, "fg('panel','#334155'); bg('toggle','#e0f2fe'); fs('remove',24);") == 3, "host scoped style commands changed");
+                Need(engine.Q(page, "#panel.hot") == null && engine.Q(page, "#field.hot") != null, "class selectors were not rebuilt");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "panel").S.F == "#334155" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "toggle").S.Bg == "#e0f2fe" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "remove").S.Fs == 24, "scoped style rebuild changed");
+                Need(engine.Js(page, "fg('missing','#fff'); bg('unsafe-style','#fff'); fs('panel',97);") == 0, "unsafe scoped style command was accepted");
+                Need(field.V == "Preserved benchmark value", "class rebuild replaced mutable field state");
+                return "ac/rc/tc plus one/two-argument bg/fg/fs restyle compiled CSS with bounded IDs, colors, 8-96 px fonts, 32 classes, and retained fields";
+            });
+            AddProbe(probes, "Bounded element-state commands", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "state-commands.html"));
+                var name = page.Fs.First(item => item.El != null && item.El.Av("id") == "name");
+                Need(page.Jc == 9 && name.V == "Page ready", "initial state commands changed");
+                Need(page.Fs.First(item => item.El.Av("id") == "pick").V == "two" && page.Fs.First(item => item.El.Av("id") == "agree").C, "value or checked command changed");
+                Need(page.Fs.First(item => item.El.Av("id") == "locked").Ds && Object.ReferenceEquals(engine.Kp(page), name.El), "disable or focus request changed");
+                Need(engine.Ck(page, ById(page.D, "apply")) == 7 && name.V == "Clicked Lea", "state click commands changed");
+                Need(!page.Fs.First(item => item.El.Av("id") == "locked").Ds && page.Fs.First(item => item.El.Av("id") == "choice-a").C, "enable or radio state changed");
+                engine.Kp(page);
+                Need(engine.Ck(page, ById(page.D, "hide-field")) == 3 && name.V == "Changed while hidden", "hidden retained field state changed");
+                Need(engine.Ck(page, ById(page.D, "show-field")) == 1 && Object.ReferenceEquals(name, page.Fs.First(item => item.El.Av("id") == "name")), "shown field identity changed");
+                var details = ById(page.D, "advanced");
+                var detailValue = page.Fs.First(item => item.El.Av("id") == "advanced-value");
+                detailValue.V = "Retained benchmark detail";
+                Need(details.Op && engine.Js(page, "cl('advanced-summary'); op('advanced'); tg('advanced-summary'); op('advanced')") == 4 && details.Op, "disclosure state commands changed");
+                Need(Object.ReferenceEquals(detailValue, page.Fs.First(item => item.El.Av("id") == "advanced-value")) && detailValue.V == "Retained benchmark detail", "disclosure command rebuild replaced field state");
+                Need(engine.Js(page, "vl('upload','private.txt'); vl('color','red'); fo('panel')") == 0, "unsafe state value or target was accepted");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "state-commands.html"));
+                    Need(view.Ke != null && view.Ke.Av("id") == "name", "view did not consume initial focus request");
+                    Need(view.Js("cl('advanced-summary')") == 1 && !ById(view.At.D, "advanced").Op, "view disclosure close command failed");
+                    Need(view.Js("op('advanced')") == 1 && ById(view.At.D, "advanced").Op, "view disclosure open command failed");
+                    Need(view.Js("ds('name')") == 1 && view.Ke == null, "view retained a disabled focus target");
+                    Need(view.Js("en('name'); fo('name')") == 2 && view.Ke != null && view.Ke.Av("id") == "name", "view did not restore command focus");
+                }
+                return "hd/sh, ds/en, vl, ck, fo, op/cl/tg, retained fields, one pending focus target, and file-value rejection";
+            });
+            AddProbe(probes, "Find and local download", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "find-download.html"));
+                Need(engine.Fd(page, "cobalt") == 3, "find count changed");
+                var source = Path.Combine(folder, "download-sample.txt");
+                var target = Path.Combine(Path.GetTempPath(), "lea-report-" + Guid.NewGuid().ToString("N") + ".txt");
+                try
+                {
+                    var download = engine.Dl(source, target);
+                    Need(download.St == 200 && File.ReadAllBytes(source).SequenceEqual(File.ReadAllBytes(target)), "download bytes changed");
+                }
+                finally { File.Delete(target); }
+                return "3 text matches and atomic local download";
+            });
+            AddProbe(probes, "Bounded diagnostics", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "events-vars.html"));
+                var snapshot = engine.Dg(page);
+                Need(snapshot.Ns.Count <= 512 && snapshot.Cs.Count <= 256 && snapshot.Rs.Count <= 32, "diagnostic bounds changed");
+                Need(snapshot.Rs.Count == 1 && snapshot.Vs.Count == 2, "diagnostic evidence is incomplete");
+                return snapshot.Ns.Count + " node lines, " + snapshot.Cs.Count + " CSS lines, " + snapshot.Rs.Count + " request";
+            });
+            AddProbe(probes, "Retained field data", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "retained-data.html"));
+                Need(!engine.Ud(page), "pristine defaults retained unnecessarily");
+                var field = page.Fs.First(item => item.El.Av("id") == "text");
+                field.V = "Keep this value";
+                Need(engine.Ud(page), "changed field not retained");
+                engine.Js(page, "hd('text')");
+                Need(!page.Fs.Contains(field) && engine.Ud(page), "hidden field data lost from query");
+                field.V = field.D;
+                Need(!engine.Ud(page), "restored value did not clear query");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "retained-data.html"));
+                    Need(!view.Ud, "native Ud default");
+                    view.At.Fs.First(item => item.K == "file").Fp.Add("not-read.txt");
+                    Need(view.Ud, "selected file not retained");
+                }
+                return "E.Ud/V.Ud; pristine choices, edited and hidden retained fields, selected files, read-only bounded query";
+            });
+            AddProbe(probes, "Native load failure and retry", delegate
+            {
+                var missing = Path.Combine(Path.GetTempPath(), "lea-probe-retry-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    using (var view = NewView())
+                    {
+                        view.Go(Path.Combine(folder, "forms.html"));
+                        var retained = view.At;
+                        var notifications = 0;
+                        view.Fe += delegate { notifications++; };
+                        Er failure = null;
+                        try { view.Go(missing); } catch (Er error) { failure = error; }
+                        Need(failure != null && failure == view.Le && view.Cr && notifications == 1 && view.At == retained, "failed GET state changed");
+                        File.WriteAllText(missing, "<title>Retry probe</title><p>Available</p>");
+                        var work = view.Ry();
+                        var end = DateTime.UtcNow.AddSeconds(5);
+                        while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                        Need(work.IsCompleted, "retry timed out");
+                        work.GetAwaiter().GetResult();
+                        Need(view.Le == null && !view.Cr && view.T == "Retry probe" && notifications == 1, "successful retry state changed");
+                    }
+                    return "Fe/Le typed failure, retained page, Cr/Ry explicit GET retry, and success reset";
+                }
+                finally { if (File.Exists(missing)) File.Delete(missing); }
+            });
+            return probes;
+        }
+
+        private static string Report(int iterations, double[] startup, IList<LoadResult> loads, RenderResult render,
+            MemoryResult memory, IList<Probe> probes, IList<Artifact> artifacts)
+        {
+            var allLoadTimes = loads.SelectMany(item => item.Times).ToArray();
+            var runtime = artifacts.Where(item => item.Runtime).ToList();
+            var runtimeBytes = runtime.Sum(item => item.Bytes);
+            var gzipBytes = Gzip(runtime.Select(item => item.Path));
+            var builder = new StringBuilder();
+            builder.AppendLine("# Lea Compatibility and Performance Report");
+            builder.AppendLine();
+            builder.AppendLine("- Generated: **" + DateTime.UtcNow.ToString("yyyy-MM-dd 'UTC'") + "**");
+            builder.AppendLine("- Runtime: **.NET " + Environment.Version + ", " + (Environment.Is64BitProcess ? "64-bit" : "32-bit") + "**");
+            builder.AppendLine("- Method: **" + startup.Length + " clean-process starts; " + iterations + " loads per fixture; " + Math.Max(3, iterations / 3) + " render rounds at " + ViewWidth + "x" + ViewHeight + "**");
+            builder.AppendLine();
+            builder.AppendLine("These are repeatable local diagnostic samples, not performance promises. Re-run on the target computer after meaningful engine changes.");
+            builder.AppendLine();
+            builder.AppendLine("## Current Snapshot");
+            builder.AppendLine();
+            builder.AppendLine("| Measurement | Result |");
+            builder.AppendLine("| --- | ---: |");
+            builder.AppendLine("| Clean process + engine + first page median | " + F(startup) + " ms |");
+            builder.AppendLine("| Clean process + engine + first page p95 | " + P95(startup).ToString("0.000") + " ms |");
+            builder.AppendLine("| Local page load median | " + F(allLoadTimes) + " ms |");
+            builder.AppendLine("| Local page load p95 | " + P95(allLoadTimes).ToString("0.000") + " ms |");
+            builder.AppendLine("| Layout + bitmap paint median | " + F(render.Times) + " ms |");
+            builder.AppendLine("| Layout + bitmap paint p95 | " + P95(render.Times).ToString("0.000") + " ms |");
+            builder.AppendLine("| Retained managed memory | " + Kb(memory.Bytes) + " KB for " + memory.Pages + " loaded pages |");
+            builder.AppendLine("| Retained managed memory per page | " + Kb(memory.Pages == 0 ? 0 : memory.Bytes / memory.Pages) + " KB |");
+            builder.AppendLine("| Engine runtime files | " + Kb(runtimeBytes) + " KB |");
+            builder.AppendLine("| Engine runtime GZip estimate | " + Kb(gzipBytes) + " KB (" + Ratio(gzipBytes, runtimeBytes) + ") |");
+            builder.AppendLine();
+            builder.AppendLine("## Fixture Loads");
+            builder.AppendLine();
+            builder.AppendLine("Each sample includes local file input, HTML parsing, CSS compilation, document modelling, and engine bookkeeping.");
+            builder.AppendLine();
+            builder.AppendLine("| Fixture | Bytes | Nodes | CSS rules | Median | p95 |");
+            builder.AppendLine("| --- | ---: | ---: | ---: | ---: | ---: |");
+            foreach (var load in loads)
+                builder.AppendLine("| `" + load.Name + "` | " + load.Bytes + " | " + load.Nodes + " | " + load.CssRules + " | " + F(load.Times) + " ms | " + P95(load.Times).ToString("0.000") + " ms |");
+            builder.AppendLine();
+            builder.AppendLine("## Executable Probes");
+            builder.AppendLine();
+            builder.AppendLine("| Feature group | Result | Evidence |");
+            builder.AppendLine("| --- | --- | --- |");
+            foreach (var probe in probes)
+                builder.AppendLine("| " + probe.Name + " | " + (probe.Pass ? "PASS" : "FAIL") + " | " + Md(probe.Detail) + " |");
+            builder.AppendLine();
+            builder.AppendLine("## Compatibility Scope");
+            builder.AppendLine();
+            builder.AppendLine("| Area | Status | Lea 1.0 scope |");
+            builder.AppendLine("| --- | --- | --- |");
+            Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
+            Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all/print media types with whole-query not and strict only modifiers, pixel width/height, portrait/landscape, exact/min/max integer aspect-ratio, dpi/dppx/dpcm resolution queries with compact Dp density aliases, light/dark prefers-color-scheme queries with compact Th theme aliases, no-preference/reduce prefers-reduced-motion queries with compact Rm motion aliases, no-preference/reduce prefers-reduced-data queries with compact Pdt aliases, no-preference/less/more/custom prefers-contrast queries with compact Pc aliases, none/initial-only/enabled scripting queries with compact Je aliases, and pointer/hover plus any-pointer/any-hover interaction queries with compact Pt/Hv/Ap/Ah/Mi aliases, bounded strict/inclusive feature/value-first and chained media ranges, bounded @supports declaration checks plus selector() through the compiled selector grammar with grouped not/and/or logic, and bounded named @layer blocks with later-normal, unlayered-normal, reversed-important, inline, nested-name, and native-sheet ordering, bounded named reset/increment/set counters and generated quote depth, inherited horizontal LTR/RTL direction and bounded quote pairs, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, named/hex/RGB, bounded legacy or modern HSL/HSLA, bounded modern HWB, bounded modern CIE Lab/LCH with D50 conversion and Bradford D50-to-D65 adaptation, bounded predefined color() with sRGB, linear sRGB, Display P3, linear Display P3, A98 RGB, ProPhoto RGB, Rec. 2020, XYZ D50/D65 and Bradford adaptation, bounded modern Oklab/OkLCh with D65 conversion, shared local-MINDE sRGB gamut mapping, and bounded two-stop color-mix(in srgb, ...) colors with normalized hue, clamped channels/alpha, HWB gray normalization, omitted/normalized mix weights, reduced low-total alpha, and premultiplied-alpha interpolation across gradients, shadows, fields, and SVG paint, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography, eight string/attr/quoted-attr-fallback/named-counter/quote-keyword visual fragments, and an optional eight-item/128-unit string/attr/counter alternative list, plus one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "Media query modifiers", "Supported subset", "Whole-query not, no-op only before a media type, fixed screen/all matching, fixed print non-matching, comma alternatives, nested predicate intersections, style media, diagnostics, and shared host/script matchMedia evaluation; nested logical conditions, speech, and arbitrary unknown media types remain unsupported");
+            Capability(builder, "Interaction media queries", "Supported subset", "Boolean and exact pointer none/coarse/fine, hover none/hover, any-pointer unions including simultaneous coarse and fine, and any-hover queries with compact Pt/Hv/Ap/Ah/Mi aliases, nesting, style media, diagnostics, retained fields, live matchMedia guards, and conservative Windows mouse/touch/pen plumbing; dynamic per-device identity and non-Windows automatic detection remain unsupported");
+            Capability(builder, "Style container queries", "Supported subset", "Bounded exact custom-property style() tests over nearest or named ancestor containers, computed container-name lists through compact S.Cn, grouped not/and/or logic, nested containers/media/supports/layers, diagnostics, class and native-sheet rebuilds, retained fields, and WinForms geometry; scroll-state, general-property, relative-value, and container-unit queries remain unsupported");
+            Capability(builder, "Size container queries", "Supported subset", "Bounded normal/inline-size/size container types through compact S.Ct, container-name/type shorthand, atomic E.Cz content-box snapshots, automatic WinForms feedback with a three-pass ceiling, nearest and named width/height/inline-size/block-size integer-pixel comparisons, reduced integer aspect-ratio boolean/exact/min/max and strict/inclusive feature/value-first/chained ranges, portrait/landscape orientation with square portrait semantics, not/and/or, style combinations, nesting, diagnostics, native sheets, and retained fields; scroll-state, relative units, writing modes, and container units remain unsupported");
+            Capability(builder, "Preferred contrast media queries", "Supported subset", "Boolean and exact no-preference/less/more/custom queries with compact Pc aliases, nested intersections, diagnostics, retained fields, and Windows High Contrast mapped conservatively to custom; forced palette enforcement and forced-colors remain unsupported");
+            Capability(builder, "Scripting media queries", "Supported subset", "Boolean and exact none/initial-only/enabled queries reuse the compact Je host permission alias, nested intersections, diagnostics, retained fields, and responsive paint; Lea reports enabled or none, recognizes initial-only as valid but never reports that mode, and does not add a general JavaScript runtime");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms including bounded before/after generated runs, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
+            Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, or custom overflow-marker additions");
+            Capability(builder, "Line clamping", "Supported subset", "Non-inherited line-clamp and -webkit-line-clamp none/1..32 with LTR/RTL grapheme-safe ellipsis, reduced flow height, hidden retained boxes/hits, full logical source and UI Automation text, inline runs, forced breaks, balanced text, and table cells; no block-ellipsis strings, longhands, descendant block fragmentation, or legacy WebKit display requirements");
+            Capability(builder, "Marker generated content", "Supported subset", "Terminal ::marker content with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named/implicit counter()/counters() values, open-quote/close-quote/no-open-quote/no-close-quote, or sandboxed url(...) bitmap fragments in source order; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active levels; ten built-in styles, eight nested counter levels and active instances, eight operations per property, 32-character ASCII counter names, 32-unit separators, 64-character attribute names, -999999..999999 counter values, 128 UTF-16 visual text units, variables, important tiers, ms/markerstyle, qu/quotes, and cr/ci/cs commands, accessible list-item names, tables, hover/media rebuilds, and LTR/RTL inside/outside image/text paint. Generated pictures share the 24-source sandboxed image path and 64px intrinsic display cap; no images are accepted after the alternative slash. There are no typed attr values, unquoted or functional attr fallbacks, reversed/custom counter styles, pseudo-element counter properties, image functions, author image sizing, or locale-specific auto quotes");
+            Capability(builder, "Before and after generated content", "Supported subset", "Terminal ::before/::after plus legacy :before/:after produce inline generated runs with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named counter()/counters() values, open-quote/close-quote/no-open-quote/no-close-quote, or sandboxed url(...) bitmap fragments in source order; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma, including explicit empty decoration suppression and alternative-only runs. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active document-order levels. Present attributes win even when empty, while missing attributes use the fallback. Attribute names stop at 64 characters and visual text at 128 UTF-16 units; generated pictures share the 24-source sandboxed image path and 64px intrinsic display cap. Inherited bounded text styling, variables, important tiers, be/beforestyle, af/afterstyle, and qu/quotes commands, nested/link/value/table ownership, accessibility names and reading order, hover/media rebuilds, and LTR/RTL paint remain shared. Replaced/native controls suppress runs; there are no typed attr values, unquoted or functional fallbacks, pseudo box-model, flex/grid-item, image functions, author image sizing, locale-specific auto quote, or arbitrary CSSOM features");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, quotes, text indent, text alignment/all/last, text wrap/mode/style, line clamp, list/marker/before/after style, counter reset/increment/set, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, literal compatibility translation, CSS.supports guards, and live matchMedia matches guards");
+            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/quotes/textIndent/textAlign/textAlignAll/textAlignLast/textWrap/textWrapMode/textWrapStyle/lineClamp/webkitLineClamp/counterReset/counterIncrement/counterSet/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textUnderlineOffset/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
+            Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
+            Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
+            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");
+            Capability(builder, "SVG and Canvas", "SVG supported subset; Canvas not supported", "Bounded inline SVG with intrinsic width/height, preserveAspectRatio none/meet/slice mapping, groups/links, local shape/group/symbol use expansion, user/object clip paths, rect/circle/ellipse/line/polyline/polygon/text, M/L/H/V/Z/C/S/Q/T/A paths, cumulative matrix/translate/scale/rotate/skew transforms, linear/radial object-bounds or user-space gradients with bounded stops/inheritance/transforms, stylesheet/presentation/inline fill/stroke/opacity/font/clip paint, nonzero/evenodd fill and clip winding, caps, joins, miter limits, bounded dash patterns/offsets, currentColor, graphic accessibility, clipped paint, and transformed stroke-bounds hits; 128 shapes/points, 64 sources, 16 transforms/gradients/stops/clips/dash values, eight levels, and 256 text characters. No repeat/reflect spread, patterns, nested clips, masks, filters, markers, vector effects, animation, scripting, external references, symbol viewBox sizing, nested SVG, or Canvas");
+            Capability(builder, "Audio and video", "Not supported", "Future optional module");
+            Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
+            Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");
+            Capability(builder, "Document base URLs", "Supported", "First valid bounded HTTP, HTTPS, or file base; U remains the response URL and Bu drives relative resources");
+            Capability(builder, "Same-page fragments", "Supported", "Bounded Ft/Fg/Rv lookup, retained 128-entry history, details reveal, no-fetch Back/Forward, and Fa/Fj/Fy initial placement across first paint, resize, and intrinsic images with manual-scroll release");
+            Capability(builder, "Progress and meter gauges", "Supported", "Compact Vm values, finite normalization, meter quality regions, inherited styles, table cells, and custom paint");
+            Capability(builder, "Output and data values", "Supported", "Compact Dv values, bounded references and text, host aliases, inline/block/table ownership, and safe rebuilds");
+            Capability(builder, "Time and edit metadata", "Supported", "Compact Dv t/i/r values, bounded datetime and citation aliases, safe schemes, native decorations, inline/block/table ownership, and safe rebuilds");
+            Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, object-fit-aware scaled and cropped hit regions, area links/downloads, and safe rebuilds");
+            Capability(builder, "Keyboard focus", "Supported subset", "Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases");
+            Capability(builder, "Focus shortcuts", "Supported subset", "Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation");
+            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with MSAA and native UI Automation fragments, roles, names including rendered before/after generated text with explicit ARIA priority, live protected state, rendered bounds, focus, invoke/value/toggle/selection/disclosure/range/scroll and Tb/Tc-backed grid/table/item patterns, plus read-only logical TextPattern document/child/point ranges with direction-aware visual-line, partial-range, and point geometry; visible-range arrays use an empty fallback, and this is not the complete platform mapping standards");
+            builder.AppendLine();
+            builder.AppendLine("## Binary Footprint");
+            builder.AppendLine();
+            builder.AppendLine("| Artifact | Bytes | Size |");
+            builder.AppendLine("| --- | ---: | ---: |");
+            foreach (var artifact in artifacts)
+                builder.AppendLine("| `" + artifact.Name + "` | " + artifact.Bytes + " | " + Kb(artifact.Bytes) + " KB |");
+            builder.AppendLine();
+            builder.AppendLine("The engine runtime size is `Lea.Engine.dll`, `Lea.Win.dll`, and the required `Lea.Image.exe` decoder helper. Test and report executables are listed separately and are not required when embedding Lea in Firespider.");
+            builder.AppendLine();
+            builder.AppendLine("## Re-run");
+            builder.AppendLine();
+            builder.AppendLine("From the repository root after a Release build:");
+            builder.AppendLine();
+            builder.AppendLine("```powershell");
+            builder.AppendLine(".\\Lea.Bench\\bin\\Release\\Lea.Bench.exe -r . -o .\\LeaForge\\COMPATIBILITY_PERFORMANCE.md -n " + iterations);
+            builder.AppendLine("```");
+            return builder.ToString();
+        }
+
+        private static IList<Artifact> ArtifactPaths(string root, string browser)
+        {
+            var enginePath = Path.Combine(root, "Lea.Engine", "bin", "Release", "Lea.Engine.dll");
+            var winPath = Path.Combine(root, "Lea.Win", "bin", "Release", "Lea.Win.dll");
+            var imagePath = Path.Combine(root, "Lea.Image", "bin", "Release", "Lea.Image.exe");
+            var winTestPath = Path.Combine(root, "Lea.Win.Test", "bin", "Release", "Lea.Win.Test.exe");
+            var benchPath = Path.Combine(root, "Lea.Bench", "bin", "Release", "Lea.Bench.exe");
+            if (!File.Exists(enginePath)) enginePath = Path.Combine(root, "Lea.Engine.dll");
+            if (!File.Exists(winPath)) winPath = Path.Combine(root, "Lea.Win.dll");
+            if (!File.Exists(imagePath)) imagePath = Path.Combine(root, "Lea.Image.exe");
+            if (!File.Exists(winTestPath)) winTestPath = Path.Combine(root, "Lea.Win.Test.exe");
+            if (!File.Exists(benchPath)) benchPath = Path.Combine(root, "Lea.Bench.exe");
+            var candidates = new List<Artifact>
+            {
+                MakeArtifact("Lea.Engine.dll", enginePath, true),
+                MakeArtifact("Lea.Win.dll", winPath, true),
+                MakeArtifact("Lea.Image.exe", imagePath, true),
+                MakeArtifact("Lea.Win.Test.exe", winTestPath, false),
+                MakeArtifact("Lea.Bench.exe", benchPath, false)
+            };
+            var browserPath = browser;
+            if (String.IsNullOrWhiteSpace(browserPath))
+            {
+                var local = Path.Combine(root, "Firespider Internet 19.exe");
+                var known = @"L:\Firespider Internet\Firespider Internet 19.exe";
+                if (File.Exists(local)) browserPath = local;
+                else if (File.Exists(known)) browserPath = known;
+            }
+            if (!String.IsNullOrWhiteSpace(browserPath) && File.Exists(browserPath))
+                candidates.Add(MakeArtifact("Firespider Internet 19.exe", browserPath, false));
+            return candidates.Where(item => item != null).ToList();
+        }
+
+        private static Artifact MakeArtifact(string name, string path, bool runtime)
+        {
+            if (!File.Exists(path)) return null;
+            return new Artifact { Name = name, Path = Path.GetFullPath(path), Bytes = new FileInfo(path).Length, Runtime = runtime };
+        }
+
+        private static long Gzip(IEnumerable<string> paths)
+        {
+            using (var output = new MemoryStream())
+            {
+                using (var gzip = new GZipStream(output, CompressionLevel.Optimal, true))
+                    foreach (var path in paths)
+                    {
+                        var bytes = File.ReadAllBytes(path);
+                        gzip.Write(bytes, 0, bytes.Length);
+                    }
+                return output.Length;
+            }
+        }
+
+        private static V NewView()
+        {
+            var view = new V { Size = new Size(ViewWidth, ViewHeight) };
+            view.CreateControl();
+            return view;
+        }
+
+        private static void LoadView(V view, string path, string name)
+        {
+            var work = view.GoA(path);
+            var end = DateTime.UtcNow.AddSeconds(10);
+            while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+            Need(work.IsCompleted, name + " timeout");
+            work.GetAwaiter().GetResult();
+        }
+
+        private static Bitmap Draw(V view)
+        {
+            var image = new Bitmap(view.Width, view.Height);
+            view.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
+            return image;
+        }
+
+        private static int ColoredSamples(Bitmap image)
+        {
+            var count = 0;
+            for (var y = 0; y < image.Height; y += 12)
+                for (var x = 0; x < image.Width; x += 12)
+                {
+                    var color = image.GetPixel(x, y);
+                    if (color.A != 0 && (color.R < 248 || color.G < 248 || color.B < 248)) count++;
+                }
+            return count;
+        }
+
+        private static int ColorDistance(Color left, Color right)
+        {
+            return Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
+        }
+
+        private static bool HasColor(Bitmap image, Rectangle area, Color color)
+        {
+            area.Intersect(new Rectangle(Point.Empty, image.Size));
+            for (var y = area.Top; y < area.Bottom; y++)
+                for (var x = area.Left; x < area.Right; x++)
+                    if (ColorDistance(image.GetPixel(x, y), color) < 8) return true;
+            return false;
+        }
+
+        private static Rectangle ColorBounds(Bitmap image, Rectangle area, Color color)
+        {
+            area.Intersect(new Rectangle(Point.Empty, image.Size));
+            var left = area.Right;
+            var top = area.Bottom;
+            var right = area.Left - 1;
+            var bottom = area.Top - 1;
+            for (var y = area.Top; y < area.Bottom; y++)
+                for (var x = area.Left; x < area.Right; x++)
+                    if (ColorDistance(image.GetPixel(x, y), color) < 8)
+                    {
+                        left = Math.Min(left, x);
+                        top = Math.Min(top, y);
+                        right = Math.Max(right, x);
+                        bottom = Math.Max(bottom, y);
+                    }
+            return right < left || bottom < top ? Rectangle.Empty : Rectangle.FromLTRB(left, top, right + 1, bottom + 1);
+        }
+
+        private static void Move(V view, Rectangle rect)
+        {
+            var method = typeof(V).GetMethod("OnMouseMove", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("Mouse move route unavailable");
+            method.Invoke(view, new object[] { new MouseEventArgs(MouseButtons.None, 0, rect.Left + rect.Width / 2, rect.Top + rect.Height / 2, 0) });
+        }
+
+        private static Rectangle ElementHit(V view, string id)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var element = type.GetField("El").GetValue(value) as N;
+                    if (element != null && element.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase))
+                        return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            return Rectangle.Empty;
+        }
+
+        private static Rectangle FragmentHit(V view, string fragment)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var url = type.GetField("U").GetValue(value) as Uri;
+                    if (url != null && url.Fragment.Equals(fragment, StringComparison.OrdinalIgnoreCase))
+                        return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            return Rectangle.Empty;
+        }
+
+        private static Rectangle BlockOuter(V view, string id)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block != null && block.El != null && block.El.Av("id") == id && !(bool)type.GetField("Inline").GetValue(value))
+                        return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing layout block " + id);
+        }
+
+        private static Rectangle BlockContent(V view, string id)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block != null && block.El != null && block.El.Av("id") == id && !(bool)type.GetField("Inline").GetValue(value))
+                        return (Rectangle)type.GetField("C").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing content block " + id);
+        }
+
+        private static Rectangle[] TextLines(V view, string id)
+        {
+            var lines = new List<Rectangle>();
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != id || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    var rect = (Rectangle)type.GetField("R").GetValue(value);
+                    var found = -1;
+                    for (var index = 0; index < lines.Count; index++) if (lines[index].Top == rect.Top) { found = index; break; }
+                    if (found < 0) lines.Add(rect);
+                    else lines[found] = Rectangle.Union(lines[found], rect);
+                }
+            lines.Sort(delegate(Rectangle left, Rectangle right) { return left.Top.CompareTo(right.Top); });
+            return lines.ToArray();
+        }
+
+        private static int LineWidthSpread(Rectangle[] lines)
+        {
+            if (lines == null || lines.Length < 2) return 0;
+            var minimum = Int32.MaxValue;
+            var maximum = 0;
+            foreach (var line in lines)
+            {
+                minimum = Math.Min(minimum, line.Width);
+                maximum = Math.Max(maximum, line.Width);
+            }
+            return maximum - minimum;
+        }
+
+        private static int EllipsisCount(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            var count = 0;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id") == id && (string)type.GetField("X").GetValue(value) == "" &&
+                    (string)type.GetField("Px").GetValue(value) == "\u2026") count++;
+            }
+            return count;
+        }
+
+        private static Rectangle EllipsisRect(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id") == id && (string)type.GetField("X").GetValue(value) == "" &&
+                    (string)type.GetField("Px").GetValue(value) == "\u2026") return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            throw new InvalidOperationException("Missing ellipsis marker " + id);
+        }
+
+        private static Rectangle EllipsisClip(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id") == id && (string)type.GetField("X").GetValue(value) == "" &&
+                    (string)type.GetField("Px").GetValue(value) == "\u2026") return (Rectangle)type.GetField("Clip").GetValue(value);
+            }
+            throw new InvalidOperationException("Missing ellipsis clip " + id);
+        }
+
+        private static Rectangle[] EllipsisPrefixBounds(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var block = type.GetField("B").GetValue(value) as B;
+                var prefix = type.GetField("Px").GetValue(value) as string;
+                if (block != null && block.El != null && block.El.Av("id") == id && !(String.IsNullOrEmpty(prefix)) &&
+                    (string)type.GetField("X").GetValue(value) != "")
+                    return new[] { (Rectangle)type.GetField("R").GetValue(value), (Rectangle)type.GetField("C").GetValue(value) };
+            }
+            throw new InvalidOperationException("Missing ellipsis prefix " + id);
+        }
+
+        private static string EllipsisPrefixText(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var block = type.GetField("B").GetValue(value) as B;
+                var prefix = type.GetField("Px").GetValue(value) as string;
+                if (block != null && block.El != null && block.El.Av("id") == id && !String.IsNullOrEmpty(prefix) &&
+                    (string)type.GetField("X").GetValue(value) != "") return prefix;
+            }
+            throw new InvalidOperationException("Missing ellipsis prefix text " + id);
+        }
+
+        private static RectangleF AutomationRangeRect(V view, object automation, string source, string value)
+        {
+            var start = source.IndexOf(value, StringComparison.Ordinal);
+            Need(start >= 0, "Missing automation range text " + value);
+            var values = (double[])typeof(V).GetMethod("AutomationTextRectangles", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(view, new object[] { automation, start, start + value.Length });
+            Need(values.Length >= 4, "Missing automation range rectangle " + value);
+            var result = new RectangleF((float)values[0], (float)values[1], (float)values[2], (float)values[3]);
+            for (var index = 4; index + 3 < values.Length; index += 4)
+                result = RectangleF.Union(result, new RectangleF((float)values[index], (float)values[index + 1], (float)values[index + 2], (float)values[index + 3]));
+            return result;
+        }
+
+        private static string AutomationWordAtPoint(V view, object automation, RectangleF rectangle)
+        {
+            var range = typeof(V).GetMethod("AutomationTextRangeFromPoint", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(view, new object[] { automation, new System.Windows.Point(rectangle.Left + rectangle.Width / 2F, rectangle.Top + rectangle.Height / 2F) });
+            range.GetType().GetMethod("ExpandToEnclosingUnit").Invoke(range, new object[] { TextUnit.Word });
+            return ((string)range.GetType().GetMethod("GetText").Invoke(range, new object[] { -1 })).Trim();
+        }
+
+        private static Rectangle InlineBounds(V view, string id)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            var result = Rectangle.Empty;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != id || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    var rect = (Rectangle)type.GetField("R").GetValue(value);
+                    result = result.IsEmpty ? rect : Rectangle.Union(result, rect);
+                }
+            if (result.IsEmpty) throw new InvalidOperationException("Missing inline layout block " + id);
+            return result;
+        }
+
+        private static Rectangle InlineElementBounds(V view, string id)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            var result = Rectangle.Empty;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var element = type.GetField("El").GetValue(value) as N;
+                    if (element == null || element.Av("id") != id || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    var rect = (Rectangle)type.GetField("R").GetValue(value);
+                    result = result.IsEmpty ? rect : Rectangle.Union(result, rect);
+                }
+            if (result.IsEmpty) throw new InvalidOperationException("Missing inline element " + id);
+            return result;
+        }
+
+        private static Rectangle InlineTextRect(V view, string ownerId, string text)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    if ((string)type.GetField("X").GetValue(value) == text) return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing inline text " + ownerId + ": " + text);
+        }
+
+        private static Rectangle InlineKindRect(V view, string ownerId, string kind)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    if ((string)type.GetField("K").GetValue(value) == kind) return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing inline kind " + ownerId + ": " + kind);
+        }
+
+        private static int InlineKindCount(V view, string ownerId, string kind)
+        {
+            var count = 0;
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    if ((string)type.GetField("K").GetValue(value) == kind) count++;
+                }
+            return count;
+        }
+
+        private static Rectangle InlinePictureRect(V view, string ownerId, string kind)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    var picture = type.GetField("P").GetValue(value) as Uri;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId || picture == null ||
+                        !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    if ((string)type.GetField("K").GetValue(value) == kind) return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing inline picture " + ownerId + ": " + kind);
+        }
+
+        private static int InlinePictureCount(V view, string ownerId, string kind)
+        {
+            var count = 0;
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId ||
+                        !(bool)type.GetField("Inline").GetValue(value) || !(type.GetField("P").GetValue(value) is Uri)) continue;
+                    if ((string)type.GetField("K").GetValue(value) == kind) count++;
+                }
+            return count;
+        }
+
+        private static N ById(N node, string id)
+        {
+            if (node == null) return null;
+            if (String.Equals(node.Av("id"), id, StringComparison.OrdinalIgnoreCase)) return node;
+            foreach (var child in node.C)
+            {
+                var found = ById(child, id);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static B BlockById(P page, string id)
+        {
+            foreach (var block in page.Bs)
+            {
+                var found = BlockById(block, id);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static B BlockById(B block, string id)
+        {
+            if (block == null) return null;
+            if (block.El != null && String.Equals(block.El.Av("id"), id, StringComparison.OrdinalIgnoreCase)) return block;
+            if (block.Tb == null) return null;
+            foreach (var row in block.Tb.Rs)
+                foreach (var cell in row.Cs)
+                    foreach (var part in cell.Bs)
+                    {
+                        var found = BlockById(part, id);
+                        if (found != null) return found;
+                    }
+            return null;
+        }
+
+        private static void AddProbe(ICollection<Probe> probes, string name, Func<string> check)
+        {
+            try { probes.Add(new Probe { Name = name, Pass = true, Detail = check() }); }
+            catch (Exception error) { probes.Add(new Probe { Name = name, Pass = false, Detail = error.Message }); }
+        }
+
+        private static void Need(bool condition, string message)
+        {
+            if (!condition) throw new InvalidOperationException(message);
+        }
+
+        private static string FindRoot(string start)
+        {
+            var directory = new DirectoryInfo(Path.GetFullPath(String.IsNullOrWhiteSpace(start) ? Directory.GetCurrentDirectory() : start));
+            while (directory != null)
+            {
+                if (File.Exists(Path.Combine(directory.FullName, "Lea.sln")) || (
+                    File.Exists(Path.Combine(directory.FullName, "Lea.Engine.dll")) &&
+                    File.Exists(Path.Combine(directory.FullName, "Lea.Win.dll")) &&
+                    (Directory.Exists(Path.Combine(directory.FullName, "test-pages")) ||
+                    Directory.Exists(Path.Combine(directory.FullName, "LeaForge", "test-pages"))))) return directory.FullName;
+                directory = directory.Parent;
+            }
+            throw new DirectoryNotFoundException("Could not find a Lea source or runtime root. Pass it with -r.");
+        }
+
+        private static string Pages(string root)
+        {
+            var source = Path.Combine(root, "LeaForge", "test-pages");
+            return Directory.Exists(source) ? source : Path.Combine(root, "test-pages");
+        }
+
+        private static string F(double[] values) { return Median(values).ToString("0.000"); }
+        private static double Median(double[] values)
+        {
+            if (values == null || values.Length == 0) return 0;
+            var sorted = values.OrderBy(value => value).ToArray();
+            var middle = sorted.Length / 2;
+            return sorted.Length % 2 == 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+        }
+        private static double P95(double[] values)
+        {
+            if (values == null || values.Length == 0) return 0;
+            var sorted = values.OrderBy(value => value).ToArray();
+            return sorted[Math.Min(sorted.Length - 1, (int)Math.Ceiling(sorted.Length * .95) - 1)];
+        }
+        private static string Kb(long bytes) { return (bytes / 1024d).ToString("0.0"); }
+        private static string Ratio(long compressed, long raw) { return raw == 0 ? "n/a" : (compressed * 100d / raw).ToString("0.0") + "% of raw"; }
+        private static string Md(string value) { return (value ?? "").Replace("|", "\\|").Replace("\r", " ").Replace("\n", " "); }
+        private static void Capability(StringBuilder builder, string area, string status, string scope)
+        {
+            builder.AppendLine("| " + area + " | " + status + " | " + scope + " |");
+        }
+
+        private sealed class CacheServer : IDisposable
+        {
+            private readonly TcpListener listener;
+            private readonly Thread thread;
+            private volatile bool stopping;
+            private int hits;
+            private string lastIfNoneMatch = "";
+
+            public Uri U { get; private set; }
+            public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
+            public string LastIfNoneMatch { get { return lastIfNoneMatch; } }
+
+            public CacheServer()
+            {
+                listener = new TcpListener(IPAddress.Loopback, 0);
+                listener.Start();
+                U = new Uri("http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port + "/page");
+                thread = new Thread(Serve) { IsBackground = true };
+                thread.Start();
+            }
+
+            private void Serve()
+            {
+                while (!stopping)
+                {
+                    TcpClient client;
+                    try { client = listener.AcceptTcpClient(); }
+                    catch (SocketException) { if (stopping) return; throw; }
+                    catch (ObjectDisposedException) { return; }
+                    using (client)
+                    using (var stream = client.GetStream())
+                    {
+                        string request;
+                        var validator = "";
+                        using (var reader = new StreamReader(stream, Encoding.ASCII, false, 1024, true))
+                        {
+                            request = reader.ReadLine() ?? "";
+                            string line;
+                            while ((line = reader.ReadLine()) != null && line.Length > 0)
+                                if (line.StartsWith("If-None-Match:", StringComparison.OrdinalIgnoreCase)) validator = line.Substring(14).Trim();
+                        }
+                        lastIfNoneMatch = validator;
+                        Interlocked.Increment(ref hits);
+                        var etag = request.IndexOf("etag=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        if (etag && validator == "\"lea-bench\"")
+                        {
+                            Write(stream, "HTTP/1.1 304 Not Modified\r\nCache-Control: max-age=60\r\nETag: \"lea-bench\"\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", null);
+                            continue;
+                        }
+                        var body = Encoding.UTF8.GetBytes("<html><head><title>Lea cache benchmark</title></head><body>Persistent cache.</body></html>");
+                        var cache = etag ? "Cache-Control: max-age=0\r\nETag: \"lea-bench\"\r\n" : "Cache-Control: max-age=60\r\n";
+                        Write(stream, "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n" + cache + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n", body);
+                    }
+                }
+            }
+
+            private static void Write(Stream stream, string headers, byte[] body)
+            {
+                var head = Encoding.ASCII.GetBytes(headers);
+                stream.Write(head, 0, head.Length);
+                if (body != null) stream.Write(body, 0, body.Length);
+            }
+
+            public void Dispose()
+            {
+                stopping = true;
+                listener.Stop();
+                thread.Join(2000);
+            }
+        }
+
+        private sealed class LoadResult
+        {
+            public string Name;
+            public long Bytes;
+            public int Nodes;
+            public int CssRules;
+            public double[] Times;
+        }
+
+        private sealed class RenderResult
+        {
+            public double[] Times;
+            public int Boxes;
+            public int Height;
+            public int ColoredSamples;
+        }
+
+        private sealed class MemoryResult
+        {
+            public int Pages;
+            public long Bytes;
+        }
+
+        private sealed class Probe
+        {
+            public string Name;
+            public bool Pass;
+            public string Detail;
+        }
+
+        private sealed class Artifact
+        {
+            public string Name;
+            public string Path;
+            public long Bytes;
+            public bool Runtime;
+        }
+
+        private sealed class Options
+        {
+            public string Root;
+            public string Output;
+            public string Browser;
+            public int Iterations = 15;
+            public bool StartupOnly;
+            public bool ClassOnly;
+
+            public static Options Read(string[] args)
+            {
+                var options = new Options();
+                for (var i = 0; i < args.Length; i++)
+                {
+                    var key = args[i].ToLowerInvariant();
+                    if (key == "-s") options.StartupOnly = true;
+                    else if (key == "-c") options.ClassOnly = true;
+                    else if (key == "-r" && i + 1 < args.Length) options.Root = args[++i];
+                    else if (key == "-o" && i + 1 < args.Length) options.Output = args[++i];
+                    else if (key == "-b" && i + 1 < args.Length) options.Browser = args[++i];
+                    else if (key == "-n" && i + 1 < args.Length)
+                    {
+                        int value;
+                        if (!Int32.TryParse(args[++i], out value) || value < 3 || value > 100)
+                            throw new ArgumentException("-n must be from 3 to 100.");
+                        options.Iterations = value;
+                    }
+                    else throw new ArgumentException("Unknown option: " + args[i] + ". Use -r root -o report -n iterations -b browser.");
+                }
+                return options;
+            }
+        }
+    }
+}

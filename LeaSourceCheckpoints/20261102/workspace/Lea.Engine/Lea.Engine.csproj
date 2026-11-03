@@ -1,0 +1,64 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A4D0B8B2-3B79-4DA6-A5D6-000000000001}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Lea.Engine</RootNamespace>
+    <AssemblyName>Lea.Engine</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Net" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Ar.cs" />
+    <Compile Include="Ax.cs" />
+    <Compile Include="B.cs" />
+    <Compile Include="Bi.cs" />
+    <Compile Include="Cz.cs" />
+    <Compile Include="D.cs" />
+    <Compile Include="Dv.cs" />
+    <Compile Include="E.cs" />
+    <Compile Include="Er.cs" />
+    <Compile Include="Fi.cs" />
+    <Compile Include="G.cs" />
+    <Compile Include="Gi.cs" />
+    <Compile Include="Hc.cs" />
+    <Compile Include="Hn.cs" />
+    <Compile Include="Hn.Data.cs" />
+    <Compile Include="Ir.cs" />
+    <Compile Include="J.cs" />
+    <Compile Include="Ln.cs" />
+    <Compile Include="Mp.cs" />
+    <Compile Include="N.cs" />
+    <Compile Include="O.cs" />
+    <Compile Include="P.cs" />
+    <Compile Include="Pc.cs" />
+    <Compile Include="Ri.cs" />
+    <Compile Include="S.cs" />
+    <Compile Include="Sw.cs" />
+    <Compile Include="Tb.cs" />
+    <Compile Include="Tc.cs" />
+    <Compile Include="Tr.cs" />
+    <Compile Include="Vm.cs" />
+    <Compile Include="Vg.cs" />
+    <Compile Include="Vs.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

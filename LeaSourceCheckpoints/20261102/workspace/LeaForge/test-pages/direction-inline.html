@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lea direction-aware inline flow</title>
+  <style>
+    body { margin: 0; color: #19352d; font-family: "Segoe UI", sans-serif; font-size: 12px; }
+    p, summary, li, td { margin: 0; padding: 0; }
+    .flow { width: 240px; margin: 8px 0; background: #eef6f2; }
+    .flow span { color: #0f5f4c; }
+    .flow a { color: #125ca8; }
+    #ltr-simple { direction: ltr; }
+    #rtl-simple, #rtl-runs, #rtl-wrap, #rtl-nowrap, #rtl-left, #rtl-right, #rtl-start, #rtl-end, #rtl-center, #rtl-justify { direction: rtl; }
+    #rtl-wrap { width: 82px; word-break: normal; }
+    #rtl-nowrap { width: 100px; white-space: nowrap; overflow: hidden; }
+    #rtl-left { text-align: left; }
+    #rtl-right { text-align: right; }
+    #rtl-start { text-align: start; }
+    #rtl-end { text-align: end; }
+    #rtl-center { text-align: center; }
+    #rtl-justify { width: 160px; text-align: justify; }
+    #rtl-order, #rtl-bullets { direction: rtl; width: 240px; margin: 8px 0; padding: 0; }
+    #rtl-order li, #rtl-bullets li { margin-inline-start: 18px; }
+    #rtl-nested { margin: 4px 0 0; padding: 0; }
+    #rtl-nested li { margin-inline-start: 42px; }
+    #rtl-table { width: 260px; border-spacing: 0; }
+    #rtl-cell { direction: rtl; width: 240px; }
+    #rtl-details { direction: rtl; width: 240px; margin: 8px 0; }
+    #command-inline { direction: ltr; }
+  </style>
+</head>
+<body>
+  <p id="ltr-simple" class="flow">Aster Birch Cedar</p>
+  <p id="rtl-simple" class="flow">Amber Bronze Cobalt</p>
+  <p id="rtl-runs" class="flow"><span id="rtl-first">First</span> <strong id="rtl-second">Second</strong> <a id="rtl-third" href="#target">Third</a></p>
+  <p id="rtl-wrap" class="flow"><span id="wrap-one">Northward</span> <span id="wrap-two">Southward</span> <span id="wrap-three">Eastward</span></p>
+  <p id="rtl-nowrap" class="flow">Nearword Middleword Farword</p>
+  <p id="rtl-left" class="flow"><span id="left-one">LeftOne</span> <span id="left-two">LeftTwo</span></p>
+  <p id="rtl-right" class="flow"><span id="right-one">RightOne</span> <span id="right-two">RightTwo</span></p>
+  <p id="rtl-start" class="flow"><span id="start-one">StartOne</span> <span id="start-two">StartTwo</span></p>
+  <p id="rtl-end" class="flow"><span id="end-one">EndOne</span> <span id="end-two">EndTwo</span></p>
+  <p id="rtl-center" class="flow"><span id="center-one">CenterOne</span> <span id="center-two">CenterTwo</span></p>
+  <p id="rtl-justify" class="flow"><span id="justify-one">One</span> <span id="justify-two">Two</span> <span id="justify-three">Three</span> <span id="justify-four">Four</span> <span id="justify-five">FiveFiveFiveFiveFive</span></p>
+  <ol id="rtl-order" start="7"><li id="rtl-seven"><span id="seven-text">Seven</span> <a id="seven-link" href="#target">linked</a> item<ol id="rtl-nested" start="-2"><li id="rtl-minus"><span id="minus-text">Nested item</span></li></ol></li></ol>
+  <ul id="rtl-bullets"><li id="rtl-bullet">Plain bullet item</li></ul>
+  <table id="rtl-table"><tr><td id="rtl-cell">CellStart <span id="cell-end">CellEnd</span></td></tr></table>
+  <details id="rtl-details"><summary id="rtl-summary"><span id="summary-text">Disclosure</span> label</summary><p>Hidden details</p></details>
+  <p id="command-inline" class="flow"><span id="command-one">CommandOne</span> <span id="command-two">CommandTwo</span></p>
+  <button id="set-command-rtl" type="button" onclick="dr('command-inline','rtl')">Set command direction</button>
+  <p id="target">Direction inline target</p>
+</body>
+</html>

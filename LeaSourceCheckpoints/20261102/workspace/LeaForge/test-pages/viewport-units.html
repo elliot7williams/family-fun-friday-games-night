@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea viewport units</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-size: 16px; }
+    #vw { width: 50vw; height: 30px; background: #e8f3ff; }
+    #vh-width { width: 25vh; height: 30px; background: #dff6e9; }
+    #vmin-width { width: 10vmin; height: 30px; background: #fee9d8; }
+    #vmax-width { width: 10vmax; height: 30px; background: #f3e8ff; }
+    #calc-width { width: calc(50vw - 20px); height: 30px; }
+    #vh { width: 120px; height: 50vh; background: #e8f3ff; }
+    #vw-height { width: 120px; height: 25vw; background: #dff6e9; }
+    #vmin-height { width: 120px; height: 10vmin; background: #fee9d8; }
+    #vmax-height { width: 120px; height: 10vmax; background: #f3e8ff; }
+    #calc-height { width: 120px; height: calc(50vh - 20px); }
+    #minimum-width { width: 10px; min-width: 25vw; }
+    #maximum-width { width: 100vw; max-width: calc(50vw - 5px); }
+    #minimum-height { height: 10px; min-height: 25vh; }
+    #maximum-height { height: 100vh; max-height: calc(50vh - 5px); }
+    #viewport-parent { width: 600px; }
+    #viewport-child { width: 50vw; height: 25vh; }
+    #percent-parent { width: 600px; height: 200px; }
+    #percent-child { width: 50%; height: 50%; }
+    #auto-parent { background: #edf2f7; }
+    #auto-viewport-child { height: 25vh; }
+    #inherit-parent { width: 40vmin; height: 30vmax; }
+    #inherit-child { width: inherit; height: inherit; }
+    #variable { --vw-size: calc(30vmax + 10px); --vh-size: calc(30vmin - 10px); width: var(--vw-size); height: var(--vh-size); }
+    #invalid { width: 140px; width: 101vw; height: 90px; height: calc(20vh * 2); }
+    #flex { display: flex; width: 600px; height: 300px; gap: 10px; }
+    #flex-a { width: 25vw; height: 25vh; }
+    #flex-b { width: 25vw; height: calc(25vh - 10px); }
+    #grid { display: grid; width: 600px; height: 300px; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
+    #grid-a { width: 25vw; height: 25vh; }
+    #viewport-table { width: 50vw; height: 25vh; }
+    #position-shell { position: relative; width: 600px; height: 300px; }
+    #absolute { position: absolute; top: 0; left: 0; width: 25vw; height: 25vh; }
+    #fixed { position: fixed; right: 0; top: 0; width: 10vmin; height: 10vmax; opacity: 0; }
+    #viewport-field { display: block; width: 25vw; height: 10vh; }
+    #viewport-image { display: block; width: 25vw; height: 10vh; }
+    #ratio { height: 25vh; aspect-ratio: 2 / 1; }
+    #border-box { box-sizing: border-box; width: 25vw; height: 25vh; padding: 10px; border: 2px solid #176b4d; }
+    #viewport-link { display: block; width: 25vw; height: 10vh; }
+    #command { width: 200px; height: 120px; color: #123f8c; }
+    button { display: block; width: 360px; margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <h1>Bounded viewport units</h1>
+  <section id="vw">Viewport width</section>
+  <section id="vh-width">Viewport height used as width</section>
+  <section id="vmin-width">Minimum viewport axis width</section>
+  <section id="vmax-width">Maximum viewport axis width</section>
+  <section id="calc-width">Calculated viewport width</section>
+  <section id="vh">Viewport height</section>
+  <section id="vw-height">Viewport width used as height</section>
+  <section id="vmin-height">Minimum viewport axis height</section>
+  <section id="vmax-height">Maximum viewport axis height</section>
+  <section id="calc-height">Calculated viewport height</section>
+  <section id="minimum-width">Viewport minimum width</section>
+  <section id="maximum-width">Viewport maximum width</section>
+  <section id="minimum-height">Viewport minimum height</section>
+  <section id="maximum-height">Viewport maximum height</section>
+  <section id="viewport-parent"><p id="viewport-child">Viewport units ignore parent dimensions</p></section>
+  <section id="percent-parent"><p id="percent-child">Percentages still use parent dimensions</p></section>
+  <section id="auto-parent"><p id="auto-viewport-child">Viewport height resolves below an auto parent</p></section>
+  <section id="inherit-parent"><p id="inherit-child">Inherited viewport units</p></section>
+  <section id="variable">Viewport units from custom properties</section>
+  <section id="invalid">Invalid viewport declarations keep earlier values</section>
+  <section id="flex"><p id="flex-a">Flex viewport A</p><p id="flex-b">Flex viewport B</p></section>
+  <section id="grid"><p id="grid-a">Grid viewport A</p><p id="grid-b">Grid B</p><p id="grid-c">Grid C</p></section>
+  <table id="viewport-table"><tr><td>Viewport table</td><td>Second cell</td></tr></table>
+  <section id="position-shell"><p id="absolute">Absolute viewport box</p></section>
+  <p id="fixed">Fixed viewport box</p>
+  <input id="viewport-field" aria-label="Viewport field" value="retained viewport value">
+  <img id="viewport-image" alt="Viewport image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+  <section id="ratio">Aspect ratio from viewport height</section>
+  <section id="border-box">Viewport border box</section>
+  <a id="viewport-link" href="#viewport-target">Viewport link hit area</a>
+  <section id="command">Command viewport size</section>
+  <button id="set-viewport" type="button" data-lea="wd('command','calc(50vw - 20px)');ht('command','calc(50vh - 20px)')">Set viewport size</button>
+  <button id="dom-viewport" type="button" onclick="document.getElementById('command').style.width='25vh';document.getElementById('command').style.height='25vw'">Set cross-axis DOM size</button>
+  <button id="clear-viewport" type="button" onclick="document.getElementById('command').style.width='';document.getElementById('command').style.height=''">Restore authored size</button>
+  <p id="viewport-target">Viewport target</p>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Marker Styling</title>
+  <style>
+    :root { --marker-color: #2563eb; --marker-content: "Var "; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    li { width: 260px; margin-left: 82px; padding: 3px; }
+    ::marker { color: #64748b; font-size: 15px; }
+    #styled { color: #0f766e; font-size: 13px; }
+    #styled::marker {
+      color: #dc2626;
+      font-family: monospace;
+      font-size: 24px;
+      font-weight: bold;
+      font-style: italic;
+      letter-spacing: 2px;
+      word-spacing: 4px;
+      line-height: 32px;
+      text-shadow: 2px 1px 0 #2563eb;
+    }
+    #default-transform { text-transform: uppercase; list-style-type: lower-alpha; }
+    #inherit-transform { text-transform: uppercase; list-style-type: lower-alpha; }
+    #inherit-transform::marker { text-transform: inherit; }
+    li.specific::marker { color: #0f766e; }
+    #specific::marker { color: #7c3aed; }
+    #combo > li::marker { content: "Child "; color: #a13b18; }
+    #content::marker { content: "Lea "; color: #0f766e; }
+    #escaped::marker { content: "\2605  "; color: #a13b18; }
+    #none::marker { content: none; }
+    #variable::marker { color: var(--marker-color); content: var(--marker-content); }
+    #important::marker { color: #dc2626 !important; color: #2563eb; }
+    #image-content { list-style-image: url("../../assets/lea.ico"); }
+    #image-content::marker { content: "Text "; color: #dc2626; }
+    #image-normal { list-style-image: url("../../assets/lea.ico"); }
+    #image-normal::marker { content: "Ignored "; content: normal; }
+    #inside { list-style-position: inside; }
+    #inside::marker { content: "In "; color: #2563eb; font-size: 22px; }
+    #rtl { direction: rtl; }
+    #rtl::marker { content: "RTL "; color: #7c3aed; }
+    #dynamic::marker { color: #64748b; content: "Idle "; }
+    #dynamic:hover::marker { color: #dc2626; content: "Hot "; }
+    #responsive::marker { content: "Wide "; }
+    #command::marker, #command-readable::marker { color: #64748b; content: "CSS "; }
+    #cell::marker { content: "Cell "; color: #0f766e; }
+    #bad::marker:hover { content: "Bad "; }
+    @media screen and (max-width: 400px) {
+      #responsive::marker { color: #2563eb; content: "Narrow "; font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Marker styling</h1>
+  <ol>
+    <li id="styled">Marker style does not leak into item text</li>
+    <li id="default-transform">Default marker transform remains none</li>
+    <li id="inherit-transform">Explicit marker transform inherits</li>
+    <li id="specific" class="specific">Marker specificity includes the pseudo-element</li>
+    <li id="content">Custom marker text</li>
+    <li id="escaped">Escaped marker text</li>
+    <li id="none">Marker content is suppressed</li>
+    <li id="variable">Variable marker style</li>
+    <li id="important">Important marker color</li>
+    <li id="image-content">Text content takes precedence over a marker image</li>
+    <li id="image-normal">Normal content restores the marker image</li>
+    <li id="inside">Inside custom marker</li>
+    <li id="rtl">RTL custom marker</li>
+    <li id="dynamic">Hover marker <input id="marker-field" value="Retained marker style field"></li>
+    <li id="responsive">Responsive marker</li>
+    <li id="command">Compact command marker</li>
+    <li id="command-readable">Readable command marker</li>
+    <li id="bad">Unsupported chained pseudo selector is ignored</li>
+  </ol>
+  <ol id="combo"><li id="child">Combinator marker</li></ol>
+
+  <button id="set-command" data-lea="ms('command','color:#dc2626;font-size:25px;font-weight:bold;content:var(--marker-content)')">Set compact marker style</button>
+  <button id="clear-command" data-lea="ms('command','')">Clear compact marker style</button>
+  <button id="set-readable" data-lea="markerstyle('command-readable','color:#2563eb;font-size:23px;font-style:italic')">Set readable marker style</button>
+
+  <table><tr><td><ol><li id="cell">Table marker style</li></ol></td></tr></table>
+</body>
+</html>

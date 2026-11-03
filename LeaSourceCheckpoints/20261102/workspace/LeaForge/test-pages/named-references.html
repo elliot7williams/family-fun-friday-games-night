@@ -1,0 +1,27 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Lea &copy; reference rendering</title>
+<style>
+body { background: white; color: #20332e; font-family: "Segoe UI"; font-size: 18px; margin: 16px; }
+h1 { font-size: 28px; margin: 0 0 16px; }
+h2 { font-size: 20px; margin: 14px 0 8px; }
+p { margin: 8px 0; }
+.band { border-top: 2px solid #26745e; padding-top: 8px; margin-top: 16px; }
+input, textarea { width: 300px; max-width: 100%; font-family: "Segoe UI"; font-size: 18px; }
+textarea { height: 56px; }
+pre { font-size: 16px; white-space: pre-wrap; }
+</style></head><body>
+<h1>Lea &copy; reference rendering</h1>
+<p id="currency">Currency: &euro; &pound; &yen; &cent;</p>
+<p id="relations">Relations: &NotEqualTilde; &notin; &ne;</p>
+<p id="letters">Letters: &AElig; &oelig; &Afr; &fjlig;</p>
+<div class="band"><h2>Single-pass text</h2>
+<p id="mixed">R&amp;D &mdash; &#x80; &copy;</p>
+<pre id="literal">&amp;copy; &amp;NotEqualTilde;</pre>
+<p id="ambiguous" data-x="&copyZ &notit; &amp=0">&notit; &copyZ</p></div>
+<div class="band"><h2 id="native-heading">Native fields</h2>
+<label id="ref-label" for="ref">Reference value &copy;</label><br>
+<input id="ref" name="ref" value="&copyZ | &NotEqualTilde; | R&amp;D"><br>
+<label id="notes-label" for="notes">Notes</label><br>
+<textarea id="notes" name="notes">&NotEqualTilde; &amp;copy;</textarea>
+</div>
+</body></html>

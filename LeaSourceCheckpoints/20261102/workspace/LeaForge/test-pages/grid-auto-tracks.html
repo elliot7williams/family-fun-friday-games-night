@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded grid auto tracks</title>
+  <style>
+    body { background: #f7faf8; color: #18372f; font-family: Segoe UI; }
+    h1 { color: #134e4a; }
+    .track { display: grid; margin-bottom: 12px; background: #edf6f2; }
+    .track-item { margin: 0; background: #dce9ff; }
+    #track-pattern {
+      width: 300px;
+      height: 200px;
+      grid-template-columns: 60px;
+      grid-template-rows: 20px;
+      grid-auto-columns: 40px 1fr;
+      grid-auto-rows: 30px minmax(0, 2fr);
+      gap: 5px 10px;
+    }
+    #pattern-a { grid-column: 1; grid-row: 1; background: #d8f1e5; }
+    #pattern-b { grid-column: 2; grid-row: 2; }
+    #pattern-c { grid-column: 3; grid-row: 3; background: #c7e9ff; }
+    #pattern-d { grid-column: 4; grid-row: 4; }
+    #pattern-e { grid-column: 5; grid-row: 1; background: #fde3c5; }
+    #auto-mix {
+      width: 220px;
+      height: 30px;
+      grid-template-columns: 50px;
+      grid-template-rows: 30px;
+      grid-auto-columns: auto 2fr;
+      grid-auto-flow: column;
+      column-gap: 5px;
+    }
+    #row-cycle {
+      width: 210px;
+      grid-template-columns: 1fr 1fr;
+      grid-auto-rows: 35px 55px;
+      gap: 5px;
+    }
+    #row-cycle-a { background: #d8f1e5; }
+    #row-cycle-c { background: #c7e9ff; }
+    #row-cycle-e { background: #fde3c5; }
+    #row-large-gap {
+      width: 100px;
+      grid-template-columns: 1fr;
+      grid-auto-rows: 10px 20px;
+      row-gap: 40px;
+    }
+    #area-auto {
+      width: 200px;
+      grid-template-columns: 50px;
+      grid-template-areas: "lead story action";
+      grid-auto-columns: 30px 1fr;
+      column-gap: 10px;
+    }
+    #area-lead { grid-area: lead; }
+    #area-story { grid-area: story; }
+    #area-action { grid-area: action; }
+    #track-reset {
+      grid-auto-columns: 35px;
+      grid-auto-columns: initial;
+      grid-auto-rows: 45px;
+      grid-auto-rows: unset;
+    }
+    #track-invalid {
+      grid-auto-columns: 35px 2fr;
+      grid-auto-columns: repeat(2, 40px);
+      grid-auto-rows: 30px auto;
+      grid-auto-rows: 10%;
+    }
+    #track-limit {
+      grid-auto-columns: 1px 2px 3px 4px 5px 6px 7px 8px;
+      grid-auto-rows: 8px 7px 6px 5px 4px 3px 2px 1px;
+    }
+    #auto-target { background: #edf6f2; }
+    #after-auto-tracks { width: 320px; padding: 5px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Bounded grid auto tracks</h1>
+  <section id="track-pattern" class="track">
+    <p id="pattern-a" class="track-item">Explicit A</p>
+    <p id="pattern-b" class="track-item">Implicit B</p>
+    <p id="pattern-c" class="track-item">Implicit C</p>
+    <p id="pattern-d" class="track-item">Implicit D</p>
+    <p id="pattern-e" class="track-item">Implicit E</p>
+  </section>
+  <section id="auto-mix" class="track">
+    <p id="auto-mix-a" class="track-item">A</p>
+    <p id="auto-mix-b" class="track-item">B</p>
+    <p id="auto-mix-c" class="track-item">C</p>
+    <p id="auto-mix-d" class="track-item">D</p>
+    <p id="auto-mix-e" class="track-item">E</p>
+  </section>
+  <section id="row-cycle" class="track">
+    <p id="row-cycle-a" class="track-item">Row one A</p>
+    <p id="row-cycle-b" class="track-item">Row one B</p>
+    <p id="row-cycle-c" class="track-item">Row two A</p>
+    <p id="row-cycle-d" class="track-item">Row two B</p>
+    <a id="row-cycle-e" class="track-item" href="#auto-target">Row three link</a>
+  </section>
+  <section id="row-large-gap" class="track">
+    <p id="row-large-gap-a" class="track-item">A</p>
+    <p id="row-large-gap-b" class="track-item">B</p>
+    <p id="row-large-gap-c" class="track-item">C</p>
+  </section>
+  <section id="area-auto" class="track">
+    <p id="area-lead" class="track-item">Lead</p>
+    <p id="area-story" class="track-item">Story</p>
+    <p id="area-action" class="track-item">Action</p>
+  </section>
+  <section id="track-reset" class="track"><p class="track-item">Initial tracks.</p></section>
+  <section id="track-invalid" class="track"><p class="track-item">Invalid tracks are ignored.</p></section>
+  <section id="track-limit" class="track"><p class="track-item">Eight pattern entries.</p></section>
+  <p id="auto-target">Grid auto-track fragment target</p>
+  <p id="after-auto-tracks">Normal document flow continues below custom implicit tracks.</p>
+</body>
+</html>

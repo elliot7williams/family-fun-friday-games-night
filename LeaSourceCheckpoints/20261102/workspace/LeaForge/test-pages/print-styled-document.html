@@ -1,0 +1,26 @@
+<!doctype html><html><head><title>Lea Styled Print</title><style>
+body { color: #203040; font-size: 16px; }
+#styled { font-size: 24px; font-weight: bold; font-style: italic; font-family: serif;
+ color: #cc2244; background-color: #e0f4ff; text-decoration: underline; text-align: center; }
+#display { display: none; } #displayChild { display: block; }
+#visibility { visibility: hidden; } #override { visibility: visible; }
+#opaque { opacity: 0; } #opaqueChild { opacity: 1; }
+#printOnly { display: none; }
+@media print { #screenOnly { display: none; } #printOnly { display: block; } }
+#alpha { color: rgba(10,20,30,0.5); opacity: 0.5; }
+#cssPre { white-space: pre-wrap; font-family: monospace; }
+#fontPath { font-family: 'http://example.invalid/font/#Fake', monospace; }
+#colorPath { color: ContextColor file:///C:/private.icc 1,1,1,1; }
+#inlineA, #inlineB { display: inline; }
+</style></head><body>
+<h1>Styled Document</h1><p id="styled">STYLED_VISIBLE</p>
+<div id="display">DISPLAY_SECRET<span id="displayChild">DISPLAY_CHILD_SECRET</span></div>
+<div id="visibility">VISIBILITY_SECRET<span>DESCENDANT_SECRET</span><span id="override">VISIBLE_OVERRIDE</span></div>
+<div id="opaque">OPACITY_SECRET<span id="opaqueChild">OPACITY_CHILD_SECRET</span></div>
+<p id="screenOnly">SCREEN_SECRET</p><p id="printOnly">PRINT_VISIBLE</p>
+<p id="alpha">ALPHA_VISIBLE</p><div id="cssPre">  CSS space
+    CSS indented</div>
+<p id="fontPath">LOCAL_FONT_FALLBACK</p><p id="colorPath">SAFE_COLOR_FALLBACK</p>
+<p id="inlineA">INLINE_A</p> <p id="inlineB">INLINE_B</p>
+<details><summary>Summary visible</summary><p>CLOSED_SECRET</p></details>
+<p>Final styled marker.</p></body></html>

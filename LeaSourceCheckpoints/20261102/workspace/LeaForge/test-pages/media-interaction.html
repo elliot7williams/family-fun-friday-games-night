@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea interaction media fixture</title>
+  <style>
+    #fine, #coarse, #none, #hover, #no-hover, #any-fine, #any-coarse,
+    #any-none, #any-hover, #any-no-hover, #hybrid, #not-fine, #invalid {
+      display: none;
+    }
+    #field { width: 120px; }
+    @media (pointer: fine) {
+      #fine { display: block; width: 260px; }
+      #field { width: 260px; }
+    }
+    @media (pointer: coarse) {
+      #coarse { display: block; width: 180px; }
+      #field { width: 180px; }
+    }
+    @media (pointer: none) { #none { display: block; } }
+    @media (hover: hover) { #hover { display: block; } }
+    @media (hover: none) { #no-hover { display: block; } }
+    @media (any-pointer: fine) { #any-fine { display: block; } }
+    @media (any-pointer: coarse) { #any-coarse { display: block; } }
+    @media (any-pointer: none) { #any-none { display: block; } }
+    @media (any-hover: hover) { #any-hover { display: block; } }
+    @media (any-hover: none) { #any-no-hover { display: block; } }
+    @media (any-pointer: coarse) {
+      @media (any-pointer: fine) { #hybrid { display: block; width: 220px; } }
+    }
+    @media not (pointer: fine) { #not-fine { display: block; } }
+    @media (pointer: medium), (hover: coarse), (min-pointer: fine),
+           (pointer: fine) and (pointer: coarse),
+           (any-pointer: none) and (any-pointer: fine),
+           (any-hover: none) and (any-hover: hover) {
+      #invalid { display: block; }
+    }
+  </style>
+  <style media="(any-pointer: fine) and (any-hover: hover)">
+    #style-state { width: 240px; }
+  </style>
+</head>
+<body>
+  <p id="status" class="base">Interaction status</p>
+  <p id="fine">Fine primary pointer</p>
+  <p id="coarse">Coarse primary pointer</p>
+  <p id="none">No primary pointer</p>
+  <p id="hover">Primary hover</p>
+  <p id="no-hover">No primary hover</p>
+  <p id="any-fine">Any fine pointer</p>
+  <p id="any-coarse">Any coarse pointer</p>
+  <p id="any-none">No pointer available</p>
+  <p id="any-hover">Any hover capability</p>
+  <p id="any-no-hover">No hover capability</p>
+  <p id="hybrid">Hybrid pointing devices</p>
+  <p id="not-fine">Primary pointer is not fine</p>
+  <p id="invalid">Invalid interaction query</p>
+  <p id="style-state">Style media state</p>
+  <input id="field" value="Interaction value">
+  <script>
+    if (matchMedia("(pointer: fine)").matches) { ac("status", "fine"); };
+    if (window.matchMedia("(hover)").matches) { ac("status", "hover"); };
+    if (matchMedia("(any-pointer: fine)").matches) { ac("status", "anyfine"); };
+    if (window.matchMedia("(any-hover: hover)").matches) { ac("status", "anyhover"); };
+  </script>
+</body>
+</html>

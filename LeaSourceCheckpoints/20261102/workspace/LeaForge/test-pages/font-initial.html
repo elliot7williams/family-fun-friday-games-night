@@ -1,0 +1,15 @@
+<html><head><title>Font initial regression</title></head><body>
+<p id="color-control" style="color:red">Color control</p>
+<p id="reset" style="color:red;font-size:29px;font-family:Arial;font-weight:bold;font-style:italic;line-height:41px;font:initial">Reset</p>
+<div style="font-size:29px;font-family:Arial;font-weight:bold;font-style:italic;line-height:41px">
+<p id="inherited" style="font:initial">Initial is not inherit</p>
+<p id="important" style="font:initial!important;font-size:25px">Important shorthand</p>
+<p id="variable" style="font:var(--missing, initial)">Variable fallback</p>
+<p id="invalid-variable" style="--face:initial;font:var(--face)">Invalid custom property inherits</p>
+<p id="case" style="font:INITIAL">Case insensitive</p>
+<p id="later" style="font:initial;font-size:25px">Later longhand</p>
+<p id="protected" style="font-size:25px!important;font:initial">Important longhand</p>
+<p id="invalid-size" style="font:initial 24px Arial">Invalid initial plus size</p>
+<p id="invalid-family" style="font:initial Arial">Invalid initial plus family</p>
+<p id="invalid-prefix" style="font:bold initial">Invalid initial plus prefix</p>
+</div></body></html>

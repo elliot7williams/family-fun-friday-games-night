@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Pointer Interaction</title>
+  <style>
+    :root { --lea-cursor: pointer; --lea-events: none; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; cursor: crosshair; }
+    .sample { display: block; width: 190px; height: 34px; margin: 10px 0; padding: 5px; border: 1px solid #94a3b8; background: #f8fafc; }
+    #pointer { cursor: pointer; }
+    #text { cursor: text; }
+    #wait { cursor: wait; }
+    #move { cursor: move; }
+    #resize-x { cursor: ew-resize; }
+    #resize-y { cursor: ns-resize; }
+    #forbidden { cursor: not-allowed; }
+    #hover-cursor { cursor: pointer; }
+    #hover-cursor:hover { cursor: help; }
+    #invalid-cursor { cursor: help; cursor: sideways; }
+    #invalid-events { pointer-events: none; pointer-events: painted; }
+    #reset { cursor: wait; cursor: initial; pointer-events: none; pointer-events: initial; }
+    #variable { cursor: var(--lea-cursor); pointer-events: var(--lea-events); }
+    #priority { cursor: wait !important; pointer-events: none !important; }
+    #none-parent { cursor: not-allowed; pointer-events: none; height: 130px; padding: 8px; background: #fee2e2; }
+    #none-child { margin: 4px 0; background: #fecaca; }
+    #auto-child { cursor: help; pointer-events: auto; margin: 4px 0; background: #dff6e9; }
+    #dead-link { pointer-events: none; cursor: pointer; }
+    #dead-link:hover { background: #dc2626; }
+    #live-link { cursor: auto; }
+    #live-link:hover { background: #dff6e9; }
+    #dead-field { pointer-events: none; cursor: text; width: 190px; height: 32px; margin: 10px 0; padding: 4px; }
+    #live-field { cursor: text; width: 190px; height: 32px; margin: 10px 0; padding: 4px; }
+    #responsive { cursor: default; pointer-events: auto; }
+    @media screen and (max-width: 420px) {
+      #responsive { cursor: wait; pointer-events: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Pointer interaction</h1>
+  <p id="inherited" class="sample">Inherited crosshair</p>
+  <p id="pointer" class="sample">Pointer cursor</p>
+  <p id="text" class="sample">Text cursor</p>
+  <p id="wait" class="sample">Wait cursor</p>
+  <p id="move" class="sample">Move cursor</p>
+  <p id="resize-x" class="sample">Horizontal resize cursor</p>
+  <p id="resize-y" class="sample">Vertical resize cursor</p>
+  <p id="forbidden" class="sample">Not allowed cursor</p>
+  <p id="hover-cursor" class="sample">Dynamic hover cursor</p>
+  <p id="invalid-cursor" class="sample">Invalid cursor preserves help</p>
+  <p id="invalid-events" class="sample">Invalid pointer events preserve none</p>
+  <p id="reset" class="sample">CSS-wide initial reset</p>
+  <p id="variable" class="sample">Variable cursor and events</p>
+  <p id="priority" class="sample" style="cursor:text;pointer-events:auto">Important pointer state</p>
+  <section id="none-parent" class="sample">
+    <p id="none-child" class="sample">Inherited pointer suppression</p>
+    <p id="auto-child" class="sample">Re-enabled child</p>
+  </section>
+  <a id="dead-link" class="sample" href="second.html">Pointer-disabled link</a>
+  <a id="live-link" class="sample" href="forms.html">Live automatic link cursor</a>
+  <input id="dead-field" value="Pointer-disabled field">
+  <input id="live-field" value="Live text field">
+  <p id="responsive" class="sample">Responsive pointer state</p>
+  <p id="after-pointer" class="sample">Following flow remains stable</p>
+</body>
+</html>

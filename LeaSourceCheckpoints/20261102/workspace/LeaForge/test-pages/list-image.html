@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea List Image</title>
+  <style>
+    :root {
+      --marker-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==");
+    }
+    body { background: #f8fbff; color: #172033; font-family: "Segoe UI", sans-serif; }
+    h1 { color: #0f5f4c; }
+    li { width: 180px; margin-left: 76px; padding: 2px; }
+    #outside { list-style-image: var(--marker-image); }
+    #inside { list-style-image: var(--marker-image); list-style-position: inside; }
+    #external { list-style-image: url("../../assets/lea.ico"); }
+    #image-parent { list-style-image: var(--marker-image); }
+    #inherited { list-style-type: square; }
+    #explicit-inherit { list-style-image: none; list-style-image: inherit; }
+    #initial { list-style-image: var(--marker-image); list-style-image: initial; }
+    #unset-parent, #revert-parent { list-style-image: var(--marker-image); }
+    #unset { list-style-image: none; list-style-image: unset; }
+    #revert { list-style-image: none; list-style-image: revert; }
+    #variable { list-style-image: var(--marker-image); }
+    #important { list-style-image: var(--marker-image) !important; list-style-image: none; }
+    #invalid { list-style-image: var(--marker-image); list-style-image: linear-gradient(red, blue); }
+    #blocked { list-style-image: var(--marker-image); list-style-image: url("javascript:blocked"); }
+    #missing { list-style-type: upper-alpha; list-style-image: url("missing-marker.png"); }
+    #missing-none { list-style-type: none; list-style-image: url("missing-none.png"); }
+    #shorthand-all { list-style: var(--marker-image) lower-alpha inside; }
+    #shorthand-order { list-style: inside upper-roman var(--marker-image); }
+    #shorthand-url { list-style-type: square; list-style-position: inside; list-style: var(--marker-image); }
+    #shorthand-none-url { list-style: none var(--marker-image) inside; }
+    #shorthand-type-none { list-style-image: var(--marker-image); list-style: disc none inside; }
+    #shorthand-none { list-style-image: var(--marker-image); list-style: none; }
+    #invalid-shorthand { list-style: square var(--marker-image) inside; list-style: circle var(--marker-image) url("other.png"); }
+    #rtl { direction: rtl; list-style-image: var(--marker-image); }
+    #dynamic { list-style-image: none; }
+    #dynamic:hover { list-style-image: var(--marker-image); }
+    #responsive { list-style-image: none; }
+    #command-image, #command-readable, #command-dom { list-style-type: square; }
+    #command-shorthand { list-style: circle outside; }
+    #cell-image { list-style: upper-alpha var(--marker-image) outside; }
+    @media screen and (max-width: 400px) {
+      #responsive { list-style-image: var(--marker-image); }
+    }
+  </style>
+</head>
+<body>
+  <h1>List marker images</h1>
+
+  <ul>
+    <li id="default-image">Default text marker</li>
+    <li id="outside">Outside bitmap marker</li>
+    <li id="inside">Inside bitmap marker wraps with content</li>
+    <li id="external">Relative external bitmap marker</li>
+  </ul>
+  <ul id="image-parent">
+    <li id="inherited">Inherited image preserves marker type fallback</li>
+    <li id="explicit-inherit">Explicit inherited image</li>
+  </ul>
+  <ul><li id="initial">Initial clears the image</li></ul>
+  <ul id="unset-parent"><li id="unset">Unset inherits the image</li></ul>
+  <ul id="revert-parent"><li id="revert">Revert restores the inherited image</li></ul>
+  <ul>
+    <li id="variable">Variable image</li>
+    <li id="important">Important image</li>
+    <li id="invalid">Invalid gradient preserves image</li>
+    <li id="blocked">Blocked scheme preserves image</li>
+    <li id="missing">Missing image falls back to the authored type</li>
+    <li id="missing-none">Missing image with none type stays markerless</li>
+  </ul>
+
+  <ol start="3">
+    <li id="shorthand-all">Image, type, and inside position</li>
+    <li id="shorthand-order">Components in another order</li>
+    <li id="shorthand-url">Image-only shorthand resets type and position</li>
+    <li id="shorthand-none-url">None type plus image remains an image marker</li>
+    <li id="shorthand-type-none">Explicit none image keeps disc type</li>
+    <li id="shorthand-none">Single none clears both marker sources</li>
+    <li id="invalid-shorthand">Invalid duplicate image shorthand is atomic</li>
+    <li id="rtl">RTL outside image occupies the logical-start gutter</li>
+  </ol>
+
+  <ul>
+    <li id="dynamic">Hover installs an image marker</li>
+    <li id="responsive">Responsive image marker</li>
+  </ul>
+  <ul>
+    <li id="command-image">Compact image command <input id="image-field" value="Retained image field"></li>
+    <li id="command-readable">Readable image command</li>
+    <li id="command-shorthand">Compact shorthand command</li>
+    <li id="command-dom">Literal image command</li>
+  </ul>
+  <button id="set-image" data-lea="li('command-image','url(../../assets/lea.ico)')">Set image</button>
+  <button id="clear-image" data-lea="li('command-image','none')">Clear image</button>
+  <button id="set-readable" data-lea="liststyleimage('command-readable','url(../../assets/lea.ico)')">Set readable image</button>
+  <button id="set-shorthand" data-lea="ls('command-shorthand','none url(../../assets/lea.ico) inside')">Set shorthand image</button>
+  <button id="set-dom" data-lea="document.getElementById('command-dom').style.listStyleImage='url(../../assets/lea.ico)'">Set DOM image</button>
+  <button id="clear-dom" data-lea="document.getElementById('command-dom').style.listStyleImage=''">Clear DOM image</button>
+
+  <table><tr><td><ol start="5"><li id="cell-image">Table bitmap marker</li></ol></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Line Clamp</title>
+  <style>
+    :root { --lea-clamp: 2; }
+    body { margin: 20px; color: #173127; background: white; font-family: "Segoe UI", sans-serif; }
+    .sample { width: 190px; margin: 6px 0; padding: 4px; border: 1px solid #80968c; background: #f3f8f5; text-align: left; }
+    #two { line-clamp: 2; }
+    #webkit { -webkit-line-clamp: 2; }
+    #parent { line-clamp: 3; }
+    #explicit-inherit { line-clamp: inherit; }
+    #unset { line-clamp: 2; line-clamp: unset; }
+    #initial { line-clamp: 2; line-clamp: initial; }
+    #revert { line-clamp: 2; line-clamp: revert; }
+    #invalid { line-clamp: 2; line-clamp: 0; line-clamp: 33; line-clamp: many; }
+    #variable { line-clamp: var(--lea-clamp); }
+    #important { line-clamp: 3 !important; }
+    #short { line-clamp: 2; }
+    #nowrap { line-clamp: 2; white-space: nowrap; overflow: hidden; }
+    #balance { line-clamp: 2; text-wrap: balance; }
+    #rtl { width: 210px; direction: rtl; line-clamp: 2; }
+    #forced { line-clamp: 2; }
+    #hidden-link { line-clamp: 2; }
+    #cell { line-clamp: 2; }
+    #dynamic { line-clamp: none; }
+    #dynamic:hover { line-clamp: 2; }
+    #responsive { line-clamp: none; }
+    #command, #command-dom, #command-webkit { line-clamp: none; }
+    #field { width: 190px; margin: 6px 0; }
+    table { width: 220px; border: 1px solid #176b4d; }
+    td { padding: 4px; }
+    @media (max-width: 420px) { #responsive { line-clamp: 1; } }
+  </style>
+</head>
+<body>
+  <h1>Line Clamp</h1>
+  <p id="none" class="sample">Lea keeps every natural line visible when no line clamp is selected for this longer paragraph.</p>
+  <p id="two" class="sample">Lea keeps two compact lines visible and removes the remaining rendered content from this paragraph.</p>
+  <p id="webkit" class="sample">The WebKit compatibility spelling reaches the same bounded two line layout in Lea.</p>
+  <section id="parent">
+    <p id="noninherited" class="sample">A child does not inherit the parent line clamp unless inheritance is explicitly requested.</p>
+    <p id="explicit-inherit" class="sample">Explicit inheritance applies the parent three line clamp to this longer child paragraph while additional words remain outside the visible result.</p>
+  </section>
+  <p id="unset" class="sample">Unset returns this non inherited property to its unclamped initial behavior across all natural lines.</p>
+  <p id="initial" class="sample">Initial returns this paragraph to unclamped behavior across all of its natural lines.</p>
+  <p id="revert" class="sample">Revert returns this paragraph to unclamped behavior across all of its natural lines.</p>
+  <p id="invalid" class="sample">Invalid declarations preserve the previous valid two line clamp in this paragraph.</p>
+  <p id="variable" class="sample">A custom property supplies the bounded two line clamp used for this paragraph.</p>
+  <p id="important" class="sample" style="line-clamp:none">An important rule wins over the inline declaration and keeps three lines visible here while later words are removed from rendered geometry.</p>
+  <p id="short" class="sample">Short text.</p>
+  <p id="nowrap" class="sample">A no wrap paragraph has only one natural line so line clamp does not synthesize an ellipsis.</p>
+  <p id="balance" class="sample">Balanced wrapping remains available before Lea applies the bounded two line clamp.</p>
+  <p id="rtl" class="sample">واجهة ليا الخفيفة تعرض سطرين فقط وتحافظ على علامة الحذف عند نهاية السطر الصحيحة</p>
+  <p id="forced" class="sample">First forced line<br>Second forced line<br>Third hidden line<br>Fourth hidden line</p>
+  <p id="hidden-link" class="sample">Visible first line<br>Visible second line<br><a id="secret-link" href="#target">Hidden linked content must not remain clickable</a></p>
+  <table><tr><td id="cell">A table cell uses the same retained inline layout and clamps this longer content to two lines.</td></tr></table>
+  <p id="dynamic" class="sample">Hover changes this paragraph from its natural height into a compact two line result.</p>
+  <p id="responsive" class="sample">A narrow viewport changes this paragraph into a single clamped line while retaining form state.</p>
+  <p id="command" class="sample">The compact command changes this natural paragraph into a bounded line layout.</p>
+  <p id="command-dom" class="sample">The readable and DOM forms change this paragraph without requiring long engine calls.</p>
+  <p id="command-webkit" class="sample">The WebKit DOM property maps to the same small Lea command and computed state.</p>
+  <button id="set-lc" data-lea="lc('command','2')">Short clamp</button>
+  <button id="set-readable" data-lea="lineclamp('command','3')">Readable clamp</button>
+  <button id="set-dom" data-lea="document.getElementById('command-dom').style.lineClamp='1'">DOM clamp</button>
+  <button id="clear-dom" data-lea="document.getElementById('command-dom').style.lineClamp=''">Clear DOM clamp</button>
+  <button id="set-webkit-dom" data-lea="document.getElementById('command-webkit').style.webkitLineClamp='2'">WebKit DOM clamp</button>
+  <input id="field" name="query" value="Retained clamp form value">
+  <p id="target" class="sample">Following content remains in normal document flow.</p>
+</body>
+</html>

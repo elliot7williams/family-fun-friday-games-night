@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Sibling and Negation Selectors</title>
+  <style>
+    html:root { color: #2b3340; }
+    h1:not(.muted) { color: #176b4d; }
+    h1 { color: #a13b18; }
+    #siblings>.seed~p { color: #176b4d; }
+    #siblings>.seed+p { font-weight: bold; }
+    #siblings>.skip~p { border-left: 3px solid #18734b; padding-left: 7px; }
+    #siblings>p:not(.skip) { background: #edf7f2; }
+    #siblings>p:not([data-kind]) { text-decoration: underline; }
+    #siblings>p:not(:first-child) { font-style: italic; }
+    #siblings>p:not(*) { color: #c02050; }
+    [data-note="left ~ right"]:not(.off) { font-size: 17px; }
+    input:not(:disabled) { background: #dff6e9; font-weight: bold; }
+    input:not(:enabled) { color: #8a4b22; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>Sibling and negation selectors</h1>
+  <section id="siblings">
+    <p class="seed" data-note="left ~ right">Seed paragraph</p>
+    <p>Adjacent paragraph</p>
+    <div>Intervening element</div>
+    <p data-kind="later">Later paragraph</p>
+    <p class="skip">Skipped paragraph</p>
+    <p>Final paragraph</p>
+  </section>
+  <input type="button" value="Enabled button" aria-label="Enabled button">
+  <input type="button" value="Disabled button" disabled aria-label="Disabled button">
+</body>
+</html>

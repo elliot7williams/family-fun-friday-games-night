@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea color mix</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .swatch { display: block; width: 190px; height: 36px; margin: 12px; padding: 0; }
+    #equal { background-color: color-mix(in srgb, red, blue); }
+    #complement { background-color: color-mix(in srgb, red 25%, blue); }
+    #reverse { background-color: color-mix(in srgb, red, blue 25%); }
+    #low-total { background-color: color-mix(in srgb, red 20%, blue 20%); }
+    #high-total { background-color: color-mix(in srgb, red 80%, blue 80%); }
+    #transparent-mix { background-color: color-mix(in srgb, transparent, red); }
+    #premultiplied { background-color: color-mix(in srgb, rgba(255, 0, 0, .5), blue); }
+    #functions { background-color: color-mix(in srgb, hsl(120 100% 25%) 25%, hwb(240 0% 0%)); }
+    #current { color: green; border: 4px solid color-mix(in srgb, currentColor 25%, white); }
+    #shadow { background: white; box-shadow: 10px 0 0 color-mix(in srgb, red, blue); }
+    #shadow-atomic {
+      background: white;
+      box-shadow: 4px 0 0 color-mix(in srgb, red 25%, blue);
+      box-shadow: 8px 0 0 color-mix(in display-p3, red, blue);
+    }
+    #gradient {
+      background-image: linear-gradient(90deg, color-mix(in srgb, red 75%, blue) 0%, color-mix(in srgb, red, blue 75%) 100%);
+    }
+    #gradient-atomic {
+      background-image: linear-gradient(90deg, color-mix(in srgb, red, white) 0%, color-mix(in srgb, blue, white) 100%);
+      background-image: linear-gradient(90deg, color-mix(in srgb, color-mix(in srgb, red, blue), white), black);
+    }
+    #decor {
+      color: color-mix(in srgb, #0066cc 75%, white);
+      text-decoration: underline solid color-mix(in srgb, red 40%, blue) 3px;
+      text-shadow: 2px 2px 0 color-mix(in srgb, yellow, red);
+    }
+    :root { --tone: color-mix(in srgb, green 60%, white); }
+    #variable { background-color: var(--tone); }
+    @layer mix-base { #layered { background-color: color-mix(in srgb, red, white); } }
+    @layer mix-theme { #layered { background-color: color-mix(in srgb, blue, white); } }
+    #generated::before { content: "Mix "; color: color-mix(in srgb, red, blue); text-shadow: 1px 1px 0 color-mix(in srgb, yellow, red); }
+    #responsive { background-color: color-mix(in srgb, red, white); }
+    @media (max-width: 600px) { #responsive { background-color: color-mix(in srgb, blue 75%, white); } }
+    #supported, #unsupported-space, #unsupported-extra, #unsupported-zero, #unsupported-negative, #unsupported-over, #unsupported-nested { display: none; }
+    @supports (color: color-mix(in srgb, red 25%, blue)) { #supported { display: block; background-color: color-mix(in srgb, red 25%, blue); } }
+    @supports (color: color-mix(in display-p3, red, blue)) { #unsupported-space { display: block; } }
+    @supports (color: color-mix(in srgb, red, blue, white)) { #unsupported-extra { display: block; } }
+    @supports (color: color-mix(in srgb, red 0%, blue 0%)) { #unsupported-zero { display: block; } }
+    @supports (color: color-mix(in srgb, red -1%, blue)) { #unsupported-negative { display: block; } }
+    @supports (color: color-mix(in srgb, red 101%, blue)) { #unsupported-over { display: block; } }
+    @supports (color: color-mix(in srgb, color-mix(in srgb, red, blue), white)) { #unsupported-nested { display: block; } }
+    input { width: 190px; height: 32px; margin: 12px; color: color-mix(in srgb, black 75%, white); background-color: color-mix(in srgb, cyan 20%, white); border: 3px solid color-mix(in srgb, cyan 50%, black); }
+    svg { width: 190px; height: 70px; margin: 12px; }
+    #svg-fill { fill: color-mix(in srgb, red, blue); stroke: color-mix(in srgb, blue 75%, black); stroke-width: 4; }
+    #svg-stop-a { stop-color: color-mix(in srgb, red 75%, blue); }
+    #svg-stop-b { stop-color: color-mix(in srgb, red, blue 75%); }
+  </style>
+</head>
+<body>
+  <p id="equal" class="swatch">Equal mix</p>
+  <p id="complement" class="swatch">Omitted complement</p>
+  <p id="reverse" class="swatch">Reverse complement</p>
+  <p id="low-total" class="swatch">Low total alpha</p>
+  <p id="high-total" class="swatch">High total normalization</p>
+  <p id="transparent-mix" class="swatch">Transparent mix</p>
+  <p id="premultiplied" class="swatch">Premultiplied alpha</p>
+  <p id="functions" class="swatch">Functional stops</p>
+  <p id="current" class="swatch">Current color</p>
+  <p id="shadow" class="swatch">Shadow</p>
+  <p id="shadow-atomic" class="swatch">Atomic shadow</p>
+  <p id="gradient" class="swatch">Gradient</p>
+  <p id="gradient-atomic" class="swatch">Atomic gradient</p>
+  <p id="decor" class="swatch">Decoration</p>
+  <p id="variable" class="swatch">Variable</p>
+  <p id="layered" class="swatch">Layered</p>
+  <p id="generated" class="swatch">Generated</p>
+  <p id="responsive" class="swatch">Responsive</p>
+  <p id="supported" class="swatch">Supported</p>
+  <p id="unsupported-space" class="swatch">Unsupported color space</p>
+  <p id="unsupported-extra" class="swatch">Unsupported extra stop</p>
+  <p id="unsupported-zero" class="swatch">Unsupported zero total</p>
+  <p id="unsupported-negative" class="swatch">Unsupported negative weight</p>
+  <p id="unsupported-over" class="swatch">Unsupported over weight</p>
+  <p id="unsupported-nested" class="swatch">Unsupported nested mix</p>
+  <input id="field" value="Retained color mix field">
+  <svg id="svg" viewBox="0 0 190 70" role="img" aria-label="Mixed color vector">
+    <defs>
+      <linearGradient id="mix-gradient"><stop id="svg-stop-a" offset="0%"></stop><stop id="svg-stop-b" offset="100%"></stop></linearGradient>
+    </defs>
+    <rect id="svg-fill" x="4" y="4" width="80" height="62"></rect>
+    <rect id="svg-gradient" x="98" y="4" width="88" height="62" fill="url(#mix-gradient)"></rect>
+  </svg>
+</body>
+</html>

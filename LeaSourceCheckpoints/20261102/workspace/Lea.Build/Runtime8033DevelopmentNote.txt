@@ -1,0 +1,26 @@
+Firespider + Lea runtime8.0.33 development build, 2026-10-27
+
+Extract the entire ZIP into a new folder and run Firespider Internet 19.exe.
+Keep all DLLs and the ScriptWorker folder together. Windows .NET Framework4.8
+and exact .NET Runtime8.0.33 x64 are required on the tested machine. This ZIP
+installs neither runtime and changes neither default browser nor installed files.
+
+Experimental pairing: coreA85/view568, normal worker60FF/Jint67F3, exact8.0.33.
+The candidate passed its own15-stage current-machine campaign: settings lookup,
+eight host cases and six actual-EXE startup scenarios. A separate matched full
+scripting campaign completed3412 checks/all89 phases within its original deadline.
+The existing decoder policy classified one metadata-only grant; no ACL/policy
+changes were made to obtain a pass. Raw script ACL audit remainsfalse.
+
+Not a finished browser or security-certified release. Earlier intermittent worker
+startup failures, cold-start reliability and clean-PC installation remain open.
+Remote HTTP/HTTPS/UNC scripting staysOFF. Broad web compatibility, lifecycle/
+recovery, ordinary document selection and complete Visual Studio SDK remain open.
+Print styles/capture/preview have experimental library tests, but browser print
+commands and several tools still use explicit legacy routes and are unfinished.
+
+The Boot EXE is a diagnostic tool; ordinary use starts Firespider Internet19.exe.
+This runtime ZIP is not the complete source SDK. Matching source/recipes/evidence
+are retained in the separately pinned local checkpoints in the manifest.
+Those local checkpoints are not off-device backups. Package readback and fresh
+extraction tests are distinct; see their own receipts for exact verification scope.

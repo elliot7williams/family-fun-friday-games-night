@@ -1,0 +1,30 @@
+{
+  "verified": true,
+  "performanceImprovementProven": false,
+  "inverseVerified": true,
+  "files": [
+    {
+      "name": "Dom.js",
+      "path": "I:\\LeaBuildStorage\\lazy-map-source-20261102-v1\\Dom.js",
+      "sha256": "2F0E37F3EAAE4193505ABFB3E8C897D77A410DBF8B9443A42571875852F4C839",
+      "sdkOriginalSha256": "11848A226794CE5D0D51F5002A17D33411B31F4934050A9DBF6E621EFC158F3E",
+      "original": "I:\\LeaBuildStorage\\global-install-source-20261102-v1\\Dom.js",
+      "originalSha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A"
+    },
+    {
+      "name": "Dom.compact.js",
+      "path": "I:\\LeaBuildStorage\\lazy-map-source-20261102-v1\\Dom.compact.js",
+      "sha256": "DC892B2D4403193886EFD9E958BD11CA4A53033419FF074062EBBC4F5AE88E70",
+      "sdkOriginalSha256": "EC4B6513A77230C3B8439568CC3FED41B7712CA3779182D38076880DCC83BC8A",
+      "original": "I:\\LeaBuildStorage\\global-install-source-20261102-v1\\Dom.compact.js",
+      "originalSha256": "088847DC78DC1B70C5852A2C8934601110F82179A889AC9ADB1D1FF210A1B8EB"
+    }
+  ],
+  "hostPolicyChanged": false,
+  "negativeControls": 16,
+  "runtimeTested": false,
+  "privateMapsDeferred": 2,
+  "candidateOnly": true,
+  "constructorCaptured": true,
+  "scope": "Defer only private DOMTokenList and DOMException state maps until first legitimate creation; capture WeakMap constructor and methods at bootstrap. Invalid receiver calls remain nonallocating. No policy, API descriptor, realm or host evaluation changes."
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Custom Properties</title>
+  <style>
+    :root {
+      --brand: #176b4d;
+      --Brand: #123f8c;
+      --surface: #edf7f2;
+      --space: 8px;
+      --wide: 260px;
+      --family: Georgia, serif;
+      --border: 2px solid #0f4c81;
+      --accent: var(--brand);
+      --cycle-a: var(--cycle-b);
+      --cycle-b: var(--cycle-a);
+      --d0: 177px;
+      --d1: var(--d0);
+      --d2: var(--d1);
+      --d3: var(--d2);
+      --d4: var(--d3);
+      --d5: var(--d4);
+      --d6: var(--d5);
+      --d7: var(--d6);
+      --d8: var(--d7);
+    }
+
+    body { color: var(--brand); background: var(--surface); font-family: var(--family); }
+    #base { color: var(--accent); width: var(--wide); margin: var(--space) var(--space); padding: var(--space); }
+    .scope { --brand: #7e22ce; --space: 12px; }
+    #child { color: var(--brand); width: var(--wide); padding: var(--space); }
+    #late { color: var(--later); background: var(--missing, var(--surface)); --later: #a13b18; }
+    #fallback { color: var(--missing-color, #a13b18); width: var(--missing-width, 180px); border: var(--missing-border, var(--border)); font-family: var(--missing-family, Consolas, monospace); }
+    #cycle { color: #334155; color: var(--cycle-a, #0f4c81); }
+    #case { color: var(--Brand); background: var(--brand); }
+    #invalid { color: #334155; color: var(--unknown); width: 130px; width: var(--unknown-size); }
+    #inherit { --brand: inherit; color: var(--brand); }
+    #initial { --brand: initial; color: #334155; color: var(--brand); }
+    #depth-ok { width: var(--d7, 42px); }
+    #depth-limit { width: var(--d8, 43px); }
+    .hover { --space: 9px; --brand: #176b4d; color: var(--brand); padding: var(--space); }
+    .hover:hover { --space: 18px; --brand: #a13b18; }
+    input { width: var(--wide); height: 30px; padding: var(--space); background: var(--surface); }
+
+    @media screen and (max-width: 600px) {
+      :root { --wide: 150px; --space: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Bounded CSS custom properties</h1>
+  <p id="base">Root variables</p>
+  <section class="scope">
+    <p id="child">Inherited scoped variables</p>
+    <p id="inherit">Explicit inherited variable</p>
+  <p id="initial">Initial variable removal</p>
+  </section>
+  <p id="depth-ok">Eight-level variable</p>
+  <p id="depth-limit">Depth fallback</p>
+  <p id="late">Late declaration</p>
+  <p id="fallback">Nested fallback</p>
+  <p id="cycle">Cycle fallback</p>
+  <p id="case">Case-sensitive names</p>
+  <p id="invalid">Invalid declaration fallback</p>
+  <p id="inline" style="--brand:#0f4c81;color:var(--brand);padding:var(--inline-space, 10px)">Inline variable</p>
+  <p id="hover" class="hover">Dynamic variable</p>
+  <label for="var-field">Persistent variable field</label>
+  <input id="var-field" name="var-field" value="Initial variable value">
+</body>
+</html>

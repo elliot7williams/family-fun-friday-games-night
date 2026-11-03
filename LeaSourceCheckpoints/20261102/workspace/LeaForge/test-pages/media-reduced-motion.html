@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea preferred reduced motion media queries</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .probe { display: none; width: 96px; height: 24px; margin: 4px; }
+    #base { display: block; background: #e2e8f0; }
+    #responsive { display: block; width: 183px; height: 40px; margin: 8px; background: #dcfce7; color: #14532d; }
+    input { display: block; width: 182px; height: 30px; margin: 8px; }
+
+    @media (prefers-reduced-motion) { #boolean { display: block; width: 101px; } }
+    @media (prefers-reduced-motion: no-preference) {
+      #no-preference { display: block; width: 102px; }
+      #responsive { width: 183px; background: #dcfce7; color: #14532d; }
+    }
+    @media screen and (min-width: 700px) and (prefers-reduced-motion: no-preference) {
+      #no-preference-combined { display: block; width: 103px; }
+    }
+    @media (prefers-reduced-motion: reduce), (max-width: 800px) {
+      #alternative { display: block; width: 104px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #reduce { display: block; width: 201px; }
+      #responsive { width: 243px; background: #312e81; color: #eef2ff; }
+      input { width: 242px; }
+    }
+    @media (min-width: 700px) {
+      @media (prefers-reduced-motion: reduce) {
+        #reduce-nested { display: block; width: 202px; }
+      }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      @media (prefers-reduced-motion: reduce) { #conflict { display: block; } }
+    }
+
+    @media (prefers-reduced-motion: less) { #invalid-value { display: block; } }
+    @media (prefers-reduced-motion >= reduce) { #invalid-range { display: block; } }
+    @media (prefers-reduced-motion: reduce) trailing { #invalid-trailing { display: block; } }
+  </style>
+  <style media="(prefers-reduced-motion: reduce)">
+    #style-reduce { display: block; width: 203px; }
+  </style>
+</head>
+<body>
+  <p id="base" class="probe">Base</p>
+  <p id="boolean" class="probe">Boolean reduced motion</p>
+  <p id="no-preference" class="probe">No motion preference</p>
+  <p id="no-preference-combined" class="probe">No preference and wide</p>
+  <p id="alternative" class="probe">Reduce or narrow</p>
+  <p id="reduce" class="probe">Reduced motion</p>
+  <p id="reduce-nested" class="probe">Nested reduced motion</p>
+  <p id="style-reduce" class="probe">Reduced motion style media</p>
+  <p id="conflict" class="probe">Conflicting motion preferences</p>
+  <p id="invalid-value" class="probe">Unknown motion preference</p>
+  <p id="invalid-range" class="probe">Invalid discrete range</p>
+  <p id="invalid-trailing" class="probe">Trailing media text</p>
+  <p id="responsive">Reduced motion paint</p>
+  <input id="field" value="Retained reduced motion value">
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!doctype html><html><head><title>Lea print styles</title><style>
+body { color: #123456; font-size: 16px; }
+#cascade { color: red !important; font-size: 18px; }
+#visibility { visibility: hidden; } #override { visibility: visible; }
+#opaque { opacity: 0; } #viewport { font-size: 2vw; }
+#heightfont { font-size: 2vh; } #minfont { font-size: 2vmin; } #maxfont { font-size: 2vmax; }
+#calcfont { font-size: calc(2vw + 4px); } #decimalfont { font-size: 2.5VW; }
+#badfont { font-size: calc(1vw - 100px); } #bigfont { font-size: 100vw; }
+@media screen { #mode { color: blue; } #printOnly { display: none; } }
+@media print { #mode { color: green; } #screenOnly { display: none; } #large { font-size: 24px; } }
+@media not screen { #notScreen { font-weight: bold; } @media (min-width: 700px) { #composite { font-style: italic; } } }
+@media not print { #notPrint { font-style: italic; } }
+@media print and (min-width: 700px) { #sized { font-size: 30px; } }
+@media print and (orientation: landscape) { #oriented { font-style: italic; } }
+</style></head><body>
+<p id="mode">Mode.</p><p id="cascade" style="color: green">Cascade.</p>
+<p id="printOnly">Print only.</p><p id="screenOnly">Screen only.</p>
+<p id="large">Large.</p><p id="notScreen">Not screen.</p><p id="notPrint">Not print.</p>
+<p id="sized">Sized.</p><p id="oriented">Oriented.</p><p id="composite">Composite.</p><p id="viewport">Viewport.</p>
+<p id="heightfont">Height.</p><p id="minfont">Minimum.</p><p id="maxfont">Maximum.</p>
+<p id="calcfont">Calculated.</p><p id="decimalfont">Decimal.</p><p id="badfont">Negative.</p><p id="bigfont">Oversized.</p>
+<div id="visibility">Hidden visibility.<span id="override">Visible override.</span></div>
+<p id="opaque">Transparent.</p><details><summary id="summary">Closed summary.</summary><p id="closed">Closed content.</p></details>
+</body></html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea initial fragment stability</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font: 16px "Segoe UI", sans-serif; }
+    #wrap { background: #edf3f8; }
+    .tail { height: 320px; }
+  </style>
+</head>
+<body>
+  <h1>Initial fragment stability</h1>
+  <p id="wrap">
+    A retained fragment must follow the final layout while this deliberately
+    long paragraph changes from many narrow lines into a few wide lines.
+    The browser host can settle its client width after navigation, before the
+    first visible paint. Lea should keep the requested target in view without
+    fetching the page again or requiring a second fragment navigation.
+    Repeating this text creates a meaningful layout shift across view widths.
+    A retained fragment must follow the final layout while this deliberately
+    long paragraph changes from many narrow lines into a few wide lines.
+    The browser host can settle its client width after navigation, before the
+    first visible paint. Lea should keep the requested target in view without
+    fetching the page again or requiring a second fragment navigation.
+    Repeating this text creates a meaningful layout shift across view widths.
+  </p>
+  <h2 id="resize-target">Target after responsive text</h2>
+  <div class="tail"></div>
+  <img id="intrinsic-image" src="../../assets/lea.ico" alt="Lea">
+  <h2 id="image-target">Target after an intrinsic image</h2>
+  <div class="tail"></div>
+</body>
+</html>

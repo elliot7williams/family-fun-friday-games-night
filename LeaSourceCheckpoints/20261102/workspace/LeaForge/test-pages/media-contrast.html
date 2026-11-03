@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea preferred contrast media queries</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .probe { display: none; width: 96px; height: 24px; margin: 4px; }
+    #base { display: block; background: #e2e8f0; }
+    #responsive { display: block; width: 185px; height: 40px; margin: 8px; background: #e0f2fe; color: #0c4a6e; }
+    input { display: block; width: 184px; height: 30px; margin: 8px; }
+
+    @media (prefers-contrast) { #boolean { display: block; width: 101px; } }
+    @media (prefers-contrast: no-preference) {
+      #no-preference { display: block; width: 102px; }
+      #responsive { width: 185px; background: #e0f2fe; color: #0c4a6e; }
+    }
+    @media screen and (min-width: 700px) and (prefers-contrast: no-preference) {
+      #no-preference-combined { display: block; width: 103px; }
+    }
+    @media (prefers-contrast: more), (max-width: 800px) {
+      #alternative { display: block; width: 104px; }
+    }
+
+    @media (prefers-contrast: less) {
+      #less { display: block; width: 201px; }
+      #responsive { width: 235px; background: #fef3c7; color: #713f12; }
+      input { width: 234px; }
+    }
+    @media (prefers-contrast: more) {
+      #more { display: block; width: 211px; }
+      #responsive { width: 245px; background: #111827; color: #f9fafb; }
+      input { width: 244px; }
+    }
+    @media (prefers-contrast: custom) {
+      #custom { display: block; width: 221px; }
+      #responsive { width: 255px; background: #3f3f46; color: #fafafa; }
+      input { width: 254px; }
+    }
+    @media (min-width: 700px) {
+      @media (prefers-contrast: custom) {
+        #custom-nested { display: block; width: 222px; }
+      }
+    }
+    @media (prefers-contrast) {
+      @media (prefers-contrast: custom) { #boolean-custom { display: block; width: 223px; } }
+      @media (prefers-contrast: no-preference) { #boolean-conflict { display: block; } }
+    }
+    @media (prefers-contrast: no-preference) {
+      @media (prefers-contrast: custom) { #conflict { display: block; } }
+    }
+
+    @media (prefers-contrast: high) { #invalid-value { display: block; } }
+    @media (prefers-contrast >= more) { #invalid-range { display: block; } }
+    @media (prefers-contrast: custom) trailing { #invalid-trailing { display: block; } }
+  </style>
+  <style media="(prefers-contrast: custom)">
+    #style-custom { display: block; width: 224px; }
+  </style>
+</head>
+<body>
+  <p id="base" class="probe">Base</p>
+  <p id="boolean" class="probe">Boolean contrast preference</p>
+  <p id="no-preference" class="probe">No contrast preference</p>
+  <p id="no-preference-combined" class="probe">No preference and wide</p>
+  <p id="alternative" class="probe">More contrast or narrow</p>
+  <p id="less" class="probe">Less contrast</p>
+  <p id="more" class="probe">More contrast</p>
+  <p id="custom" class="probe">Custom contrast</p>
+  <p id="custom-nested" class="probe">Nested custom contrast</p>
+  <p id="boolean-custom" class="probe">Boolean and custom contrast</p>
+  <p id="style-custom" class="probe">Custom contrast style media</p>
+  <p id="boolean-conflict" class="probe">Boolean no-preference conflict</p>
+  <p id="conflict" class="probe">Conflicting contrast preferences</p>
+  <p id="invalid-value" class="probe">Unknown contrast preference</p>
+  <p id="invalid-range" class="probe">Invalid discrete range</p>
+  <p id="invalid-trailing" class="probe">Trailing media text</p>
+  <p id="responsive">Preferred contrast paint</p>
+  <input id="field" value="Retained preferred contrast value">
+</body>
+</html>

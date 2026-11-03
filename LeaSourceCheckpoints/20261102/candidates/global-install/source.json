@@ -1,0 +1,28 @@
+{
+  "budgetsChanged": false,
+  "files": [
+    {
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A",
+      "originalSha256": "FE5EFEC91B908D85359E47985772725E09ABA0D487EDD46D4B59E4677FA7C94F",
+      "sdkOriginalSha256": "11848A226794CE5D0D51F5002A17D33411B31F4934050A9DBF6E621EFC158F3E",
+      "name": "Dom.js",
+      "original": "I:\\LeaBuildStorage\\is-connected-source-20261102-v1\\Dom.js",
+      "path": "I:\\LeaBuildStorage\\global-install-source-20261102-v1\\Dom.js"
+    },
+    {
+      "sha256": "088847DC78DC1B70C5852A2C8934601110F82179A889AC9ADB1D1FF210A1B8EB",
+      "originalSha256": "EFEC260CF235650F90B677861A408280EE24768580B0F9C1A60DA471290CC200",
+      "sdkOriginalSha256": "EC4B6513A77230C3B8439568CC3FED41B7712CA3779182D38076880DCC83BC8A",
+      "name": "Dom.compact.js",
+      "original": "I:\\LeaBuildStorage\\is-connected-source-20261102-v1\\Dom.compact.js",
+      "path": "I:\\LeaBuildStorage\\global-install-source-20261102-v1\\Dom.compact.js"
+    }
+  ],
+  "globalDescriptorCallsRemoved": 1,
+  "candidateOnly": true,
+  "inverseVerified": true,
+  "verified": true,
+  "scope": "Merge timer/frame descriptor installation; same descriptor literals and order, internal frame locals initialized before the merged call. No claimed speed improvement or release qualification.",
+  "runtimeTested": false,
+  "negativeControls": 6
+}

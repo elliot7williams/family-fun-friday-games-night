@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Dynamic State</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    .card { width: 360px; margin: 6px 0; padding: 8px 8px 8px 6px; background: #edf7f2; color: #26313b; border-left: 2px solid #176b4d; }
+    .card:not(:hover) { font-family: Consolas, monospace; }
+    .card:hover { padding-left: 18px; background: #fff4d6; color: #a13b18; }
+    .card:hover strong { font-style: italic; }
+    .card a { color: #176b4d; }
+    .card a:hover { color: #7e22ce; font-weight: bold; text-decoration: none; }
+    input { width: 300px; margin: 6px 0; padding: 5px; color: #26313b; background: #f3f4f6; border: 1px solid #687684; }
+    input:not(:focus) { font-family: Consolas, monospace; }
+    input:focus { padding-left: 16px; color: #ffffff; background: #176b4d; font-family: Georgia, serif; }
+    button { margin: 6px 0; padding: 6px; }
+    button:focus { color: #ffffff; background: #7e22ce; }
+    table { width: 360px; margin-top: 8px; border: 1px solid #687684; }
+    td { padding: 6px; background: #f3f4f6; }
+    td:hover { padding-left: 20px; background: #dbeafe; color: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <h1>Dynamic CSS state</h1>
+  <section id="card" class="card">Point at <strong id="nested">nested words</strong> or the <a id="state-link" href="second.html">state link</a>.</section>
+  <input id="field" name="message" type="text" value="Keep this value" aria-label="Focus field">
+  <button id="action" type="button">Focus button</button>
+  <table><tr><td id="cell">Hover table cell</td></tr></table>
+</body>
+</html>

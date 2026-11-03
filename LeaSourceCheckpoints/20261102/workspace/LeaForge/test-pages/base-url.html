@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Base URL</title>
+  <base href="javascript:ignored">
+  <base href="../">
+  <base href="https://example.com/ignored/">
+  <link rel="stylesheet" href="test-pages/external.css">
+</head>
+<body>
+  <h1>Resolved document base</h1>
+  <p class="note">The linked stylesheet follows the document base.</p>
+  <a id="base-link" href="test-pages/second.html">Open the second page</a>
+  <img id="base-image" src="../assets/lea.ico" alt="Lea icon">
+  <form action="test-pages/form-result.html" method="get">
+    <input id="base-value" name="q" value="base">
+    <button id="base-submit" type="submit">Submit base form</button>
+  </form>
+  <a id="base-download" href="test-pages/download-sample.txt" download="base-download.txt">Download the sample</a>
+</body>
+</html>

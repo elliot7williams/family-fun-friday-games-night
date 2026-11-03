@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea White Space</title>
+  <style>
+    body { color: #20262e; background: #ffffff; }
+    p, pre { width: 190px; margin: 4px 0; padding: 4px; border: 1px solid #9aa4af; }
+    .nowrap { white-space: nowrap; overflow: hidden; height: 22px; }
+    .visible { white-space: nowrap; overflow: visible; }
+    .preserve { white-space: pre; overflow: clip; }
+    .wrap { white-space: pre-wrap; }
+    .line { white-space: pre-line; }
+    .crop { white-space: pre-wrap; overflow: auto; height: 30px; }
+    section { white-space: pre-line; }
+    table { width: 240px; border: 1px solid #18734b; }
+    td { height: 38px; padding: 4px; white-space: pre-wrap; overflow: hidden; }
+    .scroll { white-space: nowrap; overflow: scroll; height: 22px; }
+  </style>
+</head>
+<body>
+  <h1>White Space</h1>
+  <p class="nowrap">This sentence stays on one long line and is clipped at the compact box edge.</p>
+  <p class="visible">This sentence stays on one long line and remains visible beyond the compact box edge.</p>
+  <pre class="preserve">Alpha    Beta
+Gamma</pre>
+  <p class="wrap">One    two three four five six seven eight
+Second preserved line</p>
+  <p class="line">Line one     spaced
+Line two</p>
+  <p class="crop">First line has enough words to wrap in the box.
+Second line is below it.
+Third line is clipped.</p>
+  <section><p>Inherited     words
+Inherited line</p></section>
+  <table><tr><td>Cell    keeps spaces
+and wraps compact table text across more lines.</td></tr></table>
+  <p class="scroll">Scroll mode clips this long single line until inner scrolling is added.</p>
+</body>
+</html>

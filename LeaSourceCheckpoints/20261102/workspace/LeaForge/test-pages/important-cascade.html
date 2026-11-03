@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Important Cascade</title>
+  <style>
+    :root {
+      --brand: #176b4d;
+      --space: 6px;
+    }
+
+    .sheet-priority {
+      --brand: #7e22ce !important;
+      color: #a13b18 !important;
+      width: 140px !IMPORTANT;
+    }
+
+    #specific {
+      color: #334155 !important;
+      padding: 4px !important;
+    }
+
+    p#specific { color: #0f4c81 !important; }
+    #specific { padding: 9px !important; }
+
+    .order {
+      color: #a13b18 !important;
+      color: #334155;
+      color: #0f4c81 !important;
+      width: 91px !important;
+      width: 177px;
+    }
+
+    #shorthand {
+      margin: 8px !important;
+      margin-left: 23px;
+      padding: 5px;
+      padding-left: 19px !important;
+    }
+
+    #custom {
+      --tone: #176b4d !important;
+      --tone: #a13b18;
+      --gap: 7px !important;
+      color: var(--tone);
+      padding: var(--gap);
+      width: 220px;
+    }
+
+    #fallback {
+      --size: var(--missing, 133px) !important;
+      width: var(--size);
+    }
+
+    #literal {
+      --label: "text !important";
+      --wrapped: var(--missing, 17px !important);
+      color: #334155;
+    }
+
+    .hover {
+      --hover: #0f4c81;
+      color: var(--hover);
+      width: 100px;
+    }
+
+    #hover:hover {
+      --hover: #a13b18 !important;
+      width: 180px !important;
+    }
+
+    #hover {
+      --hover: #176b4d;
+      color: var(--hover);
+      width: 130px;
+    }
+
+    #media {
+      --media: #176b4d;
+      color: var(--media);
+      width: 205px;
+    }
+
+    #field { width: 240px !important; }
+    #field:hover { width: 170px !important; }
+
+    @media screen and (max-width: 500px) {
+      #media {
+        --media: #7e22ce !important;
+        width: 115px !important;
+      }
+
+      #field { width: 150px !important; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Important cascade</h1>
+  <p id="sheet" class="sheet-priority" style="--brand:#0f4c81;color:#334155;background:var(--brand);width:199px">Stylesheet priority</p>
+  <p id="inline" class="sheet-priority" style="--brand:#176b4d !important;color:#0f4c81 !important;background:var(--brand);width:190px !important">Inline priority</p>
+  <p id="specific">Specificity priority</p>
+  <p id="order" class="order">Declaration order</p>
+  <p id="shorthand">Shorthand priority</p>
+  <section id="custom">
+    Custom property priority
+    <p id="custom-child" style="--tone:#123f8c;color:var(--tone)">Inherited priority does not lock descendants</p>
+  </section>
+  <p id="fallback">Fallback priority</p>
+  <p id="literal">Literal marker boundary</p>
+  <p id="hover" class="hover">Hover priority</p>
+  <p id="media">Media priority</p>
+  <input id="field" value="Retained important value" style="width:300px">
+</body>
+</html>

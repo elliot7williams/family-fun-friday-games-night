@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Object Fit Test</title>
+  <style>
+    body { background: #ffffff; color: #123047; object-fit: cover; object-position: right bottom; }
+    img { display: block; margin: 4px; background: #ffffff; }
+    #fill { width: 120px; height: 80px; object-fit: fill; }
+    #contain { width: 120px; height: 100px; object-fit: contain; }
+    #cover-left { width: 120px; height: 100px; object-fit: cover; object-position: left top; }
+    #cover-right { width: 120px; height: 100px; object-fit: cover; object-position: right bottom; }
+    #none { width: 120px; height: 60px; object-fit: none; object-position: 25% 75%; }
+    #scale-down { width: 12px; height: 12px; object-fit: scale-down; object-position: center; }
+    #atomic { width: 80px; height: 40px; object-fit: contain; object-fit: stretch; }
+    #position-atomic { width: 80px; height: 40px; object-position: 13px 7px; object-position: left center bottom; }
+    #reset { width: 80px; height: 40px; object-fit: cover; object-fit: initial; object-position: right bottom; object-position: unset; }
+    #child { width: 80px; height: 40px; }
+    #variable { --lea-fit: cover; --lea-place: right center; width: 80px; height: 80px; object-fit: var(--lea-fit); object-position: var(--lea-place); }
+    #priority { width: 80px; height: 80px; object-fit: contain !important; object-position: left top !important; }
+    #mapped-fit { width: 160px; height: 120px; object-fit: contain; object-position: center; }
+    #dynamic { width: 80px; height: 80px; object-fit: contain; }
+    @media screen and (max-width: 400px) {
+      #dynamic { object-fit: cover; object-position: right bottom; }
+    }
+  </style>
+</head>
+<body>
+  <img id="fill" alt="Fill" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="contain" alt="Contain" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="cover-left" alt="Cover left" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="cover-right" alt="Cover right" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="none" alt="None" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="scale-down" alt="Scale down" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="atomic" alt="Atomic fit" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="position-atomic" alt="Atomic position" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="reset" alt="Reset" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <div id="parent"><img id="child" alt="Child" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg=="></div>
+  <img id="variable" alt="Variable" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="priority" style="object-fit:cover;object-position:right bottom" alt="Priority" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="mapped-fit" width="200" height="100" usemap="#fit-map" alt="Fitted map" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <map name="fit-map">
+    <area id="fit-left" shape="rect" coords="0,0,100,100" href="#fit-target" alt="Fitted left">
+    <area id="fit-default" shape="default" href="#fit-target" alt="Fitted default">
+  </map>
+  <p id="fit-target">Fit target</p>
+  <img id="dynamic" alt="Dynamic" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+</body>
+</html>

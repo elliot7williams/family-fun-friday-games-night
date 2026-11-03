@@ -1,0 +1,38 @@
+Firespider + Lea Print-command development build, 2026-10-28
+
+Extract the entire ZIP into a new folder and run Firespider Internet 19.exe.
+Keep all DLLs and ScriptWorker together. Requires Windows .NET Framework4.8 and
+exact .NET Runtime8.0.33 x64. This ZIP installs neither runtime, changes no default
+browser and does not replace your installed browser or project.
+
+Print click and the existing enabled-hover action now use Lea's native owned
+printer-selection path instead of casting Lea tabs to the old WebBrowser type.
+Cancel, shared print/preview reentry, accepted changed-tab rejection, busy and
+unknown-tab guards are tested. Printer preparation converts/validates the selected
+driver ticket and queries matching paper/imageable bounds. The driver controls
+orientation; Lea defaults remain .75in margins,100% scale, header/footer. Local
+filesystem paths are omitted from headers. Unresolved images are rejected.
+
+IMPORTANT: successful printer-job submission and physical output have NOT been
+verified. Do not treat this as a printing-ready release. No test job was sent to
+the default physical printer. Post-attempt errors warn that queue status may be
+uncertain; check the queue before manually retrying. Printer settings are remembered
+only within this browser instance; system defaults are not changed.
+
+Page Setup, silent Print, PDF-via-print and printer-friendly commands still need
+migration and may fail on Lea tabs. Ordinary document selection, configurable
+preview options, full CSS and image fidelity remain unfinished. Known heading/
+details layout gaps persist. Remote HTTP/HTTPS/UNC scripting remains OFF.
+
+This exact FCFAA/coreA85/view568/print3C014/normal worker60FF/Jint67F3 pairing
+passed its own15-stage current-machine host campaign with original deadlines and
+owned-process checks. One decoder ACL delta was classified by existing unchanged
+policy, not security certified. Separate focused checks cover actual Print cancel/
+guard paths and preview lifetime. Cold-start reliability, broad site compatibility,
+confinement/lifecycle/recovery, clean-PC delivery and complete Visual Studio SDK
+remain open. No speed improvement or final completion percentage is claimed.
+
+The Boot EXE is diagnostic; ordinary use starts Firespider Internet 19.exe.
+Runtime-only development ZIP, not a source SDK or off-device backup. Matching local
+source checkpoints are pinned in the manifest. ZIP readback and fresh-extraction
+smokes have separate receipts; extraction does not repeat all15 campaign stages.

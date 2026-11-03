@@ -1,0 +1,33 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Lea.Print.Range.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <OutputPath>bin\Release\</OutputPath>
+    <Optimize>true</Optimize>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="ReachFramework" />
+    <Reference Include="System.Printing" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Lea.Print"><HintPath>$(LeaPrintPath)</HintPath><Private>false</Private></Reference>
+    <Reference Include="Lea.Engine"><HintPath>$(LeaCorePath)</HintPath><Private>false</Private></Reference>
+    <Compile Include="PrintRange.cs" />
+    <Compile Include="PrintDevice.cs" />
+    <Compile Include="PrintDialog.cs" />
+    <Compile Include="PrintTicket.cs" />
+  </ItemGroup>
+  <Target Name="RequirePrintLibrary" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(LeaPrintPath)' == '' Or !Exists('$(LeaPrintPath)')" Text="Explicit matching LeaPrintPath required." />
+  </Target>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea wide gamut colors</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .swatch { display: block; width: 190px; height: 36px; margin: 12px; padding: 0; }
+    #a98-reference { background-color: color(a98-rgb 0.44091 0.49971 0.37408); }
+    #a98-percent { background-color: color(a98-rgb 44.091% 49.971% 37.408%); }
+    #a98-neutral { background-color: color(a98-rgb .5 .5 .5); }
+    #prophoto-reference { background-color: color(prophoto-rgb 0.36589 0.41717 0.31333); }
+    #prophoto-neutral { background-color: color(prophoto-rgb .5 .5 .5); }
+    #prophoto-toe { background-color: color(prophoto-rgb .03125 .03125 .03125); }
+    #rec2020-reference { background-color: color(rec2020 0.522 0.557 0.892); }
+    #rec2020-percent { background-color: color(rec2020 52.2% 55.7% 89.2%); }
+    #rec2020-neutral { background-color: color(rec2020 .5 .5 .5); }
+    #alpha { background-color: color(rec2020 0.522 0.557 0.892 / 50%); }
+    #gamut { background-color: color(rec2020 0.42053 0.97978 0.00579); }
+    #extended { background-color: color(prophoto-rgb 1.1 -.1 .2); }
+    #mix { background-color: color-mix(in srgb, color(a98-rgb 1 0 0), color(rec2020 0 0 1)); }
+    #shadow { background: white; box-shadow: 10px 0 0 color(a98-rgb 0.44091 0.49971 0.37408); }
+    #shadow-atomic {
+      background: white;
+      box-shadow: 4px 0 0 color(rec2020 0.522 0.557 0.892);
+      box-shadow: 8px 0 0 color(a98-rgb, 1, 0, 0);
+    }
+    #gradient { background-image: linear-gradient(90deg, color(a98-rgb 1 0 0), color(rec2020 0 0 1)); }
+    #gradient-atomic {
+      background-image: linear-gradient(90deg, color(prophoto-rgb 0 1 0), color(rec2020 0 0 1));
+      background-image: linear-gradient(90deg, color(a98-rgb-linear 1 0 0), blue);
+    }
+    #decor {
+      color: color(rec2020 0.522 0.557 0.892);
+      text-decoration: underline solid color(a98-rgb 0.44091 0.49971 0.37408) 3px;
+      text-shadow: 2px 2px 0 color(prophoto-rgb 0.36589 0.41717 0.31333);
+    }
+    :root { --wide-tone: color(prophoto-rgb 0.36589 0.41717 0.31333); }
+    #variable { background-color: var(--wide-tone); }
+    @layer gamut-base { #layered { background-color: color(a98-rgb 1 0 0); } }
+    @layer gamut-theme { #layered { background-color: color(rec2020 0.522 0.557 0.892); } }
+    #generated::before { content: "WGX "; color: color(a98-rgb 0.44091 0.49971 0.37408); text-shadow: 1px 1px 0 color(rec2020 0.522 0.557 0.892); }
+    #responsive { background-color: color(a98-rgb 1 0 0); }
+    @media (max-width: 600px) { #responsive { background-color: color(rec2020 0.522 0.557 0.892); } }
+    #supported-a98, #supported-prophoto, #supported-rec2020,
+    #unsupported-linear, #unsupported-profile, #unsupported-none,
+    #unsupported-comma, #unsupported-nested, #unsupported-missing { display: none; }
+    @supports (color: color(a98-rgb 1 0 0)) { #supported-a98 { display: block; } }
+    @supports (color: color(prophoto-rgb 1 0 0)) { #supported-prophoto { display: block; } }
+    @supports (color: color(rec2020 1 0 0)) { #supported-rec2020 { display: block; } }
+    @supports (color: color(a98-rgb-linear 1 0 0)) { #unsupported-linear { display: block; } }
+    @supports (color: color(--lea-profile 1 0 0)) { #unsupported-profile { display: block; } }
+    @supports (color: color(rec2020 none 0 0)) { #unsupported-none { display: block; } }
+    @supports (color: color(prophoto-rgb, 1, 0, 0)) { #unsupported-comma { display: block; } }
+    @supports (color: color(a98-rgb calc(1) 0 0)) { #unsupported-nested { display: block; } }
+    @supports (color: color(rec2020 1 0)) { #unsupported-missing { display: block; } }
+    input { width: 190px; height: 32px; margin: 12px; color: color(rec2020 0.522 0.557 0.892); background-color: color(rec2020 0.522 0.557 0.892 / 20%); border: 3px solid color(a98-rgb 0.44091 0.49971 0.37408); }
+    svg { width: 190px; height: 70px; margin: 12px; }
+    #svg-fill { fill: color(prophoto-rgb 0.36589 0.41717 0.31333); stroke: color(rec2020 0.522 0.557 0.892); stroke-width: 4; }
+    #svg-stop-a { stop-color: color(a98-rgb 1 0 0); }
+    #svg-stop-b { stop-color: color(rec2020 0 0 1); }
+  </style>
+</head>
+<body>
+  <p id="a98-reference" class="swatch">A98 reference</p>
+  <p id="a98-percent" class="swatch">A98 percentages</p>
+  <p id="a98-neutral" class="swatch">A98 neutral transfer</p>
+  <p id="prophoto-reference" class="swatch">ProPhoto reference</p>
+  <p id="prophoto-neutral" class="swatch">ProPhoto neutral transfer</p>
+  <p id="prophoto-toe" class="swatch">ProPhoto linear toe</p>
+  <p id="rec2020-reference" class="swatch">Rec. 2020 reference</p>
+  <p id="rec2020-percent" class="swatch">Rec. 2020 percentages</p>
+  <p id="rec2020-neutral" class="swatch">Rec. 2020 neutral transfer</p>
+  <p id="alpha" class="swatch">Alpha</p>
+  <p id="gamut" class="swatch">Rec. 2020 gamut mapped</p>
+  <p id="extended" class="swatch">Extended ProPhoto</p>
+  <p id="mix" class="swatch">Mixed wide-gamut stops</p>
+  <p id="shadow" class="swatch">Shadow</p>
+  <p id="shadow-atomic" class="swatch">Atomic shadow</p>
+  <p id="gradient" class="swatch">Gradient</p>
+  <p id="gradient-atomic" class="swatch">Atomic gradient</p>
+  <p id="decor" class="swatch">Decoration</p>
+  <p id="variable" class="swatch">Variable</p>
+  <p id="layered" class="swatch">Layered</p>
+  <p id="generated" class="swatch">Generated</p>
+  <p id="responsive" class="swatch">Responsive</p>
+  <p id="supported-a98" class="swatch">A98 supported</p>
+  <p id="supported-prophoto" class="swatch">ProPhoto supported</p>
+  <p id="supported-rec2020" class="swatch">Rec. 2020 supported</p>
+  <p id="unsupported-linear" class="swatch">Unsupported A98 linear alias</p>
+  <p id="unsupported-profile" class="swatch">Unsupported custom profile</p>
+  <p id="unsupported-none" class="swatch">Unsupported none channel</p>
+  <p id="unsupported-comma" class="swatch">Unsupported comma syntax</p>
+  <p id="unsupported-nested" class="swatch">Unsupported nested function</p>
+  <p id="unsupported-missing" class="swatch">Unsupported missing channel</p>
+  <input id="field" value="Retained wide gamut field">
+  <svg id="svg" viewBox="0 0 190 70" role="img" aria-label="Wide gamut color vector">
+    <defs>
+      <linearGradient id="wide-gradient"><stop id="svg-stop-a" offset="0%"></stop><stop id="svg-stop-b" offset="100%"></stop></linearGradient>
+    </defs>
+    <rect id="svg-fill" x="4" y="4" width="80" height="62"></rect>
+    <rect id="svg-gradient" x="98" y="4" width="88" height="62" fill="url(#wide-gradient)"></rect>
+  </svg>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Lea.Script.Win</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <LangVersion>12.0</LangVersion>
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="Lea.Engine">
+      <HintPath>..\bin\$(Configuration)\Lea.Engine.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Lea.Win">
+      <HintPath>..\bin\$(Configuration)\Lea.Win.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <ProjectReference Include="..\Lea.Script\Lea.Script.csproj">
+      <Name>Lea.Script</Name>
+    </ProjectReference>
+    <Compile Include="W.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

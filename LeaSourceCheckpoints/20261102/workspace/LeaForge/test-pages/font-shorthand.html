@@ -1,0 +1,33 @@
+<!doctype html>
+<html><head><title>Font shorthand regression</title><style>
+#sheet { font: 24px Arial; }
+</style></head><body>
+<p id="control" style="font-size:24px;font-family:Arial;font-weight:bold;font-style:italic;line-height:36px">Control</p>
+<p id="invalid" style="font-size:19px;font-family:Arial;font:24px">Invalid missing family</p>
+<p id="plain" style="font:24px Arial">Plain</p>
+<p id="styled" style="font:italic bold 22px Arial">Styled</p>
+<p id="pixels" style="font:24px/36px Arial">Pixels</p>
+<p id="multiple" style="font:24px / 1.5 Arial">Multiple</p>
+<p id="quoted" style="font:24px 'Times New Roman', serif">Quoted family</p>
+<p id="reset" style="font-weight:bold;font-style:italic;line-height:2;font:24px Arial">Reset</p>
+<p id="later" style="font:24px Arial;font-size:30px">Later longhand</p>
+<p id="earlier" style="font-size:30px;font:24px Arial">Later shorthand</p>
+<p id="important" style="font:24px Arial!important;font-size:30px">Important shorthand</p>
+<p id="important-long" style="font-size:30px!important;font:24px Arial">Important longhand</p>
+<p id="sheet">Stylesheet</p>
+<p id="duplicate-style" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:italic italic 24px serif">Invalid</p>
+<p id="duplicate-weight" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:bold 700 24px serif">Invalid</p>
+<p id="bad-line" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:24px/-1 serif">Invalid</p>
+<p id="empty-line" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:24px/ serif">Invalid</p>
+<p id="trailing-family" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:24px serif,">Invalid</p>
+<p id="bad-unit" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:24qu serif">Invalid</p>
+<p id="bad-family" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:24px serif, 3oops">Invalid</p>
+<p id="oversize" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:200px serif">Unsupported bounded size</p>
+<p id="normal-overflow" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:normal normal normal normal normal 24px serif">Invalid</p>
+<p id="extra-slash" style="font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:2;font:24px/1.5/2 serif">Invalid</p>
+<p id="variable" style="--face:italic bold 22px Arial;font:var(--face)">Variable</p>
+<div style="font-size:24px;font-family:Arial;font-weight:bold;font-style:italic;line-height:36px">
+<p id="inherited" style="font-size:10px;font:inherit">Inherited</p>
+<p id="unset" style="font-size:10px;font:unset">Unset</p>
+</div>
+</body></html>

@@ -1,0 +1,14092 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Net;
+using System.Net.Cache;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Lea.Engine
+{
+    // Lea's .NET Framework-compatible engine surface.
+    public sealed class E
+    {
+        private const int MaxCachePage = 2 * 1024 * 1024;
+        private const int MaxHtml = 4 * 1024 * 1024;
+        private const int MaxCss = 256 * 1024;
+        private const int MaxStyleLinks = 8;
+        private const int MaxCssRules = 1024;
+        private const int MaxHostSheets = 8;
+        private const int MaxHostSheet = 64 * 1024;
+        private const int MaxHostCss = 128 * 1024;
+        private const int MaxMediaDepth = 4;
+        private const int MaxMediaGroups = 8;
+        private const int MaxMediaText = 2048;
+        private const int MaxSupportsDepth = 4;
+        private const int MaxSupportsTerms = 8;
+        private const int MaxSupportsText = 2048;
+        private const int MaxContainerDepth = 4;
+        private const int MaxContainerTerms = 8;
+        private const int MaxContainerText = 2048;
+        private const int MaxContainerNames = 4;
+        private const int MaxContainerName = 32;
+        private const int MaxContainerSizes = 256;
+        private const int MaxCssLayers = 16;
+        private const int MaxCssLayerDepth = 3;
+        private const int MaxCssLayerName = 32;
+        private const int MaxViewport = 8192;
+        private const int MaxCssFunctionGroups = 8;
+        private const int MaxCssFunctionTests = 16;
+        private const int MaxCssRelativeParts = 4;
+        private const int MaxHasVisits = 4096;
+        private const int MaxNthExpression = 32;
+        private const int MaxNthValue = 8192;
+        private const int MaxCssDeclarations = 128;
+        private const int MaxCustomProperties = 32;
+        private const int MaxCustomName = 64;
+        private const int MaxCustomValue = 512;
+        private const int MaxVarDepth = 8;
+        private const int MaxVarValue = 1024;
+        private const int MaxColorText = 160;
+        private const int MaxGradientText = 1024;
+        private const int MaxGradientStops = 8;
+        private const int MaxBackgroundText = 4096;
+        private const int MaxBackgroundLength = 2000;
+        private const int MaxMarkerDeclarations = 16;
+        private const int MaxMarkerContentItems = 8;
+        private const int MaxMarkerCounterDepth = 8;
+        private const int MaxMarkerCounterSeparator = 32;
+        private const int MaxQuotePairs = 8;
+        private const int MaxQuoteDepth = 8;
+        private const int MaxQuoteText = 32;
+        private const int MaxCounterEntries = 8;
+        private const int MaxCounterName = 32;
+        private const int MaxCounterOperations = 8;
+        private const int MaxCounterValue = 999999;
+        private const int MaxMarkerStyle = 1024;
+        private const int MaxMarkerText = 128;
+        private const int MaxPost = 10 * 1024 * 1024;
+        private const long MaxDownload = 64L * 1024 * 1024;
+        private const int MaxFind = 256;
+        private const int MaxDiagnosticNodes = 512;
+        private const int MaxDiagnosticRules = 256;
+        private const int MaxDiagnosticRequests = 32;
+        private const int MaxHtmlTokens = 32768;
+        private const int MaxHtmlNodes = 8192;
+        private const int MaxHtmlDepth = 128;
+        private const int MaxHtmlAttributes = 128;
+        private const int MaxHtmlName = 64;
+        private const int MaxHtmlAttributeText = 64 * 1024;
+        private const int MaxHtmlAttributeValue = 16 * 1024;
+        private const int MaxBaseUrl = 4096;
+        private const int MaxQueryLength = 1024;
+        private const int MaxQueryGroups = 16;
+        private const int MaxQueryParts = 16;
+        private const int MaxQueryResults = 256;
+        private const int MaxFragment = 4096;
+        private const int MaxHistory = 128;
+        private const int MaxGaugeText = 64;
+        private const double MaxGaugeValue = 1000000000000D;
+        private const int MaxImageMaps = 32;
+        private const int MaxMapAreas = 64;
+        private const int MaxMapCoordinates = 128;
+        private const double MaxMapCoordinate = 1000000D;
+        private const int MaxSvgShapes = 128;
+        private const int MaxSvgPoints = 128;
+        private const int MaxSvgDepth = 8;
+        private const int MaxSvgText = 256;
+        private const int MaxSvgGradients = 16;
+        private const int MaxSvgStops = 16;
+        private const int MaxSvgGradientLinks = 4;
+        private const int MaxSvgGradientId = 64;
+        private const int MaxSvgSources = 64;
+        private const int MaxSvgClips = 16;
+        private const int MaxSvgClipShapes = 32;
+        private const int MaxSvgUseLinks = 4;
+        private const int MaxSvgDashes = 16;
+        private const int MaxSvgDashText = 256;
+        private const int MaxSvgTransforms = 16;
+        private const int MaxSvgTransformText = 1024;
+        private const double MaxSvgCoordinate = 100000D;
+        private const double MaxSvgSize = 2000D;
+        private const double MaxSvgMiterLimit = 64D;
+        private const double MinSvgView = .01D;
+        private const double MaxSvgMatrixScale = 10000D;
+        private const double MaxSvgMatrixTranslate = 1000000D;
+        private const int MaxTabIndex = 32767;
+        private const int MaxAutofocusCandidates = 32;
+        private const int MaxAccessKeyText = 256;
+        private const int MaxAccessKeyTokens = 16;
+        private const int MaxAccessibilityNodes = 512;
+        private const int MaxAccessibilityReferences = 16;
+        private const int MaxAccessibilityText = 512;
+        private const int MinTimeout = 100;
+        private const int MaxTimeout = 60000;
+        private const int DefaultTimeout = 15000;
+        private static readonly Pd[] NoDeclarations = new Pd[0];
+        private static readonly Se[] NoSelectors = new Se[0];
+        private static readonly Hr[] NoRelatives = new Hr[0];
+        private static readonly Encoding HostUtf8 = new UTF8Encoding(false, true);
+        private static readonly Uri ListStyleValidationOrigin = new Uri("http://lea.invalid/");
+        private readonly W web = new W();
+        private readonly Pc disk = new Pc();
+        private readonly List<He> hs = new List<He>();
+        private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.Ordinal);
+        private readonly List<string> lru = new List<string>();
+        private readonly List<string> requests = new List<string>();
+        private int at = -1;
+        private bool busy;
+        private int cm = 8;
+        private int cs = 60;
+        private int ch;
+        private int vw = 1024;
+        private int vh = 768;
+        private int dp = 96;
+        private char th = 'l';
+        private char rm = 'n';
+        private char pc = 'n';
+        private char pdt = 'n';
+        private char pt = 'f';
+        private bool hv = true;
+        private char ap = 'f';
+        private bool ah = true;
+        private bool je = true;
+        private bool jb = true;
+        private long jg;
+        private Stream download;
+        private bool stopped;
+        private CancellationTokenSource inputBudget;
+        private Task inputEnd;
+
+        public P At { get { return Current(); } }
+        public bool CanBk { get { return at > 0; } }
+        public bool CanFw { get { return at < hs.Count - 1; } }
+        public bool Busy { get { return busy; } }
+        // Optional host guard for document navigation, not redirects or resources.
+        public Func<Uri, bool> Ng { get; set; }
+        public int Vw
+        {
+            get { return vw; }
+            set { Vz(value, vh); }
+        }
+        public int Vh
+        {
+            get { return vh; }
+            set { Vz(vw, value); }
+        }
+        public int Dp
+        {
+            get { return dp; }
+            set
+            {
+                var next = Math.Max(1, Math.Min(960, value));
+                if (dp == next) return;
+                dp = next;
+                ApplyViewport(At);
+            }
+        }
+        public char Th
+        {
+            get { return th; }
+            set
+            {
+                var next = Char.ToLowerInvariant(value);
+                if (next != 'l' && next != 'd' || th == next) return;
+                th = next;
+                ApplyViewport(At);
+            }
+        }
+        public char Rm
+        {
+            get { return rm; }
+            set
+            {
+                var next = Char.ToLowerInvariant(value);
+                if (next != 'n' && next != 'r' || rm == next) return;
+                rm = next;
+                ApplyViewport(At);
+            }
+        }
+        public char Pc
+        {
+            get { return pc; }
+            set
+            {
+                var next = Char.ToLowerInvariant(value);
+                if (next != 'n' && next != 'l' && next != 'm' && next != 'c' || pc == next) return;
+                pc = next;
+                ApplyViewport(At);
+            }
+        }
+        public char Pdt
+        {
+            get { return pdt; }
+            set
+            {
+                var next = Char.ToLowerInvariant(value);
+                if (next != 'n' && next != 'r' || pdt == next) return;
+                pdt = next;
+                ApplyViewport(At);
+            }
+        }
+        public char Pt
+        {
+            get { return pt; }
+            set { Mi(value, hv, ap, ah); }
+        }
+        public bool Hv
+        {
+            get { return hv; }
+            set { Mi(pt, value, ap, ah); }
+        }
+        public char Ap
+        {
+            get { return ap; }
+            set { Mi(pt, hv, value, ah); }
+        }
+        public bool Ah
+        {
+            get { return ah; }
+            set { Mi(pt, hv, ap, value); }
+        }
+        public void Mi(char pointer, bool hover, char anyPointer, bool anyHover)
+        {
+            var nextPointer = Char.ToLowerInvariant(pointer);
+            var nextAnyPointer = Char.ToLowerInvariant(anyPointer);
+            if (nextPointer != 'n' && nextPointer != 'c' && nextPointer != 'f' ||
+                nextAnyPointer != 'n' && nextAnyPointer != 'c' && nextAnyPointer != 'f' && nextAnyPointer != 'b') return;
+            if (pt == nextPointer && hv == hover && ap == nextAnyPointer && ah == anyHover) return;
+            pt = nextPointer;
+            hv = hover;
+            ap = nextAnyPointer;
+            ah = anyHover;
+            ApplyViewport(At);
+        }
+        public void Vz(int width, int height)
+        {
+            var nextWidth = Math.Max(1, Math.Min(MaxViewport, width));
+            var nextHeight = Math.Max(1, Math.Min(MaxViewport, height));
+            if (vw == nextWidth && vh == nextHeight) return;
+            vw = nextWidth;
+            vh = nextHeight;
+            ApplyViewport(At);
+        }
+        public int Cm
+        {
+            get { return cm; }
+            set { cm = Math.Max(0, Math.Min(16, value)); TrimCache(); }
+        }
+        public int Cc { get { return cache.Count; } }
+        public int Ch { get { return ch; } }
+        public string Cd
+        {
+            get { return disk.P; }
+            set
+            {
+                var prior = disk.P;
+                disk.P = value;
+                if (!String.Equals(prior, disk.P, StringComparison.OrdinalIgnoreCase)) Cl();
+            }
+        }
+        public int Cx { get { return disk.Mx; } set { disk.Mx = value; } }
+        public long Cb { get { return disk.Mb; } set { disk.Mb = value; } }
+        public int Dc { get { return disk.N; } }
+        public long Db { get { return disk.B; } }
+        public int Kc { get { return web.Kc; } }
+        public int Km { get { return W.CookieMax; } }
+        public long Dm { get { return MaxDownload; } }
+        public int Hm { get { return MaxHtml; } }
+        public int Csm { get { return MaxCss; } }
+        public int Tm
+        {
+            get { return web.Tm; }
+            set { web.Tm = Math.Max(MinTimeout, Math.Min(MaxTimeout, value)); }
+        }
+        public bool Je
+        {
+            get { return je; }
+            set
+            {
+                if (je == value) return;
+                je = value;
+                jg++;
+                ApplyViewport(At);
+            }
+        }
+        public long Jg { get { return jg; } }
+        public bool Pv
+        {
+            get { return web.Pv; }
+            set
+            {
+                if (web.Pv == value) return;
+                web.Pv = value;
+                Cl();
+            }
+        }
+        public int Cs
+        {
+            get { return cs; }
+            set
+            {
+                var next = Math.Max(0, Math.Min(86400, value));
+                if (cs == next) return;
+                cs = next;
+                Cl();
+                Cdl();
+            }
+        }
+
+        public void Cl()
+        {
+            cache.Clear();
+            lru.Clear();
+        }
+
+        public void Cdl()
+        {
+            disk.Cl();
+        }
+
+        public void Kcl()
+        {
+            web.Kcl();
+            Cl();
+        }
+
+        // Dy reapplies compiled CSS for compact dynamic selector state.
+        public P Dy(P page, N hover, N focus)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            var rules = page.R as List<R>;
+            if (rules == null) return page;
+            if (!Owns(page.D, hover)) hover = null;
+            if (!Owns(page.D, focus)) focus = null;
+            if (Object.ReferenceEquals(page.Hn, hover) && Object.ReferenceEquals(page.Fc, focus)) return page;
+
+            ClearState(page.D);
+            for (var node = hover; node != null; node = node.Up) node.Hv = true;
+            if (focus != null) focus.Fc = true;
+            page.Hn = hover;
+            page.Fc = focus;
+
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return page;
+        }
+
+        // Cz atomically applies one bounded host content-box snapshot.
+        public int Cz(P page, IList<Cz> sizes)
+        {
+            QueryPage(page);
+            if (sizes == null || sizes.Count > MaxContainerSizes) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null) return 0;
+            var next = new Dictionary<N, Cz>();
+            foreach (var size in sizes)
+            {
+                if (size == null || size.E == null || !Owns(page.D, size.E) ||
+                    size.W < 0 || size.W > MaxViewport || size.H < 0 || size.H > MaxViewport ||
+                    next.ContainsKey(size.E)) return 0;
+                next[size.E] = size;
+            }
+            if (SameContainerSizes(page.Czs, next)) return 0;
+
+            foreach (var prior in page.Czs.Keys)
+            {
+                prior.Cv = false;
+                prior.Cw = 0;
+                prior.Ch = 0;
+            }
+            page.Czs.Clear();
+            foreach (var pair in next)
+            {
+                pair.Key.Cw = pair.Value.W;
+                pair.Key.Ch = pair.Value.H;
+                pair.Key.Cv = true;
+                page.Czs[pair.Key] = pair.Value;
+            }
+
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return 1;
+        }
+
+        private static bool SameContainerSizes(IDictionary<N, Cz> left, IDictionary<N, Cz> right)
+        {
+            if (left == null || right == null || left.Count != right.Count) return false;
+            foreach (var pair in left)
+            {
+                Cz size;
+                if (!right.TryGetValue(pair.Key, out size) || pair.Value.W != size.W || pair.Value.H != size.H) return false;
+            }
+            return true;
+        }
+
+        // Ss installs or replaces a bounded named author sheet without changing the DOM.
+        public int Ss(P page, string key, string source)
+        {
+            QueryPage(page);
+            if (!SheetKey(key) || source == null || source.Length > MaxHostSheet) return 0;
+            int bytes;
+            try { bytes = HostUtf8.GetByteCount(source); }
+            catch (EncoderFallbackException) { return 0; }
+            if (bytes > MaxHostSheet) return 0;
+            var authored = page.Rb as List<R>;
+            if (authored == null) return 0;
+            var sheets = page.Rh as List<Sh>;
+            var next = sheets == null ? new List<Sh>() : new List<Sh>(sheets);
+            var index = -1;
+            var length = bytes;
+            var count = authored.Count;
+            for (var at = 0; at < next.Count; at++)
+            {
+                if (next[at].K == key)
+                {
+                    if (next[at].X == source) return 1;
+                    index = at;
+                }
+                else { length += next[at].Sz; count += next[at].Rs.Count; }
+            }
+            if (length > MaxHostCss || index < 0 && next.Count == MaxHostSheets) return 0;
+            var compiled = new List<R>();
+            var order = 0;
+            CssSource(source, page.Bu ?? page.U, compiled, ref order, CssMedia(""), 0, MaxCssRules + 1, "",
+                new Dictionary<string, int>(StringComparer.Ordinal), "");
+            if (count + compiled.Count > MaxCssRules) return 0;
+            var sheet = new Sh(key, source, bytes, compiled);
+            if (index < 0) next.Add(sheet); else next[index] = sheet;
+            SetSheets(page, authored, next);
+            return 1;
+        }
+
+        public int Sd(P page, string key)
+        {
+            QueryPage(page);
+            if (!SheetKey(key)) return 0;
+            var sheets = page.Rh as List<Sh>;
+            if (sheets == null) return 0;
+            var index = sheets.FindIndex(sheet => sheet.K == key);
+            if (index < 0) return 0;
+            var next = new List<Sh>(sheets);
+            next.RemoveAt(index);
+            SetSheets(page, (List<R>)page.Rb, next);
+            return 1;
+        }
+
+        private static bool SheetKey(string key)
+        {
+            if (String.IsNullOrEmpty(key) || key.Length > 32) return false;
+            foreach (var value in key)
+                if (!(value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z' ||
+                    value >= '0' && value <= '9' || value == '-' || value == '_')) return false;
+            return true;
+        }
+
+        private void SetSheets(P page, List<R> authored, List<Sh> sheets)
+        {
+            var layerNames = new List<string>();
+            var layerRules = new List<R>(authored);
+            layerRules.Sort(CompareLayerRules);
+            foreach (var rule in layerRules)
+                if (rule.L >= 0 && !layerNames.Contains(rule.Ln)) layerNames.Add(rule.Ln);
+            foreach (var sheet in sheets)
+            {
+                layerRules = new List<R>(sheet.Rs);
+                layerRules.Sort(CompareLayerRules);
+                foreach (var rule in layerRules)
+                    if (rule.L >= 0 && !layerNames.Contains(rule.Ln) && layerNames.Count < MaxCssLayers) layerNames.Add(rule.Ln);
+            }
+            var layerRanks = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (var index = 0; index < layerNames.Count; index++) layerRanks[layerNames[index]] = index;
+            var sourceRules = new List<R>();
+            var ordered = new List<R>(authored);
+            ordered.Sort(CompareSourceRules);
+            sourceRules.AddRange(ordered);
+            foreach (var sheet in sheets)
+            {
+                ordered = new List<R>(sheet.Rs);
+                ordered.Sort(CompareSourceRules);
+                sourceRules.AddRange(ordered);
+            }
+            var all = new List<R>(sourceRules.Count);
+            var order = 0;
+            foreach (var rule in sourceRules)
+            {
+                var layer = -1;
+                if (rule.L >= 0 && !layerRanks.TryGetValue(rule.Ln, out layer)) continue;
+                all.Add(new R(rule, order++, layer));
+            }
+            all.Sort(CompareRules);
+            page.Rh = sheets.Count == 0 ? null : sheets;
+            page.Sn = sheets.Count;
+            page.Ra = all;
+            ApplyViewport(page);
+        }
+
+        // Jb lets an optional runtime own classic scripts without disabling typed mutations.
+        public bool Jb { get { return jb; } set { jb = value; } }
+
+        public bool Jn(P page, N element)
+        {
+            QueryPage(page);
+            return element != null && Connected(page.D, element);
+        }
+
+        // Js runs only Lea's bounded allow-listed page commands.
+        public int Js(P page, string code)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (!je) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null) return 0;
+            var count = J.Run(page, code);
+            if (count == 0) return 0;
+            page.Jc = (int)Math.Min(Int32.MaxValue, (long)page.Jc + count);
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return count;
+        }
+
+        // Jv applies one literal, typed value without parsing code or expanding variables.
+        public int Jv(P page, N element, string command, string value)
+        {
+            QueryPage(page);
+            if (!je || value == null || value.Length > 1024 ||
+                element != null && !Connected(page.D, element)) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null || !J.Put(page, element, command, value)) return 0;
+            page.Jc = (int)Math.Min(Int32.MaxValue, (long)page.Jc + 1);
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs)
+                if (field.El != null && Connected(page.D, field.El)) fields[field.El] = field;
+            foreach (var node in new List<N>(page.Fr.Keys))
+                if (!Connected(page.D, node)) page.Fr.Remove(node);
+            if (page.Hn != null && !Connected(page.D, page.Hn)) page.Hn = null;
+            if (page.Fc != null && !Connected(page.D, page.Fc)) page.Fc = null;
+            if (page.Kq != null && !Connected(page.D, page.Kq)) page.Kq = null;
+            Rebuild(page, rules, fields);
+            return 1;
+        }
+
+        private static bool Connected(N root, N node)
+        {
+            for (var current = node; current != null; current = current.Up)
+            {
+                if (Object.ReferenceEquals(current, root)) return true;
+                if (current.Up == null || !current.Up.C.Contains(current)) return false;
+            }
+            return false;
+        }
+
+        // Su reports whether this Lea build accepts a bounded CSS condition.
+        public bool Su(string condition) { return Suc(condition); }
+        public bool Su(string property, string value) { return Sup(property, value); }
+
+        // Mq evaluates Lea's bounded media-query subset against the live host state.
+        public bool Mq(string query)
+        {
+            return Mqs(query, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt, pt, hv ? 'h' : 'n', ap, ah ? 'h' : 'n');
+        }
+
+        // Ck runs a page element's safe Lea click commands.
+        public int Ck(P page, N element)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (element == null || !Owns(page.D, element)) return 0;
+            var code = element.Av("data-lea");
+            if (String.IsNullOrWhiteSpace(code) && jb) code = element.Av("onclick");
+            return String.IsNullOrWhiteSpace(code) ? 0 : Js(page, code);
+        }
+
+        // Kp takes and clears one page-command focus request.
+        public N Kp(P page)
+        {
+            QueryPage(page);
+            var target = page.Kq;
+            page.Kq = null;
+            return target;
+        }
+
+        // Ds toggles the bounded open state of one details disclosure.
+        public int Ds(P page, N element)
+        {
+            QueryPage(page);
+            var details = Disclosure(element);
+            if (details == null) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null) return 0;
+            details.Op = !details.Op;
+            if (details.Op) details.A["open"] = "";
+            else details.A.Remove("open");
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return 1;
+        }
+
+        // Rv reveals a target hidden by closed details in one retained rebuild.
+        public int Rv(P page, N element)
+        {
+            QueryPage(page);
+            if (element == null || !Owns(page.D, element)) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null) return 0;
+            var count = 0;
+            for (var current = element.Up; current != null; current = current.Up)
+            {
+                if (current.K != "details" || current.Op) continue;
+                current.Op = true;
+                current.A["open"] = "";
+                count++;
+            }
+            if (count == 0) return 0;
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return count;
+        }
+
+        // Ud conservatively detects field data that a URL-only reload could lose.
+        public bool Ud(P page)
+        {
+            if (page == null) return true;
+            QueryPage(page);
+            if (page.Fr.Count + page.Fs.Count > MaxHtmlNodes) return true;
+            foreach (var field in page.Fr.Values) if (KeepField(field)) return true;
+            foreach (var field in page.Fs) if (KeepField(field)) return true;
+            return false;
+        }
+
+        private static bool KeepField(Fi field)
+        {
+            if (field == null || field.Fp.Count > 0 || field.C != field.Dc || field.Si != field.Di ||
+                !String.Equals(field.V, field.D, StringComparison.Ordinal)) return true;
+            if (field.Ds || field.Ro) return false;
+            switch (field.K)
+            {
+                case "checkbox": case "radio": case "select": case "range": case "color":
+                case "button": case "submit": case "reset": case "file": case "hidden": return false;
+                default: return !String.IsNullOrEmpty(field.V);
+            }
+        }
+
+        // Gt returns and clears one bounded page navigation request.
+        public Uri Gt(P page)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (!page.Gp) return null;
+            var target = page.Gu;
+            page.Gu = null;
+            page.Gp = false;
+            return target;
+        }
+
+        // Dg captures bounded page and engine diagnostics for developer tools.
+        public G Dg(P page)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            var rules = page.R as List<R>;
+            var result = new G
+            {
+                U = page.U,
+                T = page.T ?? "",
+                St = page.St,
+                Ct = page.Ct ?? "",
+                Sz = page.Sz,
+                Ca = page.Ca,
+                N = page.N,
+                B = page.Bs.Count,
+                L = page.Ls.Count,
+                F = page.Fs.Count,
+                C = rules == null ? 0 : rules.Count,
+                Sn = page.Sn,
+                J = page.Jc,
+                V = page.Vs.Count,
+                M = page.Ms.Count,
+                Vw = page.Vw,
+                Vh = page.Vh,
+                Dp = page.Dp,
+                Th = page.Th,
+                Rm = page.Rm,
+                Pc = page.Pc,
+                Pdt = page.Pdt,
+                Pt = page.Pt,
+                Hv = page.Hv,
+                Ap = page.Ap,
+                Ah = page.Ah,
+                Je = page.Je,
+                Vc = page.S == null ? 0 : page.S.Vc,
+                Cc = Cc,
+                Ch = Ch,
+                Kc = Kc,
+                Dc = Dc,
+                Db = Db,
+                Dh = disk.H,
+                Dw = disk.W,
+                Dr = disk.R,
+                De = disk.E
+            };
+            DiagnosticNodes(page.D, 0, result.Ns);
+            if (rules != null)
+                foreach (var rule in rules)
+                {
+                    foreach (var declaration in rule.Ds) if (declaration.I) result.Ic++;
+                    if (result.Cs.Count < MaxDiagnosticRules)
+                        result.Cs.Add((rule.Md.Length == 0 ? "" : rule.Md + " ") + Short(rule.Q, 96) + " { " + Short(rule.V, 144) + " } [" + rule.W + "]");
+                }
+            lock (requests)
+                foreach (var request in requests) result.Rs.Add(request);
+            result.Ms.Add("commands " + page.Jc);
+            foreach (var message in page.Ms) result.Ms.Add("alert " + Short(message, 180));
+            var names = new List<string>(page.Vs.Keys);
+            names.Sort(StringComparer.OrdinalIgnoreCase);
+            foreach (var name in names) result.Vs.Add(name + " = " + Short(page.Vs[name], 180));
+            return result;
+        }
+
+        public void Dcl()
+        {
+            lock (requests) requests.Clear();
+        }
+
+        // Axs exposes Lea's bounded semantic accessibility list.
+        public IList<Ax> Axs(P page)
+        {
+            QueryPage(page);
+            return page.Axs;
+        }
+
+        // Ax returns the first semantic record owned by one document element.
+        public Ax Ax(P page, N element)
+        {
+            QueryPage(page);
+            if (element == null || !Owns(page.D, element)) return null;
+            foreach (var item in page.Axs)
+                if (Object.ReferenceEquals(item.El, element)) return item;
+            return null;
+        }
+
+        // Ti parses one bounded authored tabindex; null means omitted or invalid.
+        public int? Ti(N element)
+        {
+            if (element == null || !element.A.ContainsKey("tabindex")) return null;
+            var value = element.Av("tabindex").Trim();
+            if (value.Length == 0 || value.Length > 16) return null;
+            var digit = value[0] == '+' || value[0] == '-' ? 1 : 0;
+            if (digit == value.Length) return null;
+            for (var index = digit; index < value.Length; index++)
+                if (value[index] < '0' || value[index] > '9') return null;
+            long number;
+            if (!Int64.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+                return value[0] == '-' ? -MaxTabIndex : MaxTabIndex;
+            return (int)Math.Max(-MaxTabIndex, Math.Min(MaxTabIndex, number));
+        }
+
+        // Aks returns bounded, unique ASCII access-key alternatives in authored order.
+        public IList<string> Aks(N element)
+        {
+            var result = new List<string>();
+            if (element == null || !element.A.ContainsKey("accesskey")) return result.AsReadOnly();
+            var source = element.Av("accesskey");
+            if (source.Length == 0 || source.Length > MaxAccessKeyText) return result.AsReadOnly();
+            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var at = 0;
+            while (at < source.Length && result.Count < MaxAccessKeyTokens)
+            {
+                while (at < source.Length && AsciiWhite(source[at])) at++;
+                var start = at;
+                while (at < source.Length && !AsciiWhite(source[at])) at++;
+                if (at - start != 1) continue;
+                var value = source[start];
+                if (!((value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z') || (value >= '0' && value <= '9'))) continue;
+                var key = Char.ToUpperInvariant(value).ToString();
+                if (used.Add(key)) result.Add(key);
+            }
+            return result.AsReadOnly();
+        }
+
+        // Ak returns the first usable access-key alternative, or an empty string.
+        public string Ak(N element)
+        {
+            var keys = Aks(element);
+            return keys.Count == 0 ? "" : keys[0];
+        }
+
+        // Afs returns at most 32 authored autofocus candidates in document order.
+        public IList<N> Afs(P page)
+        {
+            QueryPage(page);
+            var result = new List<N>();
+            FindAttributes(page.D, "autofocus", result, MaxAutofocusCandidates);
+            return result.AsReadOnly();
+        }
+
+        public N Af(P page)
+        {
+            var candidates = Afs(page);
+            return candidates.Count == 0 ? null : candidates[0];
+        }
+
+        // Id finds the first element with a matching HTML id.
+        public N Id(P page, string id)
+        {
+            QueryPage(page);
+            var value = id ?? "";
+            return value.Length == 0 || value.Length > MaxHtmlAttributeValue ? null : FindId(page.D, value);
+        }
+
+        // Ft resolves one bounded, percent-decoded fragment target.
+        public N Ft(P page, string fragment)
+        {
+            QueryPage(page);
+            var value = fragment ?? "";
+            if (value.StartsWith("#", StringComparison.Ordinal)) value = value.Substring(1);
+            if (value.Length == 0 || value.Length > MaxFragment) return null;
+            try { value = Uri.UnescapeDataString(value); }
+            catch (UriFormatException) { return null; }
+            if (value.Length == 0 || value.Length > MaxFragment) return null;
+            return FindId(page.D, value) ?? FindName(page.D, value);
+        }
+
+        // Q returns the first document-order match from Lea's bounded selector subset.
+        public N Q(P page, string query)
+        {
+            QueryPage(page);
+            var rules = QueryRules(query);
+            return rules == null ? null : QueryOne(page.D, rules);
+        }
+
+        // Qa returns at most 256 document-order matches in a read-only list.
+        public IList<N> Qa(P page, string query)
+        {
+            QueryPage(page);
+            var found = new List<N>();
+            var rules = QueryRules(query);
+            if (rules != null) QueryAll(page.D, rules, found);
+            return found.AsReadOnly();
+        }
+
+        private void QueryPage(P page)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+        }
+
+        // Fd counts bounded, case-insensitive page-text matches.
+        public int Fd(P page, string query)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            var find = (query ?? "").Trim();
+            if (find.Length == 0) return 0;
+            if (find.Length > 256) find = find.Substring(0, 256);
+            var text = page.X ?? "";
+            var count = 0;
+            var at = 0;
+            while (at <= text.Length - find.Length && count < MaxFind)
+            {
+                at = text.IndexOf(find, at, StringComparison.OrdinalIgnoreCase);
+                if (at < 0) break;
+                count++;
+                at += find.Length;
+            }
+            return count;
+        }
+
+        // Fg records one same-document fragment navigation without fetching.
+        public int Fg(string input)
+        {
+            return Fg(ToUri(input, At == null ? null : At.U));
+        }
+
+        public int Fg(Uri url)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            var page = At;
+            if (page == null || !SameDocument(page.U, url) || !FragmentNavigation(page.U, url)) return 0;
+            CheckNavigation(url);
+            if (!String.Equals(page.U.AbsoluteUri, url.AbsoluteUri, StringComparison.Ordinal)) Push(page, url);
+            return 1;
+        }
+
+        public P Go(string input)
+        {
+            var url = ToUri(input, At == null ? null : At.U);
+            if (FragmentReference(input) && Fg(url) != 0) return At;
+            return Go(url);
+        }
+
+        public P Go(Uri url)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            if (!SameAddress(At == null ? null : At.U, url) && Fg(url) != 0) return At;
+            CheckNavigation(url);
+            var p = Read(url);
+            Push(p);
+            return p;
+        }
+
+        public P Po(string input, string data)
+        {
+            return Po(ToUri(input, At == null ? null : At.U), data);
+        }
+
+        public P Po(Uri url, string data)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            CheckNavigation(url);
+            var p = Post(url, Encoding.UTF8.GetBytes(data ?? ""), "application/x-www-form-urlencoded; charset=utf-8");
+            Push(p);
+            return p;
+        }
+
+        public P Pb(string input, byte[] data, string type)
+        {
+            return Pb(ToUri(input, At == null ? null : At.U), data, type);
+        }
+
+        public P Pb(Uri url, byte[] data, string type)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            CheckNavigation(url);
+            var p = Post(url, data, type);
+            Push(p);
+            return p;
+        }
+
+        public async Task<P> GoA(string input)
+        {
+            var url = ToUri(input, At == null ? null : At.U);
+            if (FragmentReference(input) && Fg(url) != 0) return At;
+            return await GoA(url);
+        }
+
+        public async Task<P> GoA(Uri url)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            if (!SameAddress(At == null ? null : At.U, url) && Fg(url) != 0) return At;
+            CheckNavigation(url);
+            var p = await ReadA(url);
+            Push(p);
+            return p;
+        }
+
+        public async Task<P> PoA(string input, string data)
+        {
+            return await PoA(ToUri(input, At == null ? null : At.U), data);
+        }
+
+        public async Task<P> PoA(Uri url, string data)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            CheckNavigation(url);
+            var p = await PostA(url, Encoding.UTF8.GetBytes(data ?? ""), "application/x-www-form-urlencoded; charset=utf-8");
+            Push(p);
+            return p;
+        }
+
+        public async Task<P> PbA(string input, byte[] data, string type)
+        {
+            return await PbA(ToUri(input, At == null ? null : At.U), data, type);
+        }
+
+        public async Task<P> PbA(Uri url, byte[] data, string type)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            CheckNavigation(url);
+            var p = await PostA(url, data, type);
+            Push(p);
+            return p;
+        }
+
+        public D Dl(string input, string path)
+        {
+            return Dl(ToUri(input, At == null ? null : At.U), path);
+        }
+
+        public D Dl(Uri url, string path)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            if (busy) throw new InvalidOperationException("Lea is already loading or downloading.");
+            var target = DownloadPath(path);
+            CheckDownloadUrl(url);
+            busy = true;
+            stopped = false;
+            try { return Download(url, target); }
+            catch (Exception error)
+            {
+                if (stopped) throw new Er("cancel", url, 0, false, "Lea stopped downloading" + ErrorAt(url) + ".", error);
+                var typed = LoadError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
+            finally
+            {
+                download = null;
+                stopped = false;
+                busy = false;
+            }
+        }
+
+        public async Task<D> DlA(string input, string path)
+        {
+            return await DlA(ToUri(input, At == null ? null : At.U), path);
+        }
+
+        public async Task<D> DlA(Uri url, string path)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            if (busy) throw new InvalidOperationException("Lea is already loading or downloading.");
+            var target = DownloadPath(path);
+            CheckDownloadUrl(url);
+            busy = true;
+            stopped = false;
+            try { return await DownloadA(url, target); }
+            catch (Exception error)
+            {
+                if (stopped) throw new Er("cancel", url, 0, false, "Lea stopped downloading" + ErrorAt(url) + ".", error);
+                var typed = LoadError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
+            finally
+            {
+                download = null;
+                stopped = false;
+                busy = false;
+            }
+        }
+
+        private void CheckNavigation(Uri url)
+        {
+            var guard = Ng;
+            if (guard != null && !guard(url))
+                throw new Er("blocked", url, 0, false, "Lea navigation was blocked by its host.", null);
+        }
+
+        private void Push(P p)
+        {
+            Push(p, p == null ? null : p.U);
+        }
+
+        private void Push(P p, Uri url)
+        {
+            if (at < hs.Count - 1) hs.RemoveRange(at + 1, hs.Count - at - 1);
+            hs.Add(new He(p, url));
+            at = hs.Count - 1;
+            if (hs.Count <= MaxHistory) return;
+            hs.RemoveAt(0);
+            at--;
+        }
+
+        public P Bk()
+        {
+            if (CanBk) { CheckNavigation(hs[at - 1].U); at--; }
+            var page = At;
+            ApplyViewport(page);
+            return page;
+        }
+
+        public P Fw()
+        {
+            if (CanFw) { CheckNavigation(hs[at + 1].U); at++; }
+            var page = At;
+            ApplyViewport(page);
+            return page;
+        }
+
+        public P Rl()
+        {
+            if (At == null) return null;
+            CheckNavigation(At.U);
+            var p = Read(At.U, true);
+            hs[at] = new He(p, p.U);
+            return p;
+        }
+
+        public async Task<P> RlA()
+        {
+            if (At == null) return null;
+            CheckNavigation(At.U);
+            var p = await ReadA(At.U, true);
+            hs[at] = new He(p, p.U);
+            return p;
+        }
+
+        private P Current()
+        {
+            if (at < 0 || at >= hs.Count) return null;
+            var entry = hs[at];
+            entry.P.U = entry.U;
+            return entry.P;
+        }
+
+        private bool OwnsPage(P page)
+        {
+            foreach (var entry in hs) if (Object.ReferenceEquals(entry.P, page)) return true;
+            return false;
+        }
+
+        public void St()
+        {
+            if (!busy) return;
+            stopped = true;
+            if (inputBudget != null) inputBudget.Cancel();
+            web.CancelAsync();
+            var active = download;
+            if (active != null)
+                try { active.Dispose(); }
+                catch { }
+        }
+
+        private D Download(Uri url, string path)
+        {
+            var temp = DownloadTemp(path);
+            try
+            {
+                long size;
+                Uri finalUrl;
+                string contentType;
+                int status;
+                using (var raw = OpenDownload(url))
+                {
+                    download = raw;
+                    CheckDownloadLength(url, url.IsFile ? raw.Length : web.Len);
+                    finalUrl = url.IsFile ? url : web.U ?? url;
+                    contentType = url.IsFile ? FileType(Local(url)) : MediaType(web.Ct);
+                    status = url.IsFile ? 200 : web.St == 0 ? 200 : web.St;
+                    using (var input = DownloadStream(raw, url.IsFile ? "" : web.Ce))
+                    using (var output = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None, 32768))
+                        size = CopyDownload(input, output, url);
+                }
+                FinishDownload(temp, path);
+                var result = DownloadResult(finalUrl, path, contentType, size, status);
+                Trace("DL", result.U, result.St, result.Ct, result.Sz, result.U.IsFile ? "file" : "net");
+                return result;
+            }
+            catch
+            {
+                DeleteTemp(temp);
+                throw;
+            }
+            finally { download = null; }
+        }
+
+        private async Task<D> DownloadA(Uri url, string path)
+        {
+            var temp = DownloadTemp(path);
+            try
+            {
+                var raw = url.IsFile
+                    ? (Stream)new FileStream(Local(url), FileMode.Open, FileAccess.Read, FileShare.Read, 32768, true)
+                    : await NetA(web.OpenReadTaskAsync(url));
+                long size;
+                Uri finalUrl;
+                string contentType;
+                int status;
+                using (raw)
+                {
+                    download = raw;
+                    CheckDownloadLength(url, url.IsFile ? raw.Length : web.Len);
+                    finalUrl = url.IsFile ? url : web.U ?? url;
+                    contentType = url.IsFile ? FileType(Local(url)) : MediaType(web.Ct);
+                    status = url.IsFile ? 200 : web.St == 0 ? 200 : web.St;
+                    using (var input = DownloadStream(raw, url.IsFile ? "" : web.Ce))
+                    using (var output = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None, 32768, true))
+                        size = await CopyDownloadA(input, output, url);
+                }
+                FinishDownload(temp, path);
+                var result = DownloadResult(finalUrl, path, contentType, size, status);
+                Trace("DL", result.U, result.St, result.Ct, result.Sz, result.U.IsFile ? "file" : "net");
+                return result;
+            }
+            catch
+            {
+                DeleteTemp(temp);
+                throw;
+            }
+            finally { download = null; }
+        }
+
+        private Stream OpenDownload(Uri url)
+        {
+            return url.IsFile
+                ? (Stream)new FileStream(Local(url), FileMode.Open, FileAccess.Read, FileShare.Read)
+                : web.OpenRead(url);
+        }
+
+        private static Stream DownloadStream(Stream source, string encoding)
+        {
+            var value = (encoding ?? "").Trim().ToLowerInvariant();
+            if (value == "gzip") return new GZipStream(source, CompressionMode.Decompress);
+            if (value == "deflate") return new DeflateStream(source, CompressionMode.Decompress);
+            return source;
+        }
+
+        private static long CopyDownload(Stream input, Stream output, Uri url)
+        {
+            var buffer = new byte[32768];
+            long total = 0;
+            int read;
+            while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                total += read;
+                CheckDownloadLength(url, total);
+                output.Write(buffer, 0, read);
+            }
+            return total;
+        }
+
+        private async Task<long> CopyDownloadA(Stream input, Stream output, Uri url)
+        {
+            var buffer = new byte[32768];
+            long total = 0;
+            int read;
+            while ((read = url.IsFile
+                ? await input.ReadAsync(buffer, 0, buffer.Length)
+                : await NetA(input.ReadAsync(buffer, 0, buffer.Length), delegate { input.Dispose(); })) > 0)
+            {
+                total += read;
+                CheckDownloadLength(url, total);
+                await output.WriteAsync(buffer, 0, read);
+            }
+            return total;
+        }
+
+        private static void CheckDownloadLength(Uri url, long length)
+        {
+            if (length > MaxDownload)
+                throw new Er("large", url, 0, false, "Lea downloads are limited to 64 MB" + ErrorAt(url) + ".", null);
+        }
+
+        private static void CheckDownloadUrl(Uri url)
+        {
+            if (!url.IsFile && url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                throw new Er("url", url, 0, false, "Lea downloads require a local, HTTP, or HTTPS address.", null);
+        }
+
+        private static string DownloadPath(string path)
+        {
+            if (String.IsNullOrWhiteSpace(path)) throw new ArgumentException("Lea requires a download destination.", "path");
+            var full = Path.GetFullPath(path);
+            if (Directory.Exists(full)) throw new ArgumentException("Lea requires a file destination.", "path");
+            var folder = Path.GetDirectoryName(full);
+            if (String.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder)) throw new DirectoryNotFoundException("Lea could not find the download destination folder.");
+            return full;
+        }
+
+        private static string DownloadTemp(string path)
+        {
+            return Path.Combine(Path.GetDirectoryName(path), ".lea-" + Guid.NewGuid().ToString("N") + ".tmp");
+        }
+
+        private static void FinishDownload(string temp, string path)
+        {
+            if (File.Exists(path)) File.Replace(temp, path, null);
+            else File.Move(temp, path);
+        }
+
+        private static void DeleteTemp(string path)
+        {
+            try { if (File.Exists(path)) File.Delete(path); }
+            catch { }
+        }
+
+        private static D DownloadResult(Uri url, string path, string contentType, long size, int status)
+        {
+            return new D
+            {
+                U = url,
+                P = path,
+                N = Path.GetFileName(path),
+                Ct = contentType ?? "",
+                Sz = size,
+                St = status
+            };
+        }
+
+        private P Read(Uri url, bool fresh = false)
+        {
+            BeginInput();
+            try
+            {
+                return RequestedFragment(Parse(Fetch(url, fresh)), url);
+            }
+            catch (Exception error)
+            {
+                var typed = InputError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
+            finally { EndInput(); }
+        }
+
+        private async Task<P> ReadA(Uri url, bool fresh = false)
+        {
+            BeginInput();
+            try
+            {
+                return RequestedFragment(await ParseA(await FetchA(url, fresh)), url);
+            }
+            catch (Exception error)
+            {
+                var typed = InputError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
+            finally
+            {
+                EndInput();
+            }
+        }
+
+        private P Post(Uri url, byte[] data, string type)
+        {
+            if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                throw new Er("url", url, 0, false, "Lea POST requires an HTTP or HTTPS address.", null);
+            if (data != null && data.Length > MaxPost) throw new ArgumentException("Lea request body is too large.", "data");
+            BeginInput();
+            try
+            {
+                DropCache(url);
+                var reply = web.ReadResource(url, data ?? new byte[0], BodyType(type), MaxHtml, cs, inputBudget.Token);
+                DropCache(reply.U);
+                var load = Track("POST", new Ld(reply, false), "net");
+                return Parse(load);
+            }
+            catch (Exception error)
+            {
+                var typed = InputError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
+            finally { EndInput(); }
+        }
+
+        private async Task<P> PostA(Uri url, byte[] data, string type)
+        {
+            if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                throw new Er("url", url, 0, false, "Lea POST requires an HTTP or HTTPS address.", null);
+            if (data != null && data.Length > MaxPost) throw new ArgumentException("Lea request body is too large.", "data");
+            BeginInput();
+            try
+            {
+                DropCache(url);
+                var reply = await InputWait(web.ReadResourceA(url, data ?? new byte[0], BodyType(type), MaxHtml, cs, inputBudget.Token));
+                CheckStop();
+                DropCache(reply.U);
+                var load = Track("POST", new Ld(reply, false), "net");
+                return await ParseA(load);
+            }
+            catch (Exception error)
+            {
+                var typed = InputError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
+            finally
+            {
+                EndInput();
+            }
+        }
+
+        private static string BodyType(string type)
+        {
+            var value = (type ?? "").Trim();
+            if (value.Length == 0) return "application/octet-stream";
+            if (value.Length > 200 || value.IndexOf('\r') >= 0 || value.IndexOf('\n') >= 0)
+                throw new ArgumentException("Lea request content type is invalid.", "type");
+            return value;
+        }
+
+        private Ld Fetch(Uri url, bool fresh = false, int limit = MaxHtml)
+        {
+            var blank = Blank(url);
+            if (blank != null) return Track("GET", new Ld(blank, false), "blank");
+            Cr reply;
+            Cr stale = null;
+            var diskHit = false;
+            if (!url.IsFile && !fresh && GetCache(url, out reply, out stale, out diskHit))
+            {
+                Ri.Check(url, reply.Sz, limit);
+                return Track("GET", new Ld(reply, true), diskHit ? "disk" : "cache");
+            }
+            if (url.IsFile) return Track("GET", new Ld(ReadFile(url, limit, inputBudget.Token), false), "file");
+            if (stale != null) Ri.Check(url, stale.Sz, limit);
+
+            if (fresh) stale = null;
+            var staleDisk = stale != null && diskHit;
+            web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
+            try
+            {
+                var notModified = false;
+                try { reply = web.ReadResource(url, null, null, limit, cs, inputBudget.Token); }
+                catch (WebException error)
+                {
+                    if (stale == null || !web.Nm(error)) throw;
+                    notModified = true;
+                    reply = Revalidated(stale);
+                }
+                PutCache(url, reply);
+                if (notModified) ch++;
+                return Track("GET", new Ld(reply, notModified), notModified ? staleDisk ? "disk304" : "304" : "net");
+            }
+            finally { web.Va("", ""); }
+        }
+
+        private async Task<Ld> FetchA(Uri url, bool fresh = false, int limit = MaxHtml)
+        {
+            CheckStop();
+            var blank = Blank(url);
+            if (blank != null) return Track("GET", new Ld(blank, false), "blank");
+            Cr reply;
+            Cr stale = null;
+            var diskHit = false;
+            if (!url.IsFile && !fresh && GetCache(url, out reply, out stale, out diskHit))
+            {
+                Ri.Check(url, reply.Sz, limit);
+                return Track("GET", new Ld(reply, true), diskHit ? "disk" : "cache");
+            }
+            if (url.IsFile)
+            {
+                await Task.Yield();
+                CheckStop();
+                var token = inputBudget.Token;
+                var local = await InputWait(Task.Factory.StartNew(() => ReadFile(url, limit, token), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default));
+                CheckStop();
+                return Track("GET", new Ld(local, false), "file");
+            }
+            if (stale != null) Ri.Check(url, stale.Sz, limit);
+
+            if (fresh) stale = null;
+            var staleDisk = stale != null && diskHit;
+            web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
+            try
+            {
+                var notModified = false;
+                try { reply = await InputWait(web.ReadResourceA(url, null, null, limit, cs, inputBudget.Token)); }
+                catch (WebException error)
+                {
+                    if (stale == null || !web.Nm(error)) throw;
+                    notModified = true;
+                    reply = Revalidated(stale);
+                }
+                CheckStop();
+                PutCache(url, reply);
+                if (notModified) ch++;
+                return Track("GET", new Ld(reply, notModified), notModified ? staleDisk ? "disk304" : "304" : "net");
+            }
+            finally { web.Va("", ""); }
+        }
+
+        private static Cr Blank(Uri url)
+        {
+            if (url.Scheme != "about" || url.AbsolutePath != "blank" || url.Host.Length != 0 || url.UserInfo.Length != 0) return null;
+            return new Cr(url, "", 200, "text/html", "", "utf-8", 0, true, DateTime.MinValue, "", "");
+        }
+
+        private void BeginInput()
+        {
+            if (busy) throw new InvalidOperationException("Lea is already loading a page.");
+            busy = true;
+            stopped = false;
+            inputBudget = new CancellationTokenSource(Tm);
+            inputEnd = Task.Delay(Timeout.Infinite, inputBudget.Token);
+        }
+
+        private void EndInput()
+        {
+            inputBudget.Cancel();
+            inputBudget.Dispose();
+            inputBudget = null;
+            inputEnd = null;
+            stopped = false;
+            busy = false;
+        }
+
+        private async Task<T> InputWait<T>(Task<T> work)
+        {
+            if (await Task.WhenAny(work, inputEnd) != work && !work.IsCompleted)
+            {
+                Observe(work);
+                throw new OperationCanceledException("Lea input wait ended.");
+            }
+            return await work;
+        }
+
+        private Er InputError(Exception error, Uri url)
+        {
+            var webError = error as WebException;
+            var typed = LoadError(error, url);
+            var cancelled = error is OperationCanceledException || error is ObjectDisposedException ||
+                error is IOException && !(error is InvalidDataException) ||
+                webError != null && (webError.Status == WebExceptionStatus.RequestCanceled || webError.Status == WebExceptionStatus.Timeout);
+            if (stopped && typed != null || cancelled && (stopped || inputBudget != null && inputBudget.IsCancellationRequested))
+            {
+                return new Er(stopped ? "cancel" : "timeout", url, 0, !stopped,
+                    stopped ? "Lea stopped loading." : "Lea input loading timed out.", error);
+            }
+            return typed;
+        }
+
+        private async Task<T> NetA<T>(Task<T> work, Action cancel = null)
+        {
+            using (var timer = new CancellationTokenSource())
+            {
+                try
+                {
+                    var winner = await Task.WhenAny(work, Task.Delay(Tm, timer.Token));
+                    if (winner != work && !work.IsCompleted)
+                    {
+                        if (cancel != null) cancel();
+                        else web.CancelAsync();
+                        Observe(work);
+                        throw new WebException("Lea network request timed out.", stopped ? WebExceptionStatus.RequestCanceled : WebExceptionStatus.Timeout);
+                    }
+                    return await work;
+                }
+                finally { timer.Cancel(); }
+            }
+        }
+
+        private static void Observe(Task work)
+        {
+            if (work == null) return;
+            work.ContinueWith(delegate(Task completed)
+            {
+                foreach (var error in completed.Exception.Flatten().InnerExceptions)
+                {
+                    var webError = error as WebException;
+                    if (webError != null && webError.Response != null) webError.Response.Close();
+                }
+            }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        }
+
+        private P Parse(Ld load)
+        {
+            var page = Page(load);
+            Complete(page, Css(page.D, page.Bu, StyleSheets(page.D, page.Bu, page.U)));
+            return page;
+        }
+
+        private async Task<P> ParseA(Ld load)
+        {
+            CheckStop();
+            var page = Page(load);
+            var sheets = await StyleSheetsA(page.D, page.Bu, page.U);
+            CheckStop();
+            Complete(page, Css(page.D, page.Bu, sheets));
+            return page;
+        }
+
+        private void CheckStop()
+        {
+            if (stopped) throw new OperationCanceledException("Lea stopped loading.");
+        }
+
+        private static P Page(Ld load)
+        {
+            var reply = load.R;
+            var p = new P();
+            p.U = reply.U;
+            p.Q = Query(reply.U);
+            p.H = reply.H;
+            p.St = reply.St;
+            p.Ct = reply.Ct;
+            p.Ce = reply.Ce;
+            p.Ch = reply.Ch;
+            p.Et = reply.Et;
+            p.Lm = reply.Lm;
+            p.Sz = reply.Sz;
+            p.Ca = load.Ca;
+            p.D = Tree(reply.H);
+            p.Bu = DocumentBase(p.D, reply.U);
+            p.D.Bu = p.Bu;
+            var title = Find(p.D, "title");
+            p.T = Clean(NodeText(title));
+            if (p.T.Length == 0) p.T = reply.U.IsFile ? Path.GetFileName(reply.U.LocalPath) : reply.U.Host;
+
+            return p;
+        }
+
+        private static P RequestedFragment(P page, Uri requested)
+        {
+            if (page == null || page.U == null || requested == null || requested.Fragment.Length == 0 || page.U.Fragment.Length > 0) return page;
+            page.U = new Uri(CacheKey(page.U) + requested.Fragment);
+            return page;
+        }
+
+        private void Complete(P p, List<R> rules)
+        {
+            p.Rb = rules;
+            p.Ra = rules;
+            p.Vw = vw;
+            p.Vh = vh;
+            p.Dp = dp;
+            p.Th = th;
+            p.Rm = rm;
+            p.Pc = pc;
+            p.Pdt = pdt;
+            p.Pt = pt;
+            p.Hv = hv;
+            p.Ap = ap;
+            p.Ah = ah;
+            p.Je = je;
+            var active = MediaRules(rules, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt,
+                pt, hv ? 'h' : 'n', ap, ah ? 'h' : 'n');
+            p.R = active;
+            Rebuild(p, active, null);
+            if (!je) return;
+            p.Jc = J.Pg(p, p.D, jb);
+            if (p.Jc > 0) Rebuild(p, active, null);
+        }
+
+        private void ApplyViewport(P page)
+        {
+            if (page == null) return;
+            page.Vw = vw;
+            page.Vh = vh;
+            page.Dp = dp;
+            page.Th = th;
+            page.Rm = rm;
+            page.Pc = pc;
+            page.Pdt = pdt;
+            page.Pt = pt;
+            page.Hv = hv;
+            page.Ap = ap;
+            page.Ah = ah;
+            page.Je = je;
+            var all = page.Ra as List<R>;
+            if (all == null) return;
+            var active = MediaRules(all, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt,
+                pt, hv ? 'h' : 'n', ap, ah ? 'h' : 'n');
+            var current = page.R as List<R>;
+            if (SameRules(current, active) && !ContainerViewportSensitive(active)) return;
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            page.R = active;
+            Rebuild(page, active, fields);
+        }
+
+        private static List<R> MediaRules(List<R> rules, int width, int height, int density, char theme, char motion,
+            char contrast, char scripting, char preferredData, char pointer, char hover, char anyPointer, char anyHover)
+        {
+            var active = new List<R>();
+            foreach (var rule in rules)
+                if (rule.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                    pointer, hover, anyPointer, anyHover)) active.Add(rule);
+            return active;
+        }
+
+        private static bool SameRules(IList<R> left, IList<R> right)
+        {
+            if (left == null || right == null || left.Count != right.Count) return false;
+            for (var index = 0; index < left.Count; index++)
+                if (!Object.ReferenceEquals(left[index], right[index])) return false;
+            return true;
+        }
+
+        private static bool ContainerViewportSensitive(IList<R> rules)
+        {
+            if (rules == null) return false;
+            foreach (var rule in rules)
+                foreach (var query in rule.Kqs)
+                    if (ContainerViewportSensitive(query.X)) return true;
+            return false;
+        }
+
+        private static bool ContainerViewportSensitive(Kx expression)
+        {
+            if (expression == null) return false;
+            if (ContainerViewportUnit(expression.U) || ContainerViewportUnit(expression.T)) return true;
+            foreach (var child in expression.C)
+                if (ContainerViewportSensitive(child)) return true;
+            return false;
+        }
+
+        private static bool ContainerViewportUnit(char unit)
+        {
+            return unit != '\0' && unit != 'p' && unit != 'e' && unit != 'r';
+        }
+
+        private void Rebuild(P p, List<R> rules, IDictionary<N, Fi> fields)
+        {
+            p.Ls.Clear();
+            p.Axs.Clear();
+            p.Bs.Clear();
+            p.Fs.Clear();
+            p.Dvs.Clear();
+            p.Mps.Clear();
+            if (fields != null)
+                foreach (var pair in fields) p.Fr[pair.Key] = pair.Value;
+            var body = Find(p.D, "body") ?? p.D;
+            p.X = Clean(NodeText(body));
+            p.N = Count(p.D);
+            var inherited = new S();
+            var ancestors = new List<N>();
+            for (var parent = body.Up; parent != null && parent.K != "#doc"; parent = parent.Up) ancestors.Add(parent);
+            p.Rf = 0;
+            for (var i = ancestors.Count - 1; i >= 0; i--)
+            {
+                inherited = Style(ancestors[i], inherited, rules);
+                if (ancestors[i].K == "html") p.Rf = inherited.Fs;
+            }
+            p.S = Style(body, inherited, rules);
+            MarkLists(body);
+            var html = p.H ?? "";
+            p.Co = MarkCounters(p.D, rules, p.Cn || GeneratedStateSource(html), p.Co);
+            if (html.IndexOf("<map", StringComparison.OrdinalIgnoreCase) >= 0) BuildMaps(p, body, p.Bu ?? p.U);
+            AddPageGeneratedBlock(p, body, rules, p.S, 'b');
+            foreach (var child in body.C) Blocks(p, child, p.Bu ?? p.U, rules, p.S);
+            AddPageGeneratedBlock(p, body, rules, p.S, 'a');
+            LinkBlocks(p);
+            MarkDisclosures(p);
+            BuildAccessibility(p, body, rules);
+        }
+
+        private void BuildAccessibility(P page, N body, List<R> rules)
+        {
+            var data = new Axc(page);
+            IndexAccessibility(page.D, data);
+            foreach (var field in page.Fs)
+                if (field.El != null && !data.Fs.ContainsKey(field.El)) data.Fs[field.El] = field;
+            foreach (var map in page.Mps)
+                foreach (var area in map.As)
+                    if (area.El != null) data.As.Add(area.El);
+
+            var root = new Ax { K = "document", N = BoundValue(page.T, MaxAccessibilityText), El = body };
+            page.Axs.Add(root);
+            AddGeneratedAccessibility(data, body, root, false, "be");
+            foreach (var child in body.C) AddAccessibility(data, child, page.S, rules, root, false);
+            AddGeneratedAccessibility(data, body, root, false, "af");
+        }
+
+        private static void IndexAccessibility(N node, Axc data)
+        {
+            if (node == null) return;
+            var id = node.Av("id");
+            if (id.Length > 0 && id.Length <= MaxHtmlAttributeValue && !data.Ids.ContainsKey(id)) data.Ids[id] = node;
+            if (node.K == "label")
+            {
+                var target = node.Av("for");
+                List<N> labels;
+                if (target.Length > 0 && target.Length <= MaxHtmlAttributeValue)
+                {
+                    if (!data.Lbs.TryGetValue(target, out labels)) data.Lbs[target] = labels = new List<N>();
+                    if (labels.Count < MaxAccessibilityReferences) labels.Add(node);
+                }
+            }
+            foreach (var child in node.C) IndexAccessibility(child, data);
+        }
+
+        private void AddAccessibility(Axc data, N node, S inherited, List<R> rules, Ax parent, bool suppressText)
+        {
+            if (node == null || data.P.Axs.Count == MaxAccessibilityNodes) return;
+            if (node.K == "#text")
+            {
+                var text = BoundValue(Clean(node.X), MaxAccessibilityText);
+                if (!suppressText && text.Length > 0) data.P.Axs.Add(new Ax { K = "text", N = text, El = node, Up = parent });
+                return;
+            }
+            if (node.K == "head" || node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template" || node.A.ContainsKey("hidden")) return;
+
+            var style = Style(node, inherited, rules);
+            if (style.D == "none" || DisclosureHidden(node) || AriaTrue(node, "aria-hidden")) return;
+            if (node.K == "area" && !data.As.Contains(node)) return;
+
+            if (style.Vi == "h" || style.Vi == "c")
+            {
+                foreach (var child in node.C)
+                    if (child.K != "#text") AddAccessibility(data, child, style, rules, parent, suppressText);
+                return;
+            }
+
+            var role = AccessibilityRole(node, data);
+            var current = parent;
+            if (role != "none" && role.Length > 0)
+            {
+                var name = AccessibilityName(node, role, data);
+                if ((role == "form" || role == "region") && name.Length == 0) role = "";
+                if (role.Length > 0)
+                {
+                    current = new Ax
+                    {
+                        K = role,
+                        N = name,
+                        D = AccessibilityDescription(node, name, data),
+                        V = AccessibilityValue(node, data),
+                        St = AccessibilityState(node, role, data),
+                        Lv = HeadingLevel(node, role),
+                        U = AccessibilityUrl(node, data.P.Bu ?? data.P.U),
+                        El = node,
+                        Up = parent,
+                        F = AccessibilityField(node, data)
+                    };
+                    data.P.Axs.Add(current);
+                }
+            }
+
+            var childParent = current;
+            var childSuppress = suppressText || current != parent && AccessibilityConsumesText(role);
+            AddGeneratedAccessibility(data, node, childParent, childSuppress, "be");
+            foreach (var child in node.C)
+            {
+                if (data.P.Axs.Count == MaxAccessibilityNodes) break;
+                AddAccessibility(data, child, style, rules, childParent, childSuppress);
+            }
+            AddGeneratedAccessibility(data, node, childParent, childSuppress, "af");
+        }
+
+        private static void AddGeneratedAccessibility(Axc data, N node, Ax parent, bool suppress, string kind)
+        {
+            if (suppress || data.P.Axs.Count == MaxAccessibilityNodes) return;
+            var value = AccessibilityGeneratedText(node, data, kind);
+            if (value.Length > 0) data.P.Axs.Add(new Ax { K = "text", N = value, El = node, Up = parent });
+        }
+
+        private static string AccessibilityGeneratedText(N node, Axc data, string kind)
+        {
+            var result = new StringBuilder();
+            var alternatives = new HashSet<S>();
+            foreach (var block in AccessibilityBlocks(data.P.Bs))
+                foreach (var run in block.Is)
+                    if (run.K == kind && Object.ReferenceEquals(run.El, node) &&
+                        (run.S == null || run.S.Ma == null || alternatives.Add(run.S)))
+                        AppendAccessibilityText(result, GeneratedAccessibilityText(run));
+            return BoundValue(result.ToString(), MaxAccessibilityText);
+        }
+
+        private static string GeneratedAccessibilityText(Ir run)
+        {
+            return run != null && run.S != null && run.S.Ma != null ? run.S.Ma : run == null ? "" : run.X;
+        }
+
+        private static IEnumerable<B> AccessibilityBlocks(IEnumerable<B> blocks)
+        {
+            if (blocks == null) yield break;
+            foreach (var block in blocks)
+            {
+                if (block == null) continue;
+                yield return block;
+                if (block.Tb == null) continue;
+                foreach (var row in block.Tb.Rs)
+                    foreach (var cell in row.Cs)
+                        foreach (var child in AccessibilityBlocks(cell.Bs)) yield return child;
+            }
+        }
+
+        private static string AccessibilityRenderedText(N node, Axc data)
+        {
+            var result = new StringBuilder();
+            foreach (var block in AccessibilityBlocks(data.P.Bs))
+            {
+                var text = new StringBuilder();
+                var ownsBlock = block.El != null && Owns(node, block.El);
+                if (ownsBlock && block.Ms != null && block.Ms.Ma != null) text.Append(block.Ms.Ma);
+                var ownsRun = false;
+                var alternatives = new HashSet<S>();
+                foreach (var run in block.Is)
+                    if (run.El != null && Owns(node, run.El))
+                    {
+                        ownsRun = true;
+                        if (run.K == "br") text.Append(' ');
+                        else if (run.K == "be" || run.K == "af")
+                        {
+                            if (run.S == null || run.S.Ma == null || alternatives.Add(run.S)) text.Append(GeneratedAccessibilityText(run));
+                        }
+                        else text.Append(run.X);
+                    }
+                if (ownsBlock && !ownsRun) text.Append(block.X);
+                AppendAccessibilityText(result, text.ToString());
+            }
+            return BoundValue(result.ToString(), MaxAccessibilityText);
+        }
+
+        private static string AccessibilityRole(N node, Axc data)
+        {
+            var explicitRole = ExplicitAccessibilityRole(node.Av("role"));
+            if (explicitRole.Length > 0) return explicitRole;
+            var kind = node.K;
+            if (kind == "a" && node.A.ContainsKey("href") || kind == "area" && node.A.ContainsKey("href")) return "link";
+            if (kind == "button" || kind == "summary") return "button";
+            if (kind == "input" || kind == "textarea" || kind == "select")
+            {
+                var field = AccessibilityField(node, data);
+                if (field == null) return "";
+                if (field.K == "checkbox") return "checkbox";
+                if (field.K == "radio") return "radio";
+                if (field.K == "range") return "slider";
+                if (field.K == "number") return "spinbutton";
+                if (field.K == "search") return "searchbox";
+                if (field.K == "select") return field.Mu ? "listbox" : "combobox";
+                if (field.K == "submit" || field.K == "reset" || field.K == "button" || field.K == "file" || field.K == "color") return "button";
+                return "textbox";
+            }
+            if (IsHeading(kind)) return "heading";
+            if (kind == "img") return node.Av("alt").Length == 0 && !node.A.ContainsKey("alt") ? "img" : node.Av("alt").Length == 0 ? "none" : "img";
+            if (kind == "svg") return "img";
+            if (kind == "nav") return "navigation";
+            if (kind == "main") return "main";
+            if (kind == "aside") return "complementary";
+            if (kind == "header") return HasSectionAncestor(node) ? "group" : "banner";
+            if (kind == "footer") return HasSectionAncestor(node) ? "group" : "contentinfo";
+            if (kind == "form") return "form";
+            if (kind == "section") return "region";
+            if (kind == "article") return "article";
+            if (kind == "figure") return "figure";
+            if (kind == "details" || kind == "fieldset") return "group";
+            if (kind == "ol" || kind == "ul" || kind == "menu") return "list";
+            if (kind == "li") return "listitem";
+            if (kind == "table") return "table";
+            if (kind == "thead" || kind == "tbody" || kind == "tfoot") return "rowgroup";
+            if (kind == "tr") return "row";
+            if (kind == "th") return node.Av("scope").Equals("row", StringComparison.OrdinalIgnoreCase) ? "rowheader" : "columnheader";
+            if (kind == "td") return "cell";
+            if (kind == "caption") return "caption";
+            if (kind == "progress") return "progressbar";
+            if (kind == "meter") return "meter";
+            if (kind == "output") return "status";
+            if (kind == "hr") return "separator";
+            if (kind == "p") return "paragraph";
+            if (kind == "blockquote") return "blockquote";
+            if (kind == "code" || kind == "pre") return "code";
+            if (kind == "dt") return "term";
+            if (kind == "dd") return "definition";
+            if (kind == "figcaption" || kind == "legend") return "caption";
+            if (kind == "time") return "time";
+            if (kind == "ins") return "insertion";
+            if (kind == "del") return "deletion";
+            if (kind == "address") return "group";
+            return "";
+        }
+
+        private static string ExplicitAccessibilityRole(string input)
+        {
+            var text = BoundValue(input, 256);
+            var at = 0;
+            var count = 0;
+            while (at < text.Length && count++ < MaxAccessibilityReferences)
+            {
+                while (at < text.Length && AsciiWhite(text[at])) at++;
+                var start = at;
+                while (at < text.Length && !AsciiWhite(text[at])) at++;
+                if (start == at) continue;
+                var role = text.Substring(start, at - start).ToLowerInvariant();
+                if (role == "presentation" || role == "none") return "none";
+                if (Regex.IsMatch(role, "^(?:alert|article|banner|blockquote|button|caption|cell|checkbox|code|columnheader|combobox|complementary|contentinfo|definition|deletion|dialog|document|feed|figure|form|generic|group|heading|img|insertion|link|list|listbox|listitem|log|main|marquee|meter|navigation|option|paragraph|progressbar|radio|region|row|rowgroup|rowheader|search|searchbox|separator|slider|spinbutton|status|table|term|textbox|time|timer)$")) return role;
+            }
+            return "";
+        }
+
+        private static string AccessibilityName(N node, string role, Axc data)
+        {
+            var value = AccessibilityReferences(node.Av("aria-labelledby"), data);
+            if (value.Length > 0) return value;
+            if (node.A.ContainsKey("aria-label")) return BoundValue(Clean(node.Av("aria-label")), MaxAccessibilityText);
+
+            var field = AccessibilityField(node, data);
+            if (field != null)
+            {
+                value = AccessibilityLabels(node, data);
+                if (value.Length > 0) return value;
+                if (role == "button")
+                {
+                    value = node.K == "button" ? Clean(NodeText(node)) : Clean(node.Av("value"));
+                    if (value.Length == 0) value = field.K == "reset" ? "Reset" : field.K == "submit" ? "Submit" : field.K == "file" ? "Choose file" : "Button";
+                    return BoundValue(value, MaxAccessibilityText);
+                }
+                if (node.A.ContainsKey("placeholder")) return BoundValue(Clean(node.Av("placeholder")), MaxAccessibilityText);
+            }
+            if (role == "img" && node.A.ContainsKey("alt")) return BoundValue(Clean(node.Av("alt")), MaxAccessibilityText);
+            if (role == "img" && node.K == "svg")
+            {
+                var title = FirstChild(node, "title");
+                if (title != null) return BoundValue(Clean(NodeText(title)), MaxAccessibilityText);
+            }
+            if (role == "table")
+            {
+                var caption = FirstChild(node, "caption");
+                if (caption != null) return BoundValue(Clean(NodeText(caption)), MaxAccessibilityText);
+            }
+            if (role == "figure")
+            {
+                var caption = FirstChild(node, "figcaption");
+                if (caption != null) return BoundValue(Clean(NodeText(caption)), MaxAccessibilityText);
+            }
+            if (role == "group" && node.K == "fieldset")
+            {
+                var legend = FirstChild(node, "legend");
+                if (legend != null) return BoundValue(Clean(NodeText(legend)), MaxAccessibilityText);
+            }
+            if (role == "group" && node.K == "details")
+            {
+                var summary = FirstChild(node, "summary");
+                if (summary != null) return BoundValue(Clean(NodeText(summary)), MaxAccessibilityText);
+            }
+            if (AccessibilityNameFromContent(role))
+            {
+                value = AccessibilityRenderedText(node, data);
+                if (value.Length == 0) value = BoundValue(Clean(NodeText(node)), MaxAccessibilityText);
+                if (value.Length > 0) return value;
+            }
+            if (node.A.ContainsKey("title")) return BoundValue(Clean(node.Av("title")), MaxAccessibilityText);
+            return "";
+        }
+
+        private static string AccessibilityDescription(N node, string name, Axc data)
+        {
+            var value = AccessibilityReferences(node.Av("aria-describedby"), data);
+            if (value.Length > 0) return value;
+            if (node.A.ContainsKey("aria-description")) return BoundValue(Clean(node.Av("aria-description")), MaxAccessibilityText);
+            value = BoundValue(Clean(node.Av("title")), MaxAccessibilityText);
+            return value == name ? "" : value;
+        }
+
+        private static string AccessibilityReferences(string input, Axc data)
+        {
+            var result = new StringBuilder();
+            var text = BoundValue(input, MaxHtmlAttributeValue);
+            var used = new HashSet<N>();
+            var at = 0;
+            var count = 0;
+            while (at < text.Length && count < MaxAccessibilityReferences)
+            {
+                while (at < text.Length && AsciiWhite(text[at])) at++;
+                var start = at;
+                while (at < text.Length && !AsciiWhite(text[at])) at++;
+                if (start == at) continue;
+                N target;
+                if (!data.Ids.TryGetValue(text.Substring(start, at - start), out target) || !used.Add(target)) continue;
+                var value = Clean(NodeText(target));
+                if (value.Length == 0) continue;
+                if (result.Length > 0) result.Append(' ');
+                result.Append(value);
+                count++;
+                if (result.Length >= MaxAccessibilityText) break;
+            }
+            return BoundValue(result.ToString(), MaxAccessibilityText);
+        }
+
+        private static string AccessibilityLabels(N node, Axc data)
+        {
+            var result = new StringBuilder();
+            List<N> labels;
+            var id = node.Av("id");
+            if (id.Length > 0 && data.Lbs.TryGetValue(id, out labels))
+                foreach (var label in labels) AppendAccessibilityText(result, NodeText(label));
+            for (var current = node.Up; current != null; current = current.Up)
+            {
+                if (current.K != "label") continue;
+                AppendAccessibilityText(result, NodeText(current));
+                break;
+            }
+            return BoundValue(result.ToString(), MaxAccessibilityText);
+        }
+
+        private static void AppendAccessibilityText(StringBuilder result, string input)
+        {
+            var value = Clean(input);
+            if (value.Length == 0 || result.Length >= MaxAccessibilityText) return;
+            if (result.Length > 0) result.Append(' ');
+            result.Append(value);
+        }
+
+        private static string AccessibilityValue(N node, Axc data)
+        {
+            var field = AccessibilityField(node, data);
+            if (field != null) return "";
+            var value = node.Av("aria-valuetext");
+            if (value.Length == 0) value = node.Av("aria-valuenow");
+            if (value.Length > 0) return BoundValue(Clean(value), MaxAccessibilityText);
+            foreach (var block in data.P.Bs)
+            {
+                if (!Object.ReferenceEquals(block.El, node)) continue;
+                if (block.Vm != null) return block.Vm.V.ToString("G", CultureInfo.InvariantCulture);
+                if (block.Dv != null) return BoundValue(Clean(block.Dv.V), MaxAccessibilityText);
+            }
+            return "";
+        }
+
+        private static int AccessibilityState(N node, string role, Axc data)
+        {
+            var state = 0;
+            var field = AccessibilityField(node, data);
+            if (field != null && !field.Ds || field == null && AccessibilityFocusable(node)) state |= Lea.Engine.Ax.Fs;
+            if (node.Fc) state |= Lea.Engine.Ax.Fc;
+            if ((field == null && node.A.ContainsKey("disabled")) || AriaTrue(node, "aria-disabled")) state |= Lea.Engine.Ax.Ds;
+            if ((field == null && node.A.ContainsKey("checked")) || AriaTrue(node, "aria-checked")) state |= Lea.Engine.Ax.Ck;
+            if (node.Av("aria-checked").Equals("mixed", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Mx;
+            if (node.A.ContainsKey("selected") || AriaTrue(node, "aria-selected")) state |= Lea.Engine.Ax.Sl;
+            if ((field == null && node.A.ContainsKey("required")) || AriaTrue(node, "aria-required")) state |= Lea.Engine.Ax.Rq;
+            if ((field == null && node.A.ContainsKey("readonly")) || AriaTrue(node, "aria-readonly")) state |= Lea.Engine.Ax.Ro;
+            var invalid = node.Av("aria-invalid");
+            if (invalid.Length > 0 && !invalid.Equals("false", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Iv;
+            if (node.A.ContainsKey("aria-expanded")) state |= AriaTrue(node, "aria-expanded") ? Lea.Engine.Ax.Ex : Lea.Engine.Ax.Co;
+            if (node.K == "details" || node.K == "summary") state |= (node.K == "details" ? node : node.Up).Op ? Lea.Engine.Ax.Ex : Lea.Engine.Ax.Co;
+            var pressed = node.Av("aria-pressed");
+            if (pressed.Equals("mixed", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Mx | Lea.Engine.Ax.Ps;
+            else if (pressed.Equals("true", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Ps;
+            if (AriaTrue(node, "aria-busy")) state |= Lea.Engine.Ax.Bs;
+            var current = node.Av("aria-current");
+            if (current.Length > 0 && !current.Equals("false", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Cr;
+            return state;
+        }
+
+        private static bool AccessibilityFocusable(N node)
+        {
+            if (node == null) return false;
+            if ((node.K == "a" || node.K == "area") && node.A.ContainsKey("href") || node.K == "button" || node.K == "summary") return true;
+            if (!node.A.ContainsKey("tabindex")) return false;
+            var value = node.Av("tabindex").Trim();
+            int number;
+            return value.Length > 0 && value.Length <= 16 && Int32.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number);
+        }
+
+        private static Fi AccessibilityField(N node, Axc data)
+        {
+            Fi field;
+            return node != null && data.Fs.TryGetValue(node, out field) ? field : null;
+        }
+
+        private static Uri AccessibilityUrl(N node, Uri baseUrl)
+        {
+            if (node == null || baseUrl == null || (node.K != "a" && node.K != "area")) return null;
+            Uri result;
+            return TryUri(baseUrl, node.Av("href"), out result) ? result : null;
+        }
+
+        private static bool AriaTrue(N node, string name)
+        {
+            return node.Av(name).Trim().Equals("true", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool AccessibilityConsumesText(string role)
+        {
+            return AccessibilityNameFromContent(role) || role == "img" || role == "textbox" || role == "searchbox" || role == "combobox" || role == "listbox";
+        }
+
+        private static bool AccessibilityNameFromContent(string role)
+        {
+            return role == "button" || role == "link" || role == "heading" || role == "paragraph" || role == "blockquote" || role == "code" ||
+                   role == "listitem" || role == "cell" || role == "columnheader" || role == "rowheader" || role == "caption" || role == "option" ||
+                   role == "status" || role == "term" || role == "definition" || role == "time" || role == "insertion" || role == "deletion";
+        }
+
+        private static int HeadingLevel(N node, string role)
+        {
+            int level;
+            if (role != "heading") return 0;
+            if (node.K.Length == 2 && node.K[0] == 'h' && node.K[1] >= '1' && node.K[1] <= '6') return node.K[1] - '0';
+            return Int32.TryParse(node.Av("aria-level"), out level) ? Math.Max(1, Math.Min(9, level)) : 2;
+        }
+
+        private static N FirstChild(N node, string kind)
+        {
+            if (node == null) return null;
+            foreach (var child in node.C) if (child.K == kind) return child;
+            return null;
+        }
+
+        private static bool HasSectionAncestor(N node)
+        {
+            for (var current = node.Up; current != null; current = current.Up)
+                if (current.K == "article" || current.K == "aside" || current.K == "main" || current.K == "nav" || current.K == "section") return true;
+            return false;
+        }
+
+        private sealed class Axc
+        {
+            public readonly P P;
+            public readonly Dictionary<string, N> Ids = new Dictionary<string, N>(StringComparer.Ordinal);
+            public readonly Dictionary<string, List<N>> Lbs = new Dictionary<string, List<N>>(StringComparer.Ordinal);
+            public readonly Dictionary<N, Fi> Fs = new Dictionary<N, Fi>();
+            public readonly HashSet<N> As = new HashSet<N>();
+
+            public Axc(P page) { P = page; }
+        }
+
+        private static void LinkBlocks(P page)
+        {
+            var contexts = new Dictionary<N, B>();
+            foreach (var block in page.Bs)
+                if (block.El != null && BlockContext(block) && !contexts.ContainsKey(block.El)) contexts[block.El] = block;
+            foreach (var block in page.Bs)
+            {
+                for (var node = block.El == null ? null : block.An ? block.El : block.El.Up; node != null; node = node.Up)
+                {
+                    B parent;
+                    if (!contexts.TryGetValue(node, out parent)) continue;
+                    block.Up = parent;
+                    break;
+                }
+            }
+        }
+
+        private static bool LayoutContext(S style)
+        {
+            return style != null && (Flex(style) || Grid(style) || style.Ct != "n" || style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Pn == "k" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
+        }
+
+        private static bool Flex(S style)
+        {
+            return style != null && (style.D == "flex" || style.D == "inline-flex");
+        }
+
+        private static bool Grid(S style)
+        {
+            return style != null && (style.D == "grid" || style.D == "inline-grid");
+        }
+
+        private static bool BlockContext(B block)
+        {
+            return block != null && (LayoutContext(block.S) || IsContainerBlock(block.K));
+        }
+
+        private static bool VisualContext(S style)
+        {
+            return LayoutContext(style) || style != null &&
+                (style.Bg.Length > 0 || style.Gi != null || style.Bi != null && style.Bi.U != null ||
+                 style.Mt != 0 || style.Mr != 0 || style.Mb != 0 || style.Ml != 0 ||
+                 style.Pt != 0 || style.Pr != 0 || style.Pb != 0 || style.Pl != 0 || style.W > 0 || style.Wp > 0 || style.Wk > 0 || style.H > 0 || style.Hp > 0 || style.Hk > 0 ||
+                 style.Wn > 0 || style.Wnp > 0 || style.Wnk > 0 || style.Wx > 0 || style.Wxp > 0 || style.Wxk > 0 || style.Hn > 0 || style.Hnp > 0 || style.Hnk > 0 || style.Hx > 0 || style.Hxp > 0 || style.Hxk > 0 || style.Rw > 0D && style.Rh > 0D ||
+                 style.Bt > 0 || style.Br > 0 || style.Bb > 0 || style.Bl > 0 || style.Ow > 0 && style.Os != "n");
+        }
+
+        private static bool Owns(N root, N node)
+        {
+            if (node == null) return true;
+            for (var current = node; current != null; current = current.Up)
+                if (Object.ReferenceEquals(current, root)) return true;
+            return false;
+        }
+
+        private static void ClearState(N node)
+        {
+            if (node == null) return;
+            node.Hv = false;
+            node.Fc = false;
+            foreach (var child in node.C) ClearState(child);
+        }
+
+        private static N Tree(string html)
+        {
+            var root = new N("#doc");
+            var stack = new List<N>();
+            stack.Add(root);
+            var nodes = 1;
+
+            foreach (var token in Tokens(html))
+            {
+                if (token.K == 'c')
+                {
+                    for (var i = stack.Count - 1; i > 0; i--)
+                    {
+                        if (stack[i].K != token.N) continue;
+                        stack.RemoveRange(i, stack.Count - i);
+                        break;
+                    }
+                    continue;
+                }
+
+                if (token.K == 'o')
+                {
+                    if (nodes == MaxHtmlNodes) break;
+                    Recover(stack, token.N);
+                    var node = new N(token.N);
+                    Attrs(node, token.A);
+                    if (node.K == "details") node.Op = node.A.ContainsKey("open");
+                    node.Up = stack[stack.Count - 1];
+                    stack[stack.Count - 1].C.Add(node);
+                    nodes++;
+                    if (!token.S && !Void(token.N) && stack.Count < MaxHtmlDepth) stack.Add(node);
+                    continue;
+                }
+
+                if (token.X.Length == 0) continue;
+                if (nodes == MaxHtmlNodes) break;
+                var parent = stack[stack.Count - 1];
+                parent.C.Add(new N("#text") { X = token.D ? Hc.D(token.X) : token.X, Up = parent });
+                nodes++;
+            }
+
+            return root;
+        }
+
+        private static IEnumerable<Tk> Tokens(string html)
+        {
+            var source = html ?? "";
+            var at = 0;
+            var steps = 0;
+            while (at < source.Length && steps++ < MaxHtmlTokens)
+            {
+                if (source[at] != '<')
+                {
+                    var next = source.IndexOf('<', at);
+                    if (next < 0) next = source.Length;
+                    yield return Tk.T(source.Substring(at, next - at), true);
+                    at = next;
+                    continue;
+                }
+
+                if (Starts(source, at, "<!--"))
+                {
+                    var end = source.IndexOf("-->", at + 4, StringComparison.Ordinal);
+                    at = end < 0 ? source.Length : end + 3;
+                    continue;
+                }
+
+                if (Starts(source, at, "<!") || Starts(source, at, "<?"))
+                {
+                    var end = TagEnd(source, at + 2);
+                    at = end < 0 ? source.Length : end + 1;
+                    continue;
+                }
+
+                var close = Starts(source, at, "</");
+                var nameAt = at + (close ? 2 : 1);
+                while (nameAt < source.Length && Char.IsWhiteSpace(source[nameAt])) nameAt++;
+                if (nameAt >= source.Length || !NameStart(source[nameAt]))
+                {
+                    yield return Tk.T("<", true);
+                    at++;
+                    continue;
+                }
+
+                var nameEnd = nameAt + 1;
+                while (nameEnd < source.Length && NameChar(source[nameEnd])) nameEnd++;
+                if (nameEnd - nameAt > MaxHtmlName)
+                {
+                    yield return Tk.T("<", true);
+                    at++;
+                    continue;
+                }
+
+                var endTag = TagEnd(source, nameEnd);
+                if (endTag < 0)
+                {
+                    yield return Tk.T(source.Substring(at), true);
+                    yield break;
+                }
+
+                var name = source.Substring(nameAt, nameEnd - nameAt).ToLowerInvariant();
+                if (close)
+                {
+                    yield return Tk.C(name);
+                    at = endTag + 1;
+                    continue;
+                }
+
+                var self = SelfClose(source, nameEnd, endTag);
+                var attrLength = Math.Min(endTag - nameEnd, MaxHtmlAttributeText);
+                var attrs = source.Substring(nameEnd, attrLength);
+                yield return Tk.O(name, attrs, self);
+                at = endTag + 1;
+
+                var raw = RawKind(name);
+                if (raw == 0 || self) continue;
+                int rawEnd;
+                var rawClose = RawClose(source, at, name, out rawEnd);
+                if (rawClose < 0)
+                {
+                    if (at < source.Length) yield return Tk.T(source.Substring(at), raw == 2);
+                    yield break;
+                }
+                if (rawClose > at) yield return Tk.T(source.Substring(at, rawClose - at), raw == 2);
+                yield return Tk.C(name);
+                at = rawEnd + 1;
+            }
+        }
+
+        private static int TagEnd(string source, int start)
+        {
+            var quote = '\0';
+            for (var i = start; i < source.Length; i++)
+            {
+                var value = source[i];
+                if (quote != '\0')
+                {
+                    if (value == quote) quote = '\0';
+                    continue;
+                }
+                if (value == '\'' || value == '"') quote = value;
+                else if (value == '>') return i;
+            }
+            return -1;
+        }
+
+        private static int RawClose(string source, int start, string name, out int end)
+        {
+            var find = "</" + name;
+            var at = start;
+            while (at < source.Length)
+            {
+                var close = source.IndexOf(find, at, StringComparison.OrdinalIgnoreCase);
+                if (close < 0) break;
+                var after = close + find.Length;
+                if (after < source.Length && !Char.IsWhiteSpace(source[after]) && source[after] != '>')
+                {
+                    at = after;
+                    continue;
+                }
+                end = TagEnd(source, after);
+                if (end >= 0) return close;
+                break;
+            }
+            end = -1;
+            return -1;
+        }
+
+        private static int RawKind(string name)
+        {
+            if (name == "title" || name == "textarea") return 2;
+            return name == "script" || name == "style" || name == "xmp" || name == "iframe" ||
+                   name == "noembed" || name == "noframes" ? 1 : 0;
+        }
+
+        private static bool SelfClose(string source, int start, int end)
+        {
+            for (var i = end - 1; i >= start; i--)
+            {
+                if (Char.IsWhiteSpace(source[i])) continue;
+                return source[i] == '/';
+            }
+            return false;
+        }
+
+        private static bool Starts(string source, int at, string value)
+        {
+            return at >= 0 && at + value.Length <= source.Length &&
+                   String.Compare(source, at, value, 0, value.Length, StringComparison.Ordinal) == 0;
+        }
+
+        private static bool NameStart(char value)
+        {
+            return value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z';
+        }
+
+        private static bool NameChar(char value)
+        {
+            return NameStart(value) || value >= '0' && value <= '9' || value == ':' || value == '-';
+        }
+
+        private static void Recover(List<N> stack, string tag)
+        {
+            var block = IsBlockTag(tag);
+            if (block) CloseOpen(stack, "p");
+            if (block) CloseOpen(stack, "h1", "h2", "h3", "h4", "h5", "h6");
+            if (tag == "li") CloseScoped(stack, new[] { "li" }, new[] { "ul", "ol", "menu" });
+            else if (tag == "dt" || tag == "dd") CloseScoped(stack, new[] { "dt", "dd" }, new[] { "dl" });
+            else if (tag == "td" || tag == "th") CloseScoped(stack, new[] { "td", "th" }, new[] { "tr", "table" });
+            else if (tag == "tr") CloseScoped(stack, new[] { "tr" }, new[] { "table" });
+            else if (tag == "thead" || tag == "tbody" || tag == "tfoot") CloseScoped(stack, new[] { "thead", "tbody", "tfoot" }, new[] { "table" });
+            else if (tag == "option") CloseScoped(stack, new[] { "option" }, new[] { "select", "datalist" });
+            else if (tag == "optgroup")
+            {
+                CloseScoped(stack, new[] { "option" }, new[] { "select" });
+                CloseScoped(stack, new[] { "optgroup" }, new[] { "select" });
+            }
+            else if (tag == "a" || tag == "button") CloseOpen(stack, tag);
+        }
+
+        private static void CloseScoped(List<N> stack, string[] tags, string[] stops)
+        {
+            for (var i = stack.Count - 1; i > 0; i--)
+            {
+                if (Has(stops, stack[i].K)) return;
+                if (!Has(tags, stack[i].K)) continue;
+                stack.RemoveRange(i, stack.Count - i);
+                return;
+            }
+        }
+
+        private static bool Has(string[] values, string value)
+        {
+            foreach (var item in values) if (item == value) return true;
+            return false;
+        }
+
+        private static void CloseOpen(List<N> stack, params string[] tags)
+        {
+            for (var i = stack.Count - 1; i > 0; i--)
+            {
+                var close = false;
+                foreach (var tag in tags) if (stack[i].K == tag) { close = true; break; }
+                if (!close) continue;
+                stack.RemoveRange(i, stack.Count - i);
+                return;
+            }
+        }
+
+        private static void Attrs(N node, string attrs)
+        {
+            const string pattern = "(?<n>[a-z_:][a-z0-9_:.\\-]*)(?:\\s*=\\s*(?:\"(?<d>[^\"]*)\"|'(?<s>[^']*)'|(?<b>[^\\s\"'=<>]+)))?";
+            var source = attrs ?? "";
+            if (source.Length > MaxHtmlAttributeText) source = source.Substring(0, MaxHtmlAttributeText);
+            var count = 0;
+            foreach (Match match in Regex.Matches(source, pattern, RegexOptions.IgnoreCase))
+            {
+                if (count++ == MaxHtmlAttributes) break;
+                var name = match.Groups["n"].Value;
+                if (name.Length > MaxHtmlName) continue;
+                var value = match.Groups["d"].Success ? match.Groups["d"].Value : match.Groups["s"].Success ? match.Groups["s"].Value : match.Groups["b"].Value;
+                if (value.Length > MaxHtmlAttributeValue) value = value.Substring(0, MaxHtmlAttributeValue);
+                node.A[name] = Hc.D(value, true);
+            }
+        }
+
+        private static bool Void(string tag)
+        {
+            return tag == "area" || tag == "base" || tag == "br" || tag == "col" || tag == "embed" || tag == "hr" || tag == "img" || tag == "input" || tag == "link" || tag == "meta" || tag == "param" || tag == "source" || tag == "track" || tag == "wbr";
+        }
+
+        private static bool IsBlockTag(string tag)
+        {
+            return IsHeading(tag) || tag == "address" || tag == "article" || tag == "aside" || tag == "blockquote" ||
+                   tag == "center" || tag == "dd" || tag == "details" || tag == "div" || tag == "dl" || tag == "dt" ||
+                   tag == "fieldset" || tag == "figcaption" || tag == "figure" || tag == "footer" || tag == "form" ||
+                   tag == "header" || tag == "hr" || tag == "legend" || tag == "li" || tag == "main" || tag == "menu" ||
+                   tag == "meter" || tag == "nav" || tag == "ol" || tag == "p" || tag == "pre" || tag == "progress" || tag == "section" || tag == "summary" ||
+                   tag == "svg" || tag == "table" || tag == "ul";
+        }
+
+        private static bool IsHeading(string tag)
+        {
+            return tag == "h1" || tag == "h2" || tag == "h3" || tag == "h4" || tag == "h5" || tag == "h6";
+        }
+
+        private static N Find(N node, string kind)
+        {
+            if (node == null) return null;
+            if (node.K == kind) return node;
+            foreach (var child in node.C)
+            {
+                var found = Find(child, kind);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static Uri DocumentBase(N root, Uri responseUrl)
+        {
+            Uri found;
+            return TryDocumentBase(root, responseUrl, out found) ? found : responseUrl;
+        }
+
+        private static bool TryDocumentBase(N node, Uri responseUrl, out Uri found)
+        {
+            found = null;
+            if (node == null) return false;
+            if (node.K == "base")
+            {
+                var href = node.Av("href").Trim();
+                Uri candidate;
+                if (href.Length > 0 && href.Length <= MaxBaseUrl && Uri.TryCreate(responseUrl, href, out candidate) &&
+                    (candidate.IsFile || candidate.Scheme == Uri.UriSchemeHttp || candidate.Scheme == Uri.UriSchemeHttps))
+                {
+                    found = candidate;
+                    return true;
+                }
+            }
+            foreach (var child in node.C)
+                if (TryDocumentBase(child, responseUrl, out found)) return true;
+            return false;
+        }
+
+        private static int Count(N node)
+        {
+            if (node == null) return 0;
+            var count = node.K.StartsWith("#") ? 0 : 1;
+            foreach (var child in node.C) count += Count(child);
+            return count;
+        }
+
+        private static string NodeText(N node)
+        {
+            if (node == null) return "";
+            var text = new StringBuilder();
+            AddText(node, text);
+            return text.ToString();
+        }
+
+        private static void DiagnosticNodes(N node, int depth, IList<string> lines)
+        {
+            if (node == null || lines.Count == MaxDiagnosticNodes) return;
+            var line = new StringBuilder();
+            line.Append(new String(' ', Math.Min(24, depth) * 2)).Append(node.K);
+            if (node.K == "#text") line.Append(" \"").Append(Short(node.X, 72)).Append('"');
+            else
+            {
+                AddDiagnosticAttribute(line, "id", node.Av("id"));
+                AddDiagnosticAttribute(line, "class", node.Av("class"));
+                AddDiagnosticAttribute(line, "type", node.Av("type"));
+                AddDiagnosticAttribute(line, "name", node.Av("name"));
+                AddDiagnosticAttribute(line, "href", node.Av("href"));
+                AddDiagnosticAttribute(line, "src", node.Av("src"));
+            }
+            var value = line.ToString();
+            lines.Add(value.Length > 240 ? value.Substring(0, 240) : value);
+            foreach (var child in node.C) DiagnosticNodes(child, depth + 1, lines);
+        }
+
+        private static void AddDiagnosticAttribute(StringBuilder line, string name, string value)
+        {
+            if (String.IsNullOrWhiteSpace(value)) return;
+            line.Append(' ').Append(name).Append("=\"").Append(Short(value, 80)).Append('"');
+        }
+
+        private Ld Track(string method, Ld load, string kind)
+        {
+            if (load != null && load.R != null) Trace(method, load.R.U, load.R.St, load.R.Ct, load.R.Sz, kind);
+            return load;
+        }
+
+        private void Trace(string method, Uri url, int status, string type, long size, string kind)
+        {
+            var line = (method ?? "GET") + " " + status + " " + (kind ?? "net") + " " + size + "B " +
+                Short(type, 48) + " " + Short(url == null ? "" : url.ToString(), 180);
+            lock (requests)
+            {
+                requests.Add(Short(line, 320));
+                if (requests.Count > MaxDiagnosticRequests) requests.RemoveAt(0);
+            }
+        }
+
+        private static string Short(string value, int max)
+        {
+            var result = new StringBuilder();
+            var space = false;
+            foreach (var ch in value ?? "")
+            {
+                if (Char.IsWhiteSpace(ch) || Char.IsControl(ch)) { space = result.Length > 0; continue; }
+                if (space && result.Length > 0) result.Append(' ');
+                result.Append(ch);
+                space = false;
+                if (result.Length == max) break;
+            }
+            return result.ToString().Trim();
+        }
+
+        private static void AddText(N node, StringBuilder text)
+        {
+            if (node.K == "#text")
+            {
+                text.Append(node.X).Append(' ');
+                return;
+            }
+            if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
+            foreach (var child in node.C) AddText(child, text);
+        }
+
+        private Dictionary<N, Sc> StyleSheets(N root, Uri baseUrl, Uri origin)
+        {
+            var sheets = new Dictionary<N, Sc>();
+            var count = 0;
+            foreach (var link in StyleLinks(root))
+            {
+                CheckStop();
+                if (inputBudget.IsCancellationRequested) break;
+                Uri url;
+                if (!StyleUrl(link, baseUrl, origin, out url)) continue;
+                if (count++ == MaxStyleLinks) break;
+                try
+                {
+                    var load = Fetch(url, false, MaxCss);
+                    if (!UsableCss(load.R)) { DropCache(url); continue; }
+                    sheets[link] = new Sc(load.R.H, load.R.U);
+                }
+                catch (Exception error) { if (!SkipSheet(error, url)) throw; }
+            }
+            return sheets;
+        }
+
+        private async Task<Dictionary<N, Sc>> StyleSheetsA(N root, Uri baseUrl, Uri origin)
+        {
+            var sheets = new Dictionary<N, Sc>();
+            var count = 0;
+            foreach (var link in StyleLinks(root))
+            {
+                CheckStop();
+                if (inputBudget.IsCancellationRequested) break;
+                Uri url;
+                if (!StyleUrl(link, baseUrl, origin, out url)) continue;
+                if (count++ == MaxStyleLinks) break;
+                try
+                {
+                    var load = await FetchA(url, false, MaxCss);
+                    if (!UsableCss(load.R)) { DropCache(url); continue; }
+                    sheets[link] = new Sc(load.R.H, load.R.U);
+                }
+                catch (Exception error) { if (!SkipSheet(error, url)) throw; }
+            }
+            return sheets;
+        }
+
+        private bool SkipSheet(Exception error, Uri url)
+        {
+            var typed = InputError(error, url);
+            if (typed == null && !(error is ArgumentException)) return false;
+            if (typed != null && typed.K == "cancel") throw typed;
+            DropCache(url);
+            Trace("GET", url, typed == null ? 0 : typed.St, "text/css", 0, typed == null ? "url" : typed.K);
+            return true;
+        }
+
+        private static List<N> StyleLinks(N root)
+        {
+            var found = new List<N>();
+            var links = new List<N>();
+            FindAll(root, "link", found);
+            foreach (var link in found)
+            {
+                var rel = " " + Regex.Replace(link.Av("rel").Trim(), "\\s+", " ").ToLowerInvariant() + " ";
+                var media = link.Av("media").Trim().ToLowerInvariant();
+                var type = link.Av("type").Trim().ToLowerInvariant();
+                if (rel.IndexOf(" stylesheet ", StringComparison.Ordinal) < 0 || rel.IndexOf(" alternate ", StringComparison.Ordinal) >= 0) continue;
+                if (link.A.ContainsKey("disabled") || CssMedia(media).Length == 0 || (type.Length > 0 && type != "text/css")) continue;
+                links.Add(link);
+            }
+            return links;
+        }
+
+        private static bool StyleUrl(N link, Uri baseUrl, Uri origin, out Uri url)
+        {
+            url = null;
+            var href = link.Av("href");
+            if (href.Length == 0 || !Uri.TryCreate(baseUrl, href, out url)) return false;
+            if (url.IsFile && (url.IsUnc || origin == null || !origin.IsFile)) return false;
+            return url.IsFile || url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps;
+        }
+
+        private static bool UsableCss(Cr reply)
+        {
+            return reply != null && reply.St >= 200 && reply.St < 300 && reply.Ct == "text/css" && reply.Sz <= MaxCss;
+        }
+
+        private static List<R> Css(N root, Uri baseUrl, IDictionary<N, Sc> sheets)
+        {
+            var rules = new List<R>();
+            var order = 0;
+            CssRules(root, baseUrl, sheets, rules, ref order, new Dictionary<string, int>(StringComparer.Ordinal));
+            rules.Sort(CompareRules);
+            return rules;
+        }
+
+        private static int CompareRules(R left, R right)
+        {
+            var leftLayer = left.L < 0 ? MaxCssLayers : left.L;
+            var rightLayer = right.L < 0 ? MaxCssLayers : right.L;
+            var layer = leftLayer.CompareTo(rightLayer);
+            if (layer != 0) return layer;
+            var weight = left.W.CompareTo(right.W);
+            return weight != 0 ? weight : left.O.CompareTo(right.O);
+        }
+
+        private static int CompareImportantRules(R left, R right)
+        {
+            if (left.L < 0 && right.L >= 0) return -1;
+            if (left.L >= 0 && right.L < 0) return 1;
+            var layer = left.L < 0 ? 0 : right.L.CompareTo(left.L);
+            if (layer != 0) return layer;
+            var weight = left.W.CompareTo(right.W);
+            return weight != 0 ? weight : left.O.CompareTo(right.O);
+        }
+
+        private static int CompareLayerRules(R left, R right)
+        {
+            var layer = left.L.CompareTo(right.L);
+            return layer != 0 ? layer : left.O.CompareTo(right.O);
+        }
+
+        private static int CompareSourceRules(R left, R right) { return left.O.CompareTo(right.O); }
+
+        private static void CssRules(N node, Uri baseUrl, IDictionary<N, Sc> sheets, List<R> rules, ref int order,
+            Dictionary<string, int> layers)
+        {
+            string source = null;
+            var origin = baseUrl;
+            if (node.K == "style") source = RawText(node);
+            else if (sheets != null)
+            {
+                Sc sheet;
+                if (sheets.TryGetValue(node, out sheet) && sheet != null) { source = sheet.X; origin = sheet.U; }
+            }
+            if (source != null)
+            {
+                var media = CssMedia(node.Av("media"));
+                if (media.Length > 0) CssSource(source, origin, rules, ref order, media, 0, MaxCssRules, "", layers, "");
+            }
+            foreach (var child in node.C) CssRules(child, baseUrl, sheets, rules, ref order, layers);
+        }
+
+        private static void CssSource(string source, Uri origin, List<R> rules, ref int order, Mc[] media, int depth,
+            int limit = MaxCssRules, string supports = "", Dictionary<string, int> layers = null, string layerName = "",
+            Kq[] containers = null)
+        {
+            if (String.IsNullOrEmpty(source) || media == null || media.Length == 0 || depth > MaxMediaDepth) return;
+            if (layers == null) layers = new Dictionary<string, int>(StringComparer.Ordinal);
+            if (containers == null) containers = new Kq[0];
+            var at = 0;
+            string header;
+            string body;
+            while (rules.Count < limit && CssBlock(source, ref at, out header, out body))
+            {
+                var query = CssClean(header).Trim();
+                if (query.Length == 0) continue;
+                if (Regex.IsMatch(query, "^@media(?:\\s|\\()", RegexOptions.IgnoreCase))
+                {
+                    if (depth == MaxMediaDepth) continue;
+                    var nested = CssIntersect(media, CssMedia(Regex.Replace(query, "^@media", "", RegexOptions.IgnoreCase)));
+                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1, limit, supports, layers, layerName, containers);
+                    continue;
+                }
+                if (Regex.IsMatch(query, "^@supports(?:\\s|\\()", RegexOptions.IgnoreCase))
+                {
+                    if (depth == MaxMediaDepth) continue;
+                    var condition = Regex.Replace(query, "^@supports", "", RegexOptions.IgnoreCase).Trim();
+                    if (CssSupports(condition, 0))
+                        CssSource(body, origin, rules, ref order, media, depth + 1, limit, CssSupportsLabel(supports, condition), layers, layerName, containers);
+                    continue;
+                }
+                if (Regex.IsMatch(query, "^@layer(?:\\s|$)", RegexOptions.IgnoreCase))
+                {
+                    if (depth == MaxMediaDepth) continue;
+                    var nested = CssLayerName(layerName, Regex.Replace(query, "^@layer", "", RegexOptions.IgnoreCase));
+                    if (nested == null) continue;
+                    int rank;
+                    if (!layers.TryGetValue(nested, out rank))
+                    {
+                        if (layers.Count == MaxCssLayers) continue;
+                        rank = layers.Count;
+                        layers[nested] = rank;
+                    }
+                    CssSource(body, origin, rules, ref order, media, depth + 1, limit, supports, layers, nested, containers);
+                    continue;
+                }
+                if (Regex.IsMatch(query, "^@container(?:\\s|$)", RegexOptions.IgnoreCase))
+                {
+                    if (depth == MaxMediaDepth || containers.Length == MaxContainerDepth) continue;
+                    Kq container;
+                    if (!ContainerQuery(Regex.Replace(query, "^@container", "", RegexOptions.IgnoreCase), out container)) continue;
+                    var nested = new Kq[containers.Length + 1];
+                    Array.Copy(containers, nested, containers.Length);
+                    nested[nested.Length - 1] = container;
+                    CssSource(body, origin, rules, ref order, media, depth + 1, limit, supports, layers, layerName, nested);
+                    continue;
+                }
+                if (query[0] == '@') continue;
+                var layer = -1;
+                if (layerName.Length > 0 && !layers.TryGetValue(layerName, out layer)) continue;
+                CssRule(query, CssClean(body), origin, rules, ref order, media, limit, supports, layerName, layer, containers);
+            }
+        }
+
+        private static void CssRule(string selectors, string declarations, Uri origin, List<R> rules, ref int order, Mc[] media,
+            int limit = MaxCssRules, string supports = "", string layerName = "", int layer = -1, Kq[] containers = null)
+        {
+            if (String.IsNullOrWhiteSpace(declarations) || declarations.Length > 64 * 1024) return;
+            foreach (var selector in CssGroups(selectors))
+            {
+                if (rules.Count >= limit) return;
+                var query = selector.Trim();
+                var matchQuery = query;
+                char pseudo;
+                var parts = new List<string>();
+                var joins = new List<char>();
+                if (query.Length == 0 || !CssPseudoSelector(query, out matchQuery, out pseudo) || !CssParts(matchQuery, parts, joins)) continue;
+                var simple = new List<Se>();
+                foreach (var part in parts)
+                {
+                    var value = CssSimple(part);
+                    if (value == null) { simple.Clear(); break; }
+                    simple.Add(value);
+                }
+                if (simple.Count == parts.Count)
+                    rules.Add(new R(query, declarations, origin, Spec(simple) + (pseudo == '\0' ? 0 : 1), order++, simple.ToArray(), joins.ToArray(), media, pseudo, supports, layerName, layer, containers));
+            }
+        }
+
+        private static string CssLayerName(string parent, string input)
+        {
+            var source = (input ?? "").Trim();
+            if (source.Length == 0 || source.Length > MaxCssLayerDepth * (MaxCssLayerName + 1) - 1 || source.IndexOf(',') >= 0) return null;
+            var parts = new List<string>();
+            if (!String.IsNullOrEmpty(parent)) parts.AddRange(parent.Split('.'));
+            parts.AddRange(source.Split('.'));
+            if (parts.Count > MaxCssLayerDepth) return null;
+            foreach (var part in parts)
+                if (part.Length == 0 || part.Length > MaxCssLayerName ||
+                    !Regex.IsMatch(part, "^-?[A-Za-z_][A-Za-z0-9_-]*$") ||
+                    Regex.IsMatch(part, "^(?:initial|inherit|unset|revert|revert-layer)$", RegexOptions.IgnoreCase)) return null;
+            return String.Join(".", parts.ToArray());
+        }
+
+        private static bool ContainerQuery(string input, out Kq result)
+        {
+            result = null;
+            var source = (input ?? "").Trim();
+            if (source.Length == 0 || source.Length > MaxContainerText) return false;
+            var name = "";
+            var condition = source;
+            if (!source.StartsWith("style(", StringComparison.OrdinalIgnoreCase) &&
+                !Regex.IsMatch(source, "^(?:not\\s+|\\()", RegexOptions.IgnoreCase))
+            {
+                var split = source.IndexOfAny(new[] { ' ', '\t', '\r', '\n', '\f' });
+                if (split < 1) return false;
+                name = source.Substring(0, split);
+                condition = source.Substring(split).Trim();
+                if (!ContainerNameIdentifier(name)) return false;
+            }
+            var terms = 0;
+            Kx expression;
+            if (!ContainerCondition(condition, 0, ref terms, out expression) || expression == null) return false;
+            result = new Kq(name, condition, expression);
+            return true;
+        }
+
+        private static bool ContainerCondition(string source, int depth, ref int terms, out Kx result)
+        {
+            result = null;
+            var condition = (source ?? "").Trim();
+            if (depth > MaxContainerDepth || condition.Length == 0 || condition.Length > MaxContainerText) return false;
+            List<string> groups;
+            char operation;
+            if (!CssSupportsTerms(condition, out groups, out operation)) return false;
+            if (groups.Count > 1)
+            {
+                var children = new List<Kx>();
+                foreach (var group in groups)
+                {
+                    Kx child;
+                    if (!ContainerCondition(group, depth + 1, ref terms, out child)) return false;
+                    children.Add(child);
+                }
+                result = new Kx(operation, children.ToArray());
+                return true;
+            }
+            if (Regex.IsMatch(condition, "^not\\s+", RegexOptions.IgnoreCase))
+            {
+                Kx child;
+                if (!ContainerCondition(Regex.Replace(condition, "^not\\s+", "", RegexOptions.IgnoreCase), depth + 1, ref terms, out child)) return false;
+                result = new Kx('n', new[] { child });
+                return true;
+            }
+            string body;
+            if (CssSupportsFunction(condition, "style", out body))
+            {
+                var declarations = CssDeclarations(body);
+                if (declarations.Length != 1 || !declarations[0].C || declarations[0].I || ++terms > MaxContainerTerms) return false;
+                var declaration = declarations[0];
+                var value = declaration.V.Trim();
+                if (value.Length == 0 || value.Length > MaxCustomValue ||
+                    value.Equals("revert", StringComparison.OrdinalIgnoreCase) ||
+                    value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase)) return false;
+                result = new Kx(declaration.N, value);
+                return true;
+            }
+            var sizeTerms = 0;
+            if (ContainerSizeCondition(condition, out result, out sizeTerms))
+            {
+                terms += sizeTerms;
+                return terms <= MaxContainerTerms;
+            }
+            string inner;
+            if (!CssSupportsWrapped(condition, out inner) || depth == MaxContainerDepth) return false;
+            return ContainerCondition(inner, depth + 1, ref terms, out result);
+        }
+
+        private static bool ContainerSizeCondition(string condition, out Kx result, out int terms)
+        {
+            result = null;
+            terms = 0;
+            var source = (condition ?? "").Trim();
+            string inner;
+            if (CssSupportsWrapped(source, out inner)) source = inner;
+            var orientation = Regex.Match(source, "^orientation\\s*:\\s*(?<v>portrait|landscape)$", RegexOptions.IgnoreCase);
+            if (orientation.Success)
+            {
+                result = new Kx('d', orientation.Groups["v"].Value.StartsWith("p", StringComparison.OrdinalIgnoreCase) ? "p" : "l");
+                terms = 1;
+                return true;
+            }
+            const string ratioNumber = "[0-9]{1,4}";
+            var ratioChain = Regex.Match(source, "^(?<an>" + ratioNumber + ")\\s*/\\s*(?<ad>" + ratioNumber + ")\\s*(?<ao><=|>=|<|>)\\s*aspect-ratio\\s*(?<bo><=|>=|<|>)\\s*(?<bn>" + ratioNumber + ")\\s*/\\s*(?<bd>" + ratioNumber + ")$", RegexOptions.IgnoreCase);
+            if (ratioChain.Success)
+            {
+                int leftNumerator;
+                int leftDenominator;
+                int rightNumerator;
+                int rightDenominator;
+                var leftOperator = ratioChain.Groups["ao"].Value;
+                var rightOperator = ratioChain.Groups["bo"].Value;
+                if (!MediaRatioTerm(ratioChain.Groups["an"].Value, ratioChain.Groups["ad"].Value, out leftNumerator, out leftDenominator) ||
+                    !MediaRatioTerm(ratioChain.Groups["bn"].Value, ratioChain.Groups["bd"].Value, out rightNumerator, out rightDenominator) ||
+                    leftOperator[0] != rightOperator[0]) return false;
+                result = new Kx('a', new[]
+                {
+                    new Kx('r', MediaInverse(leftOperator), leftNumerator, leftDenominator),
+                    new Kx('r', rightOperator, rightNumerator, rightDenominator)
+                });
+                terms = 2;
+                return true;
+            }
+            var ratioLegacy = Regex.Match(source, "^(?<k>min-|max-)?aspect-ratio\\s*:\\s*(?<n>" + ratioNumber + ")\\s*/\\s*(?<d>" + ratioNumber + ")$", RegexOptions.IgnoreCase);
+            if (ratioLegacy.Success)
+            {
+                int numerator;
+                int denominator;
+                if (!MediaRatioTerm(ratioLegacy.Groups["n"].Value, ratioLegacy.Groups["d"].Value, out numerator, out denominator)) return false;
+                var prefix = ratioLegacy.Groups["k"].Value.ToLowerInvariant();
+                result = new Kx('r', prefix == "min-" ? ">=" : prefix == "max-" ? "<=" : "=", numerator, denominator);
+                terms = 1;
+                return true;
+            }
+            var ratioDirect = Regex.Match(source, "^aspect-ratio\\s*(?<o><=|>=|=|<|>)\\s*(?<n>" + ratioNumber + ")\\s*/\\s*(?<d>" + ratioNumber + ")$", RegexOptions.IgnoreCase);
+            if (ratioDirect.Success)
+            {
+                int numerator;
+                int denominator;
+                if (!MediaRatioTerm(ratioDirect.Groups["n"].Value, ratioDirect.Groups["d"].Value, out numerator, out denominator)) return false;
+                result = new Kx('r', ratioDirect.Groups["o"].Value, numerator, denominator);
+                terms = 1;
+                return true;
+            }
+            var ratioReversed = Regex.Match(source, "^(?<n>" + ratioNumber + ")\\s*/\\s*(?<d>" + ratioNumber + ")\\s*(?<o><=|>=|=|<|>)\\s*aspect-ratio$", RegexOptions.IgnoreCase);
+            if (ratioReversed.Success)
+            {
+                int numerator;
+                int denominator;
+                if (!MediaRatioTerm(ratioReversed.Groups["n"].Value, ratioReversed.Groups["d"].Value, out numerator, out denominator)) return false;
+                result = new Kx('r', MediaInverse(ratioReversed.Groups["o"].Value), numerator, denominator);
+                terms = 1;
+                return true;
+            }
+            if (source.Equals("aspect-ratio", StringComparison.OrdinalIgnoreCase))
+            {
+                result = new Kx('r', "b", 1, 1);
+                terms = 1;
+                return true;
+            }
+            const string feature = "width|height|inline-size|block-size";
+            const string number = "(?:0|[1-9][0-9]{0,3})(?:\\.[0-9]{1,2})?";
+            const string unit = "px|em|rem|vw|vh|vmin|vmax|cqw|cqh|cqi|cqb|cqmin|cqmax";
+            const string atom = number + "(?:" + unit + ")?";
+            const string calcTerm = number + "(?:" + unit + ")";
+            const string length = "(?:" + atom + "|calc\\(\\s*" + calcTerm + "\\s+[+-]\\s+" + calcTerm + "\\s*\\))";
+            var chain = Regex.Match(source, "^(?<a>" + length + ")\\s*(?<ao><=|>=|<|>)\\s*(?<k>" + feature + ")\\s*(?<bo><=|>=|<|>)\\s*(?<b>" + length + ")$", RegexOptions.IgnoreCase);
+            if (chain.Success)
+            {
+                int left;
+                int right;
+                int leftOffset;
+                int rightOffset;
+                char leftUnit;
+                char rightUnit;
+                char leftOffsetUnit;
+                char rightOffsetUnit;
+                var leftOperator = chain.Groups["ao"].Value;
+                var rightOperator = chain.Groups["bo"].Value;
+                if (!ContainerLength(chain.Groups["a"].Value, out left, out leftUnit, out leftOffset, out leftOffsetUnit) ||
+                    !ContainerLength(chain.Groups["b"].Value, out right, out rightUnit, out rightOffset, out rightOffsetUnit) ||
+                    leftOperator[0] != rightOperator[0]) return false;
+                var axis = ContainerAxis(chain.Groups["k"].Value);
+                result = new Kx('a', new[]
+                {
+                    new Kx(axis, MediaInverse(leftOperator), left, leftUnit, leftOffset, leftOffsetUnit),
+                    new Kx(axis, rightOperator, right, rightUnit, rightOffset, rightOffsetUnit)
+                });
+                terms = 2;
+                return true;
+            }
+            var legacy = Regex.Match(source, "^(?<k>min-|max-)?(?<f>" + feature + ")\\s*:\\s*(?<v>" + length + ")$", RegexOptions.IgnoreCase);
+            if (legacy.Success)
+            {
+                int value;
+                int offset;
+                char valueUnit;
+                char offsetUnit;
+                if (!ContainerLength(legacy.Groups["v"].Value, out value, out valueUnit, out offset, out offsetUnit)) return false;
+                var prefix = legacy.Groups["k"].Value.ToLowerInvariant();
+                result = new Kx(ContainerAxis(legacy.Groups["f"].Value), prefix == "min-" ? ">=" : prefix == "max-" ? "<=" : "=", value, valueUnit, offset, offsetUnit);
+                terms = 1;
+                return true;
+            }
+            var direct = Regex.Match(source, "^(?<k>" + feature + ")\\s*(?<o><=|>=|=|<|>)\\s*(?<v>" + length + ")$", RegexOptions.IgnoreCase);
+            if (direct.Success)
+            {
+                int value;
+                int offset;
+                char valueUnit;
+                char offsetUnit;
+                if (!ContainerLength(direct.Groups["v"].Value, out value, out valueUnit, out offset, out offsetUnit)) return false;
+                result = new Kx(ContainerAxis(direct.Groups["k"].Value), direct.Groups["o"].Value, value, valueUnit, offset, offsetUnit);
+                terms = 1;
+                return true;
+            }
+            var reversed = Regex.Match(source, "^(?<v>" + length + ")\\s*(?<o><=|>=|=|<|>)\\s*(?<k>" + feature + ")$", RegexOptions.IgnoreCase);
+            if (reversed.Success)
+            {
+                int value;
+                int offset;
+                char valueUnit;
+                char offsetUnit;
+                if (!ContainerLength(reversed.Groups["v"].Value, out value, out valueUnit, out offset, out offsetUnit)) return false;
+                result = new Kx(ContainerAxis(reversed.Groups["k"].Value), MediaInverse(reversed.Groups["o"].Value), value, valueUnit, offset, offsetUnit);
+                terms = 1;
+                return true;
+            }
+            var boolean = Regex.Match(source, "^(?<k>" + feature + ")$", RegexOptions.IgnoreCase);
+            if (!boolean.Success) return false;
+            result = new Kx(ContainerAxis(boolean.Groups["k"].Value), ">", 0, 'p');
+            terms = 1;
+            return true;
+        }
+
+        private static char ContainerAxis(string feature)
+        {
+            var value = (feature ?? "").ToLowerInvariant();
+            return value == "height" || value == "block-size" ? 'h' : 'w';
+        }
+
+        private static bool ContainerLength(string source, out int value, out char unit, out int offset, out char offsetUnit)
+        {
+            value = 0;
+            unit = '\0';
+            offset = 0;
+            offsetUnit = '\0';
+            const string number = "(?:0|[1-9][0-9]{0,3})(?:\\.[0-9]{1,2})?";
+            const string suffix = "px|em|rem|vw|vh|vmin|vmax|cqw|cqh|cqi|cqb|cqmin|cqmax";
+            var atom = Regex.Match(source, "^(?<n>" + number + ")(?<u>" + suffix + ")?$", RegexOptions.IgnoreCase);
+            if (atom.Success) return ContainerTerm(atom.Groups["n"].Value, atom.Groups["u"].Value, out value, out unit);
+            var calculated = Regex.Match(source, "^calc\\(\\s*(?<an>" + number + ")(?<au>" + suffix + ")\\s+(?<o>[+-])\\s+(?<bn>" + number + ")(?<bu>" + suffix + ")\\s*\\)$", RegexOptions.IgnoreCase);
+            if (!calculated.Success ||
+                !ContainerTerm(calculated.Groups["an"].Value, calculated.Groups["au"].Value, out value, out unit) ||
+                !ContainerTerm(calculated.Groups["bn"].Value, calculated.Groups["bu"].Value, out offset, out offsetUnit)) return false;
+            if (calculated.Groups["o"].Value == "-") offset = -offset;
+            return true;
+        }
+
+        private static bool ContainerTerm(string source, string unit, out int value, out char code)
+        {
+            value = 0;
+            code = '\0';
+            decimal number;
+            if (!Decimal.TryParse(source, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number) || number < 0) return false;
+            var suffix = (unit ?? "").ToLowerInvariant();
+            if (suffix.Length == 0 && number != 0) return false;
+            if (suffix.Length == 0 || suffix == "px") code = 'p';
+            else if (suffix == "em") code = 'e';
+            else if (suffix == "rem") code = 'r';
+            else if (suffix == "vw") code = 'w';
+            else if (suffix == "vh") code = 'h';
+            else if (suffix == "vmin") code = 'n';
+            else if (suffix == "vmax") code = 'x';
+            else if (suffix == "cqw") code = 'q';
+            else if (suffix == "cqh") code = 't';
+            else if (suffix == "cqi") code = 'i';
+            else if (suffix == "cqb") code = 'b';
+            else if (suffix == "cqmin") code = 'm';
+            else if (suffix == "cqmax") code = 'a';
+            else return false;
+            if (number > (code == 'p' ? MaxViewport : 100)) return false;
+            value = Decimal.ToInt32(number * 100M);
+            return true;
+        }
+
+        private bool ContainerOn(S inherited, Kq[] queries)
+        {
+            return ContainerOn(inherited == null ? null : inherited.Sq, queries);
+        }
+
+        private bool ContainerOn(Scq chain, Kq[] queries)
+        {
+            if (queries == null || queries.Length == 0) return true;
+            foreach (var query in queries)
+            {
+                var container = chain;
+                while (container != null &&
+                    (query.N.Length > 0 && !ContainerHasName(container.S.Cn, query.N) || !ContainerEligible(container, query.A))) container = container.Up;
+                if (container == null || !ContainerExpression(container, query.X)) return false;
+            }
+            return true;
+        }
+
+        private static bool ContainerEligible(Scq container, int axes)
+        {
+            if (container == null || container.S == null) return false;
+            if (axes == 0) return true;
+            if (container.N == null || !container.N.Cv) return false;
+            return (axes & 2) != 0 ? container.S.Ct == "s" : container.S.Ct == "i" || container.S.Ct == "s";
+        }
+
+        private static int ContainerAxes(Kx expression)
+        {
+            if (expression == null) return 0;
+            if (expression.K == 'w') return 1;
+            if (expression.K == 'h') return 2;
+            if (expression.K == 'r' || expression.K == 'd') return 3;
+            var result = 0;
+            foreach (var child in expression.C) result |= ContainerAxes(child);
+            return result;
+        }
+
+        private bool ContainerExpression(Scq container, Kx expression)
+        {
+            if (container == null || container.S == null || expression == null) return false;
+            if (expression.K == 'n') return !ContainerExpression(container, expression.C[0]);
+            if (expression.K == 'a')
+            {
+                foreach (var child in expression.C) if (!ContainerExpression(container, child)) return false;
+                return true;
+            }
+            if (expression.K == 'o')
+            {
+                foreach (var child in expression.C) if (ContainerExpression(container, child)) return true;
+                return false;
+            }
+            if (expression.K == 'd')
+            {
+                if (container.N == null || !container.N.Cv) return false;
+                var orientation = container.N.Ch >= container.N.Cw ? "p" : "l";
+                return orientation == expression.V;
+            }
+            if (expression.K == 'r')
+            {
+                if (container.N == null || !container.N.Cv) return false;
+                if (expression.N == "b") return container.N.Cw > 0;
+                if (container.N.Cw == 0 && container.N.Ch == 0) return false;
+                var parts = expression.V.Split('/');
+                int numerator;
+                int denominator;
+                if (parts.Length != 2 || !Int32.TryParse(parts[0], out numerator) || !Int32.TryParse(parts[1], out denominator)) return false;
+                var comparison = RatioCompare(container.N.Cw, container.N.Ch, numerator, denominator);
+                if (expression.N == "=") return comparison == 0;
+                if (expression.N == ">") return comparison > 0;
+                if (expression.N == ">=") return comparison >= 0;
+                if (expression.N == "<") return comparison < 0;
+                return expression.N == "<=" && comparison <= 0;
+            }
+            if (expression.K == 'w' || expression.K == 'h')
+            {
+                if (container.N == null || !container.N.Cv) return false;
+                var dimension = expression.K == 'w' ? container.N.Cw : container.N.Ch;
+                int comparison;
+                if (!ContainerLengthComparison(container, expression, dimension, out comparison)) return false;
+                if (expression.N == "=") return comparison == 0;
+                if (expression.N == ">") return comparison > 0;
+                if (expression.N == ">=") return comparison >= 0;
+                if (expression.N == "<") return comparison < 0;
+                return expression.N == "<=" && comparison <= 0;
+            }
+            string actual;
+            if (container.S.Vr == null || !container.S.Vr.TryGetValue(expression.N, out actual)) return false;
+            string actualValue;
+            string expectedValue;
+            return VarValue(container.S, actual, out actualValue) && VarValue(container.S, expression.V, out expectedValue) &&
+                actualValue.Trim().Equals(expectedValue.Trim(), StringComparison.Ordinal);
+        }
+
+        private bool ContainerLengthComparison(Scq container, Kx expression, int dimension, out int comparison)
+        {
+            comparison = 0;
+            long expected;
+            if (!ContainerLengthValue(container, expression.L, expression.U, out expected)) return false;
+            if (expression.T != '\0')
+            {
+                long offset;
+                if (!ContainerLengthValue(container, Math.Abs(expression.O), expression.T, out offset)) return false;
+                expected += expression.O < 0 ? -offset : offset;
+            }
+            comparison = ((long)dimension * 10000L).CompareTo(expected);
+            return true;
+        }
+
+        private bool ContainerLengthValue(Scq container, int value, char unit, out long pixels)
+        {
+            pixels = 0;
+            if (unit == 'p') pixels = (long)value * 100L;
+            else if (unit == 'e' || unit == 'r')
+            {
+                var font = container;
+                if (unit == 'r') while (font != null && font.Up != null) font = font.Up;
+                pixels = (long)value * ContainerFont(font == null ? null : font.S) * 100L;
+            }
+            else
+            {
+                int basis;
+                if (!ContainerLengthBasis(container, unit, out basis)) return false;
+                pixels = (long)value * basis;
+            }
+            return true;
+        }
+
+        private bool ContainerLengthBasis(Scq container, char unit, out int basis)
+        {
+            basis = 0;
+            if (unit == 'w') basis = vw;
+            else if (unit == 'h') basis = vh;
+            else if (unit == 'n') basis = Math.Min(vw, vh);
+            else if (unit == 'x') basis = Math.Max(vw, vh);
+            else
+            {
+                var inline = ContainerQueryAxis(container, false, vw);
+                var block = ContainerQueryAxis(container, true, vh);
+                if (unit == 'q' || unit == 'i') basis = inline;
+                else if (unit == 't' || unit == 'b') basis = block;
+                else if (unit == 'm') basis = Math.Min(inline, block);
+                else if (unit == 'a') basis = Math.Max(inline, block);
+                else return false;
+            }
+            return true;
+        }
+
+        private static int ContainerQueryAxis(Scq container, bool block, int fallback)
+        {
+            for (var current = container == null ? null : container.Up; current != null; current = current.Up)
+            {
+                if (current.N == null || !current.N.Cv || current.S == null) continue;
+                if (block)
+                {
+                    if (current.S.Ct == "s") return current.N.Ch;
+                }
+                else if (current.S.Ct == "i" || current.S.Ct == "s") return current.N.Cw;
+            }
+            return Math.Max(1, Math.Min(MaxViewport, fallback));
+        }
+
+        private static int ContainerFont(S style)
+        {
+            return style != null && style.Fs > 0 ? style.Fs : 16;
+        }
+
+        private static bool ContainerHasName(string names, string name)
+        {
+            foreach (var value in Regex.Split((names ?? "").Trim(), "\\s+"))
+                if (value.Equals(name, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
+        private static bool ContainerNameIdentifier(string value)
+        {
+            return !String.IsNullOrEmpty(value) && value.Length <= MaxContainerName &&
+                Regex.IsMatch(value, "^-?[A-Za-z_][A-Za-z0-9_-]*$") &&
+                !Regex.IsMatch(value, "^(?:none|and|or|not|initial|inherit|unset|revert|revert-layer|default)$", RegexOptions.IgnoreCase);
+        }
+
+        private static bool ContainerNameValue(string value, S inherited, out string names)
+        {
+            names = "";
+            var source = (value ?? "").Trim();
+            if (source.Equals("inherit", StringComparison.OrdinalIgnoreCase))
+            {
+                names = inherited == null ? "" : inherited.Cn;
+                return true;
+            }
+            if (Regex.IsMatch(source, "^(?:none|initial|unset|revert|revert-layer)$", RegexOptions.IgnoreCase)) return true;
+            var parts = Regex.Split(source, "\\s+");
+            if (parts.Length == 0 || parts.Length > MaxContainerNames) return false;
+            var unique = new List<string>();
+            foreach (var part in parts)
+            {
+                if (!ContainerNameIdentifier(part)) return false;
+                if (!unique.Contains(part)) unique.Add(part);
+            }
+            names = String.Join(" ", unique.ToArray());
+            return true;
+        }
+
+        private static bool ContainerTypeValue(string value, S inherited, out string type)
+        {
+            type = "n";
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { type = inherited == null ? "n" : inherited.Ct; return true; }
+            if (source == "normal" || source == "initial" || source == "unset" || source == "revert" || source == "revert-layer") return true;
+            if (source == "inline-size") { type = "i"; return true; }
+            if (source == "size") { type = "s"; return true; }
+            return false;
+        }
+
+        private static bool ContainerValue(string value, S inherited, out string names, out string type)
+        {
+            names = "";
+            type = "n";
+            var source = (value ?? "").Trim();
+            if (source.Equals("inherit", StringComparison.OrdinalIgnoreCase))
+            {
+                names = inherited == null ? "" : inherited.Cn;
+                type = inherited == null ? "n" : inherited.Ct;
+                return true;
+            }
+            if (Regex.IsMatch(source, "^(?:none|initial|unset|revert|revert-layer)$", RegexOptions.IgnoreCase)) return true;
+            var slash = source.IndexOf('/');
+            if (slash >= 0 && source.IndexOf('/', slash + 1) >= 0) return false;
+            var nameValue = slash < 0 ? source : source.Substring(0, slash).Trim();
+            var typeValue = slash < 0 ? "normal" : source.Substring(slash + 1).Trim();
+            return nameValue.Length > 0 && typeValue.Length > 0 &&
+                ContainerNameValue(nameValue, null, out names) && ContainerTypeValue(typeValue, null, out type);
+        }
+
+        private static bool CssSupports(string source, int depth)
+        {
+            bool valid;
+            return CssSupports(source, depth, out valid) && valid;
+        }
+
+        internal static bool Suc(string condition)
+        {
+            var source = condition ?? "";
+            if (source.Length == 0 || source.Length > MaxSupportsText) return false;
+            if (CssSupports(source, 0)) return true;
+            return source.Length <= MaxSupportsText - 2 && CssSupports("(" + source + ")", 0);
+        }
+
+        internal static bool Sup(string property, string value)
+        {
+            if (property == null || value == null || property.Length == 0 || property.Length > MaxCustomName ||
+                property != property.Trim() || !Regex.IsMatch(property, "^(?:--[A-Za-z_][A-Za-z0-9_-]*|-?[A-Za-z_][A-Za-z0-9_-]*)$") ||
+                property.Length + value.Length + 1 > MaxSupportsText) return false;
+            return CssSupportsDeclaration(property + ":" + value);
+        }
+
+        internal static bool Mqs(P page, string query)
+        {
+            return page != null && Mqs(query, page.Vw, page.Vh, page.Dp, page.Th, page.Rm, page.Pc,
+                page.Je ? 'e' : 'n', page.Pdt, page.Pt, page.Hv ? 'h' : 'n', page.Ap, page.Ah ? 'h' : 'n');
+        }
+
+        private static bool Mqs(string query, int width, int height, int density, char theme, char motion,
+            char contrast, char scripting, char preferredData, char pointer, char hover, char anyPointer, char anyHover)
+        {
+            if (query == null || query.Length > MaxMediaText) return false;
+            foreach (var condition in CssMedia(query))
+                if (condition.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                    pointer, hover, anyPointer, anyHover)) return true;
+            return false;
+        }
+
+        private static bool CssSupports(string source, int depth, out bool valid)
+        {
+            valid = false;
+            var condition = (source ?? "").Trim();
+            if (depth > MaxSupportsDepth || condition.Length == 0 || condition.Length > MaxSupportsText) return false;
+            List<string> terms;
+            char operation;
+            if (!CssSupportsTerms(condition, out terms, out operation)) return false;
+            if (terms.Count > 1)
+            {
+                var result = operation == 'a';
+                foreach (var term in terms)
+                {
+                    bool termValid;
+                    var next = CssSupports(term, depth + 1, out termValid);
+                    if (!termValid) return false;
+                    if (operation == 'a') result = result && next;
+                    else result = result || next;
+                }
+                valid = true;
+                return result;
+            }
+            if (Regex.IsMatch(condition, "^not\\s+", RegexOptions.IgnoreCase))
+            {
+                bool childValid;
+                var result = CssSupports(Regex.Replace(condition, "^not\\s+", "", RegexOptions.IgnoreCase), depth + 1, out childValid);
+                valid = childValid;
+                return childValid && !result;
+            }
+            string selector;
+            if (CssSupportsFunction(condition, "selector", out selector))
+            {
+                valid = true;
+                return CssSupportsSelector(selector);
+            }
+            string inner;
+            if (!CssSupportsWrapped(condition, out inner)) return false;
+            if (depth == MaxSupportsDepth) return false;
+            if (CssSupportsColon(inner) >= 1)
+            {
+                valid = true;
+                return CssSupportsDeclaration(inner);
+            }
+            return CssSupports(inner, depth + 1, out valid);
+        }
+
+        private static bool CssSupportsTerms(string source, out List<string> terms, out char operation)
+        {
+            terms = new List<string>();
+            operation = '\0';
+            var start = 0;
+            var depth = 0;
+            var quote = '\0';
+            for (var index = 0; index < source.Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; continue; }
+                if (value == '(') { depth++; continue; }
+                if (value == ')')
+                {
+                    if (depth == 0) return false;
+                    depth--;
+                    continue;
+                }
+                if (depth != 0) continue;
+                var next = CssSupportsOperator(source, index);
+                if (next == '\0') continue;
+                if (operation != '\0' && operation != next) return false;
+                operation = next;
+                var term = source.Substring(start, index - start).Trim();
+                if (term.Length == 0 || terms.Count == MaxSupportsTerms) return false;
+                terms.Add(term);
+                var length = next == 'a' ? 3 : 2;
+                index += length - 1;
+                start = index + 1;
+            }
+            if (quote != '\0' || depth != 0) return false;
+            var last = source.Substring(start).Trim();
+            if (last.Length == 0 || terms.Count == MaxSupportsTerms) return false;
+            terms.Add(last);
+            return true;
+        }
+
+        private static char CssSupportsOperator(string source, int index)
+        {
+            if (index > 0 && !Char.IsWhiteSpace(source[index - 1])) return '\0';
+            if (index + 3 <= source.Length && source.Substring(index, 3).Equals("and", StringComparison.OrdinalIgnoreCase) &&
+                (index + 3 == source.Length || Char.IsWhiteSpace(source[index + 3]))) return 'a';
+            if (index + 2 <= source.Length && source.Substring(index, 2).Equals("or", StringComparison.OrdinalIgnoreCase) &&
+                (index + 2 == source.Length || Char.IsWhiteSpace(source[index + 2]))) return 'o';
+            return '\0';
+        }
+
+        private static bool CssSupportsWrapped(string source, out string inner)
+        {
+            inner = "";
+            if (source.Length < 2 || source[0] != '(' || source[source.Length - 1] != ')') return false;
+            var depth = 0;
+            var quote = '\0';
+            for (var index = 0; index < source.Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; continue; }
+                if (value == '(') depth++;
+                else if (value == ')' && --depth == 0 && index != source.Length - 1) return false;
+                if (depth < 0) return false;
+            }
+            if (quote != '\0' || depth != 0) return false;
+            inner = source.Substring(1, source.Length - 2).Trim();
+            return inner.Length > 0;
+        }
+
+        private static bool CssSupportsFunction(string source, string name, out string body)
+        {
+            body = "";
+            if (!source.StartsWith(name + "(", StringComparison.OrdinalIgnoreCase) || source[source.Length - 1] != ')') return false;
+            var open = name.Length;
+            var depth = 0;
+            var quote = '\0';
+            for (var index = open; index < source.Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && source[index - 1] != '\\') quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; continue; }
+                if (value == '(') depth++;
+                else if (value == ')' && --depth == 0 && index != source.Length - 1) return false;
+                if (depth < 0) return false;
+            }
+            if (quote != '\0' || depth != 0) return false;
+            body = source.Substring(open + 1, source.Length - open - 2).Trim();
+            return body.Length > 0 && body.Length <= MaxQueryLength;
+        }
+
+        private static int CssSupportsColon(string source)
+        {
+            var depth = 0;
+            var quote = '\0';
+            for (var index = 0; index < source.Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') quote = value;
+                else if (value == '(') depth++;
+                else if (value == ')' && depth > 0) depth--;
+                else if (value == ':' && depth == 0) return index;
+            }
+            return -1;
+        }
+
+        private static bool CssSupportsSelector(string selector)
+        {
+            if (selector.Length == 0 || selector.Length > MaxQueryLength) return false;
+            var rules = new List<R>();
+            var order = 0;
+            CssRule(selector, "display:block", null, rules, ref order, new Mc[] { new Mc(0, 0) }, 2);
+            return rules.Count == 1;
+        }
+
+        private static bool CssSupportsDeclaration(string source)
+        {
+            var declarations = CssDeclarations(source);
+            if (declarations.Length != 1 || declarations[0].I) return false;
+            var declaration = declarations[0];
+            if (declaration.C) return declaration.N.Length <= MaxCustomName && declaration.V.Length <= MaxCustomValue;
+            var name = declaration.N;
+            var value = declaration.V.Trim();
+            var lower = value.ToLowerInvariant();
+            if (name == "container-name")
+            {
+                string names;
+                return ContainerNameValue(value, null, out names);
+            }
+            if (name == "container-type")
+            {
+                string type;
+                return ContainerTypeValue(value, null, out type);
+            }
+            if (name == "container")
+            {
+                string names;
+                string type;
+                return ContainerValue(value, null, out names, out type);
+            }
+            if (name == "color" || name == "background-color" || name == "outline-color" ||
+                name == "text-decoration-color" || name == "border-color" ||
+                name == "border-top-color" || name == "border-right-color" ||
+                name == "border-bottom-color" || name == "border-left-color" || name == "stop-color")
+                return ShadowColor(value);
+            if (name == "display")
+                return Regex.IsMatch(lower, "^(?:none|block|inline|inline-block|flex|inline-flex|grid|inline-grid|list-item|table|table-row|table-cell|initial|inherit|unset|revert|revert-layer)$");
+            if (name == "position") return Regex.IsMatch(lower, "^(?:static|relative|absolute|fixed|sticky|initial|unset|revert)$");
+            if (name == "box-sizing") return Regex.IsMatch(lower, "^(?:content-box|border-box|initial|unset|revert)$");
+            if (name == "aspect-ratio")
+            {
+                var style = new S { Rw = -1D, Rh = -1D };
+                AspectRatio(style, value);
+                return style.Rw >= 0D;
+            }
+            if (name == "width" || name == "inline-size" || name == "min-width" || name == "min-inline-size" ||
+                name == "max-width" || name == "max-inline-size")
+                return CssSupportsSize(value, name.StartsWith("min-", StringComparison.Ordinal) ? 1 : name.StartsWith("max-", StringComparison.Ordinal) ? 2 : 0, false);
+            if (name == "height" || name == "block-size" || name == "min-height" || name == "min-block-size" ||
+                name == "max-height" || name == "max-block-size")
+                return CssSupportsSize(value, name.StartsWith("min-", StringComparison.Ordinal) ? 1 : name.StartsWith("max-", StringComparison.Ordinal) ? 2 : 0, true);
+            if (name == "flex-direction") return Regex.IsMatch(lower, "^(?:row|row-reverse|column|column-reverse|initial|normal)$");
+            if (name == "flex-wrap") return Regex.IsMatch(lower, "^(?:nowrap|wrap|initial|normal)$");
+            int number;
+            if (name == "flex-grow" || name == "flex-shrink") return GrowValue(value, out number);
+            if (name == "flex-basis") return BasisValue(value, out number);
+            if (name == "gap" || name == "grid-gap")
+            {
+                var values = Regex.Split(lower, "\\s+");
+                int second;
+                return values.Length >= 1 && values.Length <= 2 && GapValue(values[0], out number) &&
+                    GapValue(values.Length == 2 ? values[1] : values[0], out second);
+            }
+            if (name == "row-gap" || name == "column-gap" || name == "grid-row-gap" || name == "grid-column-gap") return GapValue(value, out number);
+            string alignment;
+            if (name == "justify-content") return ContentAlignmentValue(value, true, out alignment);
+            if (name == "align-content") return ContentAlignmentValue(value, false, out alignment);
+            if (name == "justify-items") return AlignmentValue(value, false, true, out alignment);
+            if (name == "align-items") return AlignmentValue(value, false, false, out alignment);
+            if (name == "justify-self") return AlignmentValue(value, true, true, out alignment);
+            if (name == "align-self") return AlignmentValue(value, true, false, out alignment);
+            if (name == "grid-template-columns") return CssSupportsGrid(value, false, false);
+            if (name == "grid-template-rows") return CssSupportsGrid(value, true, false);
+            if (name == "grid-auto-columns") return CssSupportsGrid(value, false, true);
+            if (name == "grid-auto-rows") return CssSupportsGrid(value, true, true);
+            if (name == "grid-auto-flow")
+            {
+                var style = new S { Gf = "?" };
+                GridAutoFlow(style, value);
+                return style.Gf != "?";
+            }
+            if (name == "object-fit")
+            {
+                var style = new S { Of = "?" };
+                ObjectFit(style, value);
+                return style.Of != "?";
+            }
+            if (name == "object-position")
+            {
+                var style = new S { Ox = Int32.MinValue, Oy = Int32.MinValue };
+                ObjectPosition(style, value);
+                return style.Ox != Int32.MinValue;
+            }
+            if (name == "text-wrap") return Twv(value, 0, out alignment) && alignment.Length > 0;
+            if (name == "text-wrap-mode") return Twv(value, 1, out alignment) && alignment.Length > 0;
+            if (name == "text-wrap-style") return Twv(value, 2, out alignment) && alignment.Length > 0;
+            if (name == "pointer-events") return Regex.IsMatch(lower, "^(?:auto|none|initial|inherit|unset|revert)$");
+            if (name == "overflow") return Regex.IsMatch(lower, "^(?:visible|hidden|clip|auto|scroll|initial)$");
+            if (name == "text-overflow") return Regex.IsMatch(lower, "^(?:clip|ellipsis|initial|inherit|unset|revert)$");
+            string clamp;
+            if (name == "line-clamp" || name == "-webkit-line-clamp") return Lcv(value, out clamp) && clamp.Length > 0;
+            return false;
+        }
+
+        private static bool CssSupportsSize(string value, int part, bool height)
+        {
+            int pixels;
+            int percent;
+            int offset;
+            int unit;
+            int function;
+            int[] values;
+            bool inherit;
+            return height ? HeightValue(value, part, out pixels, out percent, out offset, out unit, out inherit, out function, out values) :
+                WidthValue(value, part, out pixels, out percent, out offset, out unit, out inherit, out function, out values);
+        }
+
+        private static bool CssSupportsGrid(string value, bool rows, bool automatic)
+        {
+            var style = new S();
+            var marker = new[] { Int32.MinValue };
+            if (automatic)
+            {
+                if (rows) style.Rad = marker; else style.Gad = marker;
+                GridAutoTracks(style, value, rows);
+                return !Object.ReferenceEquals(rows ? style.Rad : style.Gad, marker);
+            }
+            if (rows) style.Rd = marker; else style.Gd = marker;
+            GridTemplate(style, value, rows);
+            return !Object.ReferenceEquals(rows ? style.Rd : style.Gd, marker);
+        }
+
+        private static string CssSupportsLabel(string existing, string condition)
+        {
+            var compact = Regex.Replace(condition ?? "", "\\s+", "");
+            string inner;
+            if (CssSupportsWrapped(compact, out inner)) compact = inner;
+            if (compact.Length > 96) compact = compact.Substring(0, 96);
+            var label = "@s(" + compact + ")";
+            return String.IsNullOrEmpty(existing) ? label : existing + "&" + label;
+        }
+
+        private static bool CssPseudoSelector(string query, out string selector, out char pseudo)
+        {
+            selector = query ?? "";
+            pseudo = '\0';
+            var suffix = "";
+            if (selector.EndsWith("::marker", StringComparison.OrdinalIgnoreCase)) { pseudo = 'm'; suffix = "::marker"; }
+            else if (selector.EndsWith("::before", StringComparison.OrdinalIgnoreCase)) { pseudo = 'b'; suffix = "::before"; }
+            else if (selector.EndsWith("::after", StringComparison.OrdinalIgnoreCase)) { pseudo = 'a'; suffix = "::after"; }
+            else if (selector.EndsWith(":before", StringComparison.OrdinalIgnoreCase)) { pseudo = 'b'; suffix = ":before"; }
+            else if (selector.EndsWith(":after", StringComparison.OrdinalIgnoreCase)) { pseudo = 'a'; suffix = ":after"; }
+            if (pseudo == '\0') return selector.IndexOf("::", StringComparison.Ordinal) < 0;
+            selector = selector.Substring(0, selector.Length - suffix.Length);
+            if (selector.Length == 0) selector = "*";
+            else
+            {
+                var last = selector[selector.Length - 1];
+                if (Char.IsWhiteSpace(last) || last == '>' || last == '+' || last == '~') selector += "*";
+            }
+            return true;
+        }
+
+        private static bool CssBlock(string source, ref int at, out string header, out string body)
+        {
+            header = "";
+            body = "";
+            while (at < (source ?? "").Length)
+            {
+                while (at < source.Length && (Char.IsWhiteSpace(source[at]) || source[at] == ';')) at++;
+                if (at >= source.Length || source[at] == '}') return false;
+                var start = at;
+                var quote = '\0';
+                var brackets = 0;
+                var parentheses = 0;
+                var statement = false;
+                for (var index = at; index < source.Length; index++)
+                {
+                    var value = source[index];
+                    if (quote != '\0')
+                    {
+                        if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                        continue;
+                    }
+                    if (value == '/' && index + 1 < source.Length && source[index + 1] == '*')
+                    {
+                        index = CssComment(source, index);
+                        continue;
+                    }
+                    if (value == '"' || value == '\'') { quote = value; continue; }
+                    if (value == '[') brackets++;
+                    else if (value == ']' && brackets > 0) brackets--;
+                    else if (value == '(') parentheses++;
+                    else if (value == ')' && parentheses > 0) parentheses--;
+                    else if (brackets == 0 && parentheses == 0 && value == ';')
+                    {
+                        at = index + 1;
+                        statement = true;
+                        break;
+                    }
+                    else if (brackets == 0 && parentheses == 0 && value == '{')
+                    {
+                        var close = CssBrace(source, index);
+                        if (close < 0) { at = source.Length; return false; }
+                        header = source.Substring(start, index - start);
+                        body = source.Substring(index + 1, close - index - 1);
+                        at = close + 1;
+                        return true;
+                    }
+                    else if (brackets == 0 && parentheses == 0 && value == '}')
+                    {
+                        at = index + 1;
+                        return false;
+                    }
+                }
+                if (!statement) { at = source.Length; return false; }
+            }
+            return false;
+        }
+
+        private static int CssBrace(string source, int open)
+        {
+            var depth = 1;
+            var quote = '\0';
+            for (var index = open + 1; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && source[index - 1] != '\\') quote = '\0';
+                    continue;
+                }
+                if (value == '/' && index + 1 < source.Length && source[index + 1] == '*')
+                {
+                    index = CssComment(source, index);
+                    continue;
+                }
+                if (value == '"' || value == '\'') quote = value;
+                else if (value == '{') depth++;
+                else if (value == '}' && --depth == 0) return index;
+            }
+            return -1;
+        }
+
+        private static int CssComment(string source, int open)
+        {
+            var close = source.IndexOf("*/", open + 2, StringComparison.Ordinal);
+            return close < 0 ? source.Length - 1 : close + 1;
+        }
+
+        private static string CssClean(string source)
+        {
+            var result = new StringBuilder();
+            var quote = '\0';
+            for (var index = 0; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    result.Append(value);
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '/' && index + 1 < source.Length && source[index + 1] == '*')
+                {
+                    index = CssComment(source, index);
+                    continue;
+                }
+                result.Append(value);
+                if (value == '"' || value == '\'') quote = value;
+            }
+            return result.ToString();
+        }
+
+        private static Mc[] CssMedia(string value)
+        {
+            var source = CssClean(value).Trim().ToLowerInvariant();
+            if (source.Length == 0) return new Mc[] { new Mc(0, 0) };
+            var result = new List<Mc>();
+            var groups = 0;
+            const string dimensionChainPattern = "\\(\\s*(?<an>[0-9]{1,4})\\s*px\\s*(?<ao><=|>=|<|>)\\s*(?<k>width|height)\\s*(?<bo><=|>=|<|>)\\s*(?<bn>[0-9]{1,4})\\s*px\\s*\\)";
+            const string dimensionFeaturePattern = "\\(\\s*(?<k>width|height)\\s*(?<o><=|>=|=|<|>)\\s*(?<n>[0-9]{1,4})\\s*px\\s*\\)";
+            const string dimensionValuePattern = "\\(\\s*(?<n>[0-9]{1,4})\\s*px\\s*(?<o><=|>=|=|<|>)\\s*(?<k>width|height)\\s*\\)";
+            const string ratioChainPattern = "\\(\\s*(?<an>[0-9]{1,4})\\s*/\\s*(?<ad>[0-9]{1,4})\\s*(?<ao><=|>=|<|>)\\s*aspect-ratio\\s*(?<bo><=|>=|<|>)\\s*(?<bn>[0-9]{1,4})\\s*/\\s*(?<bd>[0-9]{1,4})\\s*\\)";
+            const string ratioFeaturePattern = "\\(\\s*aspect-ratio\\s*(?<o><=|>=|=|<|>)\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*\\)";
+            const string ratioValuePattern = "\\(\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*(?<o><=|>=|=|<|>)\\s*aspect-ratio\\s*\\)";
+            const string resolutionNumberPattern = "[+-]?(?:[0-9]{1,4}(?:\\.[0-9]{1,4})?|\\.[0-9]{1,4})";
+            const string resolutionChainPattern = "\\(\\s*(?<av>" + resolutionNumberPattern + ")\\s*(?<au>dpi|dppx|dpcm)\\s*(?<ao><=|>=|<|>)\\s*resolution\\s*(?<bo><=|>=|<|>)\\s*(?<bv>" + resolutionNumberPattern + ")\\s*(?<bu>dpi|dppx|dpcm)\\s*\\)";
+            const string resolutionFeaturePattern = "\\(\\s*resolution\\s*(?<o><=|>=|=|<|>)\\s*(?<v>" + resolutionNumberPattern + ")\\s*(?<u>dpi|dppx|dpcm)\\s*\\)";
+            const string resolutionValuePattern = "\\(\\s*(?<v>" + resolutionNumberPattern + ")\\s*(?<u>dpi|dppx|dpcm)\\s*(?<o><=|>=|=|<|>)\\s*resolution\\s*\\)";
+            foreach (var item in CssGroups(source))
+            {
+                if (++groups > MaxMediaGroups) return new Mc[0];
+                var query = item.Trim();
+                if (query.Length == 0) continue;
+                var modifier = Regex.Match(query, "^(?<m>not|only)\\s+(?<q>.+)$", RegexOptions.IgnoreCase);
+                var negated = modifier.Success && modifier.Groups["m"].Value.Equals("not", StringComparison.OrdinalIgnoreCase);
+                var only = modifier.Success && !negated;
+                if (modifier.Success) query = modifier.Groups["q"].Value.Trim();
+                if (query.Length == 0 || Regex.IsMatch(query, "(?:^|\\s)(?:not|only)(?:\\s|$)", RegexOptions.IgnoreCase)) continue;
+                var typeMatch = Regex.Match(query, "^(?<t>screen|all|print)(?:\\s+and\\s+(?=\\S)|$)", RegexOptions.IgnoreCase);
+                if (only && !typeMatch.Success) continue;
+                if (!typeMatch.Success && Regex.IsMatch(query, "(?:^|\\s)(?:screen|all|print)(?:\\s|$)", RegexOptions.IgnoreCase)) continue;
+                var mediaType = '\0';
+                if (typeMatch.Success)
+                {
+                    var type = typeMatch.Groups["t"].Value.ToLowerInvariant();
+                    mediaType = type == "screen" ? 's' : type == "print" ? 'p' : 'a';
+                }
+                var matches = Regex.Matches(query, "\\(\\s*(?<k>min-width|max-width|width|min-height|max-height|height)\\s*:\\s*(?<n>[0-9]{1,4})\\s*px\\s*\\)", RegexOptions.IgnoreCase);
+                var orientations = Regex.Matches(query, "\\(\\s*orientation\\s*:\\s*(?<o>portrait|landscape)\\s*\\)", RegexOptions.IgnoreCase);
+                var ratios = Regex.Matches(query, "\\(\\s*(?<k>min-aspect-ratio|max-aspect-ratio|aspect-ratio)\\s*:\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*\\)", RegexOptions.IgnoreCase);
+                var dimensionChains = Regex.Matches(query, dimensionChainPattern, RegexOptions.IgnoreCase);
+                var dimensionFeatures = Regex.Matches(query, dimensionFeaturePattern, RegexOptions.IgnoreCase);
+                var dimensionValues = Regex.Matches(query, dimensionValuePattern, RegexOptions.IgnoreCase);
+                var ratioChains = Regex.Matches(query, ratioChainPattern, RegexOptions.IgnoreCase);
+                var ratioFeatures = Regex.Matches(query, ratioFeaturePattern, RegexOptions.IgnoreCase);
+                var ratioValues = Regex.Matches(query, ratioValuePattern, RegexOptions.IgnoreCase);
+                var resolutions = Regex.Matches(query, "\\(\\s*(?<k>min-resolution|max-resolution|resolution)\\s*:\\s*(?<v>" + resolutionNumberPattern + ")\\s*(?<u>dpi|dppx|dpcm)\\s*\\)", RegexOptions.IgnoreCase);
+                var resolutionBooleans = Regex.Matches(query, "\\(\\s*resolution\\s*\\)", RegexOptions.IgnoreCase);
+                var resolutionChains = Regex.Matches(query, resolutionChainPattern, RegexOptions.IgnoreCase);
+                var resolutionFeatures = Regex.Matches(query, resolutionFeaturePattern, RegexOptions.IgnoreCase);
+                var resolutionValues = Regex.Matches(query, resolutionValuePattern, RegexOptions.IgnoreCase);
+                var themes = Regex.Matches(query, "\\(\\s*prefers-color-scheme\\s*:\\s*(?<t>light|dark)\\s*\\)", RegexOptions.IgnoreCase);
+                var themeBooleans = Regex.Matches(query, "\\(\\s*prefers-color-scheme\\s*\\)", RegexOptions.IgnoreCase);
+                var motions = Regex.Matches(query, "\\(\\s*prefers-reduced-motion\\s*:\\s*(?<m>no-preference|reduce)\\s*\\)", RegexOptions.IgnoreCase);
+                var motionBooleans = Regex.Matches(query, "\\(\\s*prefers-reduced-motion\\s*\\)", RegexOptions.IgnoreCase);
+                var dataPreferences = Regex.Matches(query, "\\(\\s*prefers-reduced-data\\s*:\\s*(?<p>no-preference|reduce)\\s*\\)", RegexOptions.IgnoreCase);
+                var dataBooleans = Regex.Matches(query, "\\(\\s*prefers-reduced-data\\s*\\)", RegexOptions.IgnoreCase);
+                var contrasts = Regex.Matches(query, "\\(\\s*prefers-contrast\\s*:\\s*(?<c>no-preference|less|more|custom)\\s*\\)", RegexOptions.IgnoreCase);
+                var contrastBooleans = Regex.Matches(query, "\\(\\s*prefers-contrast\\s*\\)", RegexOptions.IgnoreCase);
+                var scripts = Regex.Matches(query, "\\(\\s*scripting\\s*:\\s*(?<s>none|initial-only|enabled)\\s*\\)", RegexOptions.IgnoreCase);
+                var scriptBooleans = Regex.Matches(query, "\\(\\s*scripting\\s*\\)", RegexOptions.IgnoreCase);
+                var pointers = Regex.Matches(query, "\\(\\s*(?<a>any-)?pointer\\s*:\\s*(?<p>none|coarse|fine)\\s*\\)", RegexOptions.IgnoreCase);
+                var pointerBooleans = Regex.Matches(query, "\\(\\s*(?<a>any-)?pointer\\s*\\)", RegexOptions.IgnoreCase);
+                var hovers = Regex.Matches(query, "\\(\\s*(?<a>any-)?hover\\s*:\\s*(?<h>none|hover)\\s*\\)", RegexOptions.IgnoreCase);
+                var hoverBooleans = Regex.Matches(query, "\\(\\s*(?<a>any-)?hover\\s*\\)", RegexOptions.IgnoreCase);
+                var minimum = 0;
+                var maximum = 0;
+                var minimumExclusive = false;
+                var maximumExclusive = false;
+                var heightMinimum = 0;
+                var heightMaximum = 0;
+                var heightMinimumExclusive = false;
+                var heightMaximumExclusive = false;
+                var ratioMinimum = 0;
+                var ratioMinimumDenominator = 0;
+                var ratioMaximum = 0;
+                var ratioMaximumDenominator = 0;
+                var ratioMinimumExclusive = false;
+                var ratioMaximumExclusive = false;
+                var orientation = '\0';
+                var densityMinimum = Int32.MinValue;
+                var densityMaximum = Int32.MaxValue;
+                var densityMinimumExclusive = false;
+                var densityMaximumExclusive = false;
+                var theme = '\0';
+                var motion = '\0';
+                var preferredData = '\0';
+                var contrast = '\0';
+                var scripting = '\0';
+                var pointer = '\0';
+                var hover = '\0';
+                var anyPointer = '\0';
+                var anyHover = '\0';
+                var valid = true;
+                foreach (Match match in matches)
+                {
+                    int number;
+                    if (!MediaTerm(match.Groups["n"].Value, out number)) { valid = false; break; }
+                    var kind = match.Groups["k"].Value.ToLowerInvariant();
+                    if (kind == "min-width") MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, ">=");
+                    else if (kind == "max-width") MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, "<=");
+                    else if (kind == "width") MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, "=");
+                    else if (kind == "min-height") MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, ">=");
+                    else if (kind == "max-height") MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, "<=");
+                    else MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, "=");
+                }
+                foreach (Match match in orientations)
+                {
+                    var next = match.Groups["o"].Value.Equals("portrait", StringComparison.OrdinalIgnoreCase) ? 'p' : 'l';
+                    if (orientation != '\0' && orientation != next) { valid = false; break; }
+                    orientation = next;
+                }
+                foreach (Match match in themes)
+                {
+                    var next = match.Groups["t"].Value.Equals("dark", StringComparison.OrdinalIgnoreCase) ? 'd' : 'l';
+                    if (theme != '\0' && theme != next) { valid = false; break; }
+                    theme = next;
+                }
+                foreach (Match match in motions)
+                {
+                    var next = match.Groups["m"].Value.Equals("reduce", StringComparison.OrdinalIgnoreCase) ? 'r' : 'n';
+                    if (motion != '\0' && motion != next) { valid = false; break; }
+                    motion = next;
+                }
+                if (motionBooleans.Count > 0)
+                {
+                    if (motion != '\0' && motion != 'r') valid = false;
+                    motion = 'r';
+                }
+                foreach (Match match in dataPreferences)
+                {
+                    var next = match.Groups["p"].Value.Equals("reduce", StringComparison.OrdinalIgnoreCase) ? 'r' : 'n';
+                    if (preferredData != '\0' && preferredData != next) { valid = false; break; }
+                    preferredData = next;
+                }
+                if (dataBooleans.Count > 0)
+                {
+                    if (preferredData != '\0' && preferredData != 'r') valid = false;
+                    preferredData = 'r';
+                }
+                foreach (Match match in contrasts)
+                {
+                    var preference = match.Groups["c"].Value.ToLowerInvariant();
+                    var next = preference == "less" ? 'l' : preference == "more" ? 'm' : preference == "custom" ? 'c' : 'n';
+                    if (contrast != '\0' && contrast != next) { valid = false; break; }
+                    contrast = next;
+                }
+                if (contrastBooleans.Count > 0)
+                {
+                    if (contrast == 'n') valid = false;
+                    else if (contrast == '\0') contrast = '*';
+                }
+                foreach (Match match in scripts)
+                {
+                    var mode = match.Groups["s"].Value.ToLowerInvariant();
+                    var next = mode == "enabled" ? 'e' : mode == "initial-only" ? 'i' : 'n';
+                    if (scripting != '\0' && scripting != next) { valid = false; break; }
+                    scripting = next;
+                }
+                if (scriptBooleans.Count > 0)
+                {
+                    if (scripting == 'n') valid = false;
+                    else if (scripting == '\0') scripting = '*';
+                }
+                foreach (Match match in pointers)
+                {
+                    var mode = match.Groups["p"].Value.ToLowerInvariant();
+                    var next = mode == "coarse" ? 'c' : mode == "fine" ? 'f' : 'n';
+                    if (match.Groups["a"].Success)
+                    {
+                        if (!MediaAnyPointer(ref anyPointer, next)) { valid = false; break; }
+                    }
+                    else if (!MediaDiscrete(ref pointer, next)) { valid = false; break; }
+                }
+                foreach (Match match in pointerBooleans)
+                {
+                    if (match.Groups["a"].Success)
+                    {
+                        if (!MediaAnyPointer(ref anyPointer, '*')) { valid = false; break; }
+                    }
+                    else if (!MediaDiscrete(ref pointer, '*')) { valid = false; break; }
+                }
+                foreach (Match match in hovers)
+                {
+                    var next = match.Groups["h"].Value.Equals("hover", StringComparison.OrdinalIgnoreCase) ? 'h' : 'n';
+                    if (match.Groups["a"].Success)
+                    {
+                        if (!MediaDiscrete(ref anyHover, next)) { valid = false; break; }
+                    }
+                    else if (!MediaDiscrete(ref hover, next)) { valid = false; break; }
+                }
+                foreach (Match match in hoverBooleans)
+                {
+                    if (match.Groups["a"].Success)
+                    {
+                        if (!MediaDiscrete(ref anyHover, '*')) { valid = false; break; }
+                    }
+                    else if (!MediaDiscrete(ref hover, '*')) { valid = false; break; }
+                }
+                foreach (Match match in dimensionChains)
+                {
+                    int left;
+                    int right;
+                    var leftOperator = match.Groups["ao"].Value;
+                    var rightOperator = match.Groups["bo"].Value;
+                    if (!MediaTerm(match.Groups["an"].Value, out left) || !MediaTerm(match.Groups["bn"].Value, out right) ||
+                        leftOperator[0] != rightOperator[0]) { valid = false; break; }
+                    if (match.Groups["k"].Value.Equals("width", StringComparison.OrdinalIgnoreCase))
+                    {
+                        MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, left, MediaInverse(leftOperator));
+                        MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, right, rightOperator);
+                    }
+                    else
+                    {
+                        MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, left, MediaInverse(leftOperator));
+                        MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, right, rightOperator);
+                    }
+                }
+                foreach (Match match in dimensionFeatures)
+                {
+                    int number;
+                    if (!MediaTerm(match.Groups["n"].Value, out number)) { valid = false; break; }
+                    if (match.Groups["k"].Value.Equals("width", StringComparison.OrdinalIgnoreCase))
+                        MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, match.Groups["o"].Value);
+                    else MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, match.Groups["o"].Value);
+                }
+                foreach (Match match in dimensionValues)
+                {
+                    int number;
+                    if (!MediaTerm(match.Groups["n"].Value, out number)) { valid = false; break; }
+                    if (match.Groups["k"].Value.Equals("width", StringComparison.OrdinalIgnoreCase))
+                        MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, MediaInverse(match.Groups["o"].Value));
+                    else MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, MediaInverse(match.Groups["o"].Value));
+                }
+                foreach (Match match in ratios)
+                {
+                    int numerator;
+                    int denominator;
+                    if (!MediaRatioTerm(match.Groups["n"].Value, match.Groups["d"].Value, out numerator, out denominator)) { valid = false; break; }
+                    var kind = match.Groups["k"].Value.ToLowerInvariant();
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive, numerator, denominator,
+                        kind == "min-aspect-ratio" ? ">=" : kind == "max-aspect-ratio" ? "<=" : "=");
+                }
+                foreach (Match match in ratioChains)
+                {
+                    int leftNumerator;
+                    int leftDenominator;
+                    int rightNumerator;
+                    int rightDenominator;
+                    var leftOperator = match.Groups["ao"].Value;
+                    var rightOperator = match.Groups["bo"].Value;
+                    if (!MediaRatioTerm(match.Groups["an"].Value, match.Groups["ad"].Value, out leftNumerator, out leftDenominator) ||
+                        !MediaRatioTerm(match.Groups["bn"].Value, match.Groups["bd"].Value, out rightNumerator, out rightDenominator) ||
+                        leftOperator[0] != rightOperator[0]) { valid = false; break; }
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive,
+                        leftNumerator, leftDenominator, MediaInverse(leftOperator));
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive,
+                        rightNumerator, rightDenominator, rightOperator);
+                }
+                foreach (Match match in ratioFeatures)
+                {
+                    int numerator;
+                    int denominator;
+                    if (!MediaRatioTerm(match.Groups["n"].Value, match.Groups["d"].Value, out numerator, out denominator)) { valid = false; break; }
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive,
+                        numerator, denominator, match.Groups["o"].Value);
+                }
+                foreach (Match match in ratioValues)
+                {
+                    int numerator;
+                    int denominator;
+                    if (!MediaRatioTerm(match.Groups["n"].Value, match.Groups["d"].Value, out numerator, out denominator)) { valid = false; break; }
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive,
+                        numerator, denominator, MediaInverse(match.Groups["o"].Value));
+                }
+                foreach (Match match in resolutions)
+                {
+                    int resolution;
+                    if (!MediaResolutionTerm(match.Groups["v"].Value, match.Groups["u"].Value, out resolution)) { valid = false; break; }
+                    var kind = match.Groups["k"].Value.ToLowerInvariant();
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, resolution,
+                        kind == "min-resolution" ? ">=" : kind == "max-resolution" ? "<=" : "=");
+                }
+                foreach (Match match in resolutionChains)
+                {
+                    int left;
+                    int right;
+                    var leftOperator = match.Groups["ao"].Value;
+                    var rightOperator = match.Groups["bo"].Value;
+                    if (!MediaResolutionTerm(match.Groups["av"].Value, match.Groups["au"].Value, out left) ||
+                        !MediaResolutionTerm(match.Groups["bv"].Value, match.Groups["bu"].Value, out right) ||
+                        leftOperator[0] != rightOperator[0]) { valid = false; break; }
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, left, MediaInverse(leftOperator));
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, right, rightOperator);
+                }
+                foreach (Match match in resolutionFeatures)
+                {
+                    int resolution;
+                    if (!MediaResolutionTerm(match.Groups["v"].Value, match.Groups["u"].Value, out resolution)) { valid = false; break; }
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, resolution, match.Groups["o"].Value);
+                }
+                foreach (Match match in resolutionValues)
+                {
+                    int resolution;
+                    if (!MediaResolutionTerm(match.Groups["v"].Value, match.Groups["u"].Value, out resolution)) { valid = false; break; }
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, resolution, MediaInverse(match.Groups["o"].Value));
+                }
+                if (resolutionBooleans.Count > 0)
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, 0, ">");
+                if (!valid || MediaEmpty(minimum, minimumExclusive, maximum, maximumExclusive) ||
+                    MediaEmpty(heightMinimum, heightMinimumExclusive, heightMaximum, heightMaximumExclusive) ||
+                    MediaRatioEmpty(ratioMinimum, ratioMinimumDenominator, ratioMinimumExclusive,
+                        ratioMaximum, ratioMaximumDenominator, ratioMaximumExclusive) ||
+                    MediaResolutionEmpty(densityMinimum, densityMinimumExclusive, densityMaximum, densityMaximumExclusive)) continue;
+                var remainder = Regex.Replace(query, "\\(\\s*(?:min-width|max-width|width|min-height|max-height|height)\\s*:\\s*[0-9]{1,4}\\s*px\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*orientation\\s*:\\s*(?:portrait|landscape)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:min-aspect-ratio|max-aspect-ratio|aspect-ratio)\\s*:\\s*[0-9]{1,4}\\s*/\\s*[0-9]{1,4}\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, dimensionChainPattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, dimensionFeaturePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, dimensionValuePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, ratioChainPattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, ratioFeaturePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, ratioValuePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:min-resolution|max-resolution|resolution)\\s*:\\s*" + resolutionNumberPattern + "\\s*(?:dpi|dppx|dpcm)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*resolution\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, resolutionChainPattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, resolutionFeaturePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, resolutionValuePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-color-scheme\\s*:\\s*(?:light|dark)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-color-scheme\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-motion\\s*:\\s*(?:no-preference|reduce)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-motion\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-data\\s*:\\s*(?:no-preference|reduce)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-data\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-contrast\\s*:\\s*(?:no-preference|less|more|custom)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-contrast\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*scripting\\s*:\\s*(?:none|initial-only|enabled)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*scripting\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:any-)?pointer\\s*:\\s*(?:none|coarse|fine)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:any-)?pointer\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:any-)?hover\\s*:\\s*(?:none|hover)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:any-)?hover\\s*\\)", " ", RegexOptions.IgnoreCase);
+                if (remainder.IndexOf('(') >= 0 || remainder.IndexOf(')') >= 0 || remainder.IndexOf(':') >= 0) continue;
+                var meaningful = matches.Count > 0 || orientations.Count > 0 || ratios.Count > 0 || dimensionChains.Count > 0 ||
+                    dimensionFeatures.Count > 0 || dimensionValues.Count > 0 || ratioChains.Count > 0 || ratioFeatures.Count > 0 ||
+                    ratioValues.Count > 0 || resolutions.Count > 0 || resolutionBooleans.Count > 0 || resolutionChains.Count > 0 ||
+                    resolutionFeatures.Count > 0 || resolutionValues.Count > 0 || themes.Count > 0 || themeBooleans.Count > 0 ||
+                    motions.Count > 0 || motionBooleans.Count > 0 || dataPreferences.Count > 0 || dataBooleans.Count > 0 ||
+                    contrasts.Count > 0 || contrastBooleans.Count > 0 || scripts.Count > 0 || scriptBooleans.Count > 0 ||
+                    pointers.Count > 0 || pointerBooleans.Count > 0 || hovers.Count > 0 || hoverBooleans.Count > 0;
+                foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
+                {
+                    if (token.Length == 0 || token == "and") continue;
+                    if (token == "screen" || token == "all" || token == "print") { meaningful = true; continue; }
+                    valid = false;
+                    break;
+                }
+                if (!valid || !meaningful) continue;
+                var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData,
+                    mediaType, negated, pointer, hover, anyPointer, anyHover);
+                var duplicate = false;
+                foreach (var existing in result)
+                    if (SameMedia(existing, condition)) { duplicate = true; break; }
+                if (!duplicate) result.Add(condition);
+            }
+            return result.ToArray();
+        }
+
+        private static Mc[] CssIntersect(Mc[] parent, Mc[] child)
+        {
+            var result = new List<Mc>();
+            if (parent == null || child == null) return result.ToArray();
+            foreach (var left in parent)
+                foreach (var right in child)
+                {
+                    if (left.Cp || right.Cp || left.Nt || right.Nt)
+                    {
+                        var composite = MediaAll(left) ? right : MediaAll(right) ? left : new Mc(left, right);
+                        var repeated = false;
+                        foreach (var existing in result)
+                            if (SameMedia(existing, composite)) { repeated = true; break; }
+                        if (!repeated && result.Count < MaxMediaGroups) result.Add(composite);
+                        continue;
+                    }
+                    var minimum = left.N;
+                    var minimumExclusive = left.Ne;
+                    if (right.N > minimum) { minimum = right.N; minimumExclusive = right.Ne; }
+                    else if (right.N == minimum) minimumExclusive = minimumExclusive || right.Ne;
+                    var maximum = left.X;
+                    var maximumExclusive = left.Xe;
+                    if (maximum == 0 || right.X > 0 && right.X < maximum) { maximum = right.X; maximumExclusive = right.Xe; }
+                    else if (right.X == maximum) maximumExclusive = maximumExclusive || right.Xe;
+                    var heightMinimum = left.Hn;
+                    var heightMinimumExclusive = left.Hne;
+                    if (right.Hn > heightMinimum) { heightMinimum = right.Hn; heightMinimumExclusive = right.Hne; }
+                    else if (right.Hn == heightMinimum) heightMinimumExclusive = heightMinimumExclusive || right.Hne;
+                    var heightMaximum = left.Hx;
+                    var heightMaximumExclusive = left.Hxe;
+                    if (heightMaximum == 0 || right.Hx > 0 && right.Hx < heightMaximum) { heightMaximum = right.Hx; heightMaximumExclusive = right.Hxe; }
+                    else if (right.Hx == heightMaximum) heightMaximumExclusive = heightMaximumExclusive || right.Hxe;
+                    var ratioMinimum = left.Rn;
+                    var ratioMinimumDenominator = left.Rd;
+                    var ratioMinimumExclusive = left.Rne;
+                    if (ratioMinimum == 0 || right.Rn > 0 && RatioCompare(right.Rn, right.Rd, ratioMinimum, ratioMinimumDenominator) > 0)
+                    {
+                        ratioMinimum = right.Rn;
+                        ratioMinimumDenominator = right.Rd;
+                        ratioMinimumExclusive = right.Rne;
+                    }
+                    else if (right.Rn > 0 && RatioCompare(right.Rn, right.Rd, ratioMinimum, ratioMinimumDenominator) == 0)
+                        ratioMinimumExclusive = ratioMinimumExclusive || right.Rne;
+                    var ratioMaximum = left.Rx;
+                    var ratioMaximumDenominator = left.Rxd;
+                    var ratioMaximumExclusive = left.Rxe;
+                    if (ratioMaximum == 0 || right.Rx > 0 && RatioCompare(right.Rx, right.Rxd, ratioMaximum, ratioMaximumDenominator) < 0)
+                    {
+                        ratioMaximum = right.Rx;
+                        ratioMaximumDenominator = right.Rxd;
+                        ratioMaximumExclusive = right.Rxe;
+                    }
+                    else if (right.Rx > 0 && RatioCompare(right.Rx, right.Rxd, ratioMaximum, ratioMaximumDenominator) == 0)
+                        ratioMaximumExclusive = ratioMaximumExclusive || right.Rxe;
+                    var densityMinimum = left.Dn;
+                    var densityMinimumExclusive = left.Dne;
+                    if (right.Dn != Int32.MinValue && (densityMinimum == Int32.MinValue || right.Dn > densityMinimum))
+                    {
+                        densityMinimum = right.Dn;
+                        densityMinimumExclusive = right.Dne;
+                    }
+                    else if (right.Dn == densityMinimum) densityMinimumExclusive = densityMinimumExclusive || right.Dne;
+                    var densityMaximum = left.Dx;
+                    var densityMaximumExclusive = left.Dxe;
+                    if (right.Dx != Int32.MaxValue && (densityMaximum == Int32.MaxValue || right.Dx < densityMaximum))
+                    {
+                        densityMaximum = right.Dx;
+                        densityMaximumExclusive = right.Dxe;
+                    }
+                    else if (right.Dx == densityMaximum) densityMaximumExclusive = densityMaximumExclusive || right.Dxe;
+                    if (MediaEmpty(minimum, minimumExclusive, maximum, maximumExclusive)) continue;
+                    if (MediaEmpty(heightMinimum, heightMinimumExclusive, heightMaximum, heightMaximumExclusive)) continue;
+                    if (MediaRatioEmpty(ratioMinimum, ratioMinimumDenominator, ratioMinimumExclusive,
+                        ratioMaximum, ratioMaximumDenominator, ratioMaximumExclusive)) continue;
+                    if (MediaResolutionEmpty(densityMinimum, densityMinimumExclusive, densityMaximum, densityMaximumExclusive)) continue;
+                    if (left.O != '\0' && right.O != '\0' && left.O != right.O) continue;
+                    var orientation = left.O == '\0' ? right.O : left.O;
+                    if (left.Th != '\0' && right.Th != '\0' && left.Th != right.Th) continue;
+                    var theme = left.Th == '\0' ? right.Th : left.Th;
+                    if (left.Rm != '\0' && right.Rm != '\0' && left.Rm != right.Rm) continue;
+                    var motion = left.Rm == '\0' ? right.Rm : left.Rm;
+                    if (left.Pdt != '\0' && right.Pdt != '\0' && left.Pdt != right.Pdt) continue;
+                    var preferredData = left.Pdt == '\0' ? right.Pdt : left.Pdt;
+                    char contrast;
+                    if (left.Pc == '\0') contrast = right.Pc;
+                    else if (right.Pc == '\0' || left.Pc == right.Pc) contrast = left.Pc;
+                    else if (left.Pc == '*' && right.Pc != 'n') contrast = right.Pc;
+                    else if (right.Pc == '*' && left.Pc != 'n') contrast = left.Pc;
+                    else continue;
+                    char scripting;
+                    if (left.Je == '\0') scripting = right.Je;
+                    else if (right.Je == '\0' || left.Je == right.Je) scripting = left.Je;
+                    else if (left.Je == '*' && right.Je != 'n') scripting = right.Je;
+                    else if (right.Je == '*' && left.Je != 'n') scripting = left.Je;
+                    else continue;
+                    var pointer = left.Pt;
+                    if (!MediaDiscrete(ref pointer, right.Pt)) continue;
+                    var hover = left.Hv;
+                    if (!MediaDiscrete(ref hover, right.Hv)) continue;
+                    var anyPointer = left.Ap;
+                    if (!MediaAnyPointer(ref anyPointer, right.Ap)) continue;
+                    var anyHover = left.Ah;
+                    if (!MediaDiscrete(ref anyHover, right.Ah)) continue;
+                    var mediaType = MediaTypeIntersection(left.Mt, right.Mt);
+                    var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                        ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                        heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                        densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData,
+                        mediaType, false, pointer, hover, anyPointer, anyHover);
+                    var duplicate = false;
+                    foreach (var existing in result)
+                        if (SameMedia(existing, condition)) { duplicate = true; break; }
+                    if (!duplicate && result.Count < MaxMediaGroups) result.Add(condition);
+                }
+            return result.ToArray();
+        }
+
+        private static bool SameMedia(Mc left, Mc right)
+        {
+            if (left == null || right == null) return left == right;
+            if (left.Cp || right.Cp)
+                return left.Cp == right.Cp && SameMedia(left.A, right.A) && SameMedia(left.B, right.B);
+            return left.N == right.N && left.X == right.X && left.Hn == right.Hn && left.Hx == right.Hx &&
+                left.Rn == right.Rn && left.Rd == right.Rd && left.Rx == right.Rx && left.Rxd == right.Rxd && left.O == right.O &&
+                left.Ne == right.Ne && left.Xe == right.Xe && left.Hne == right.Hne && left.Hxe == right.Hxe &&
+                left.Rne == right.Rne && left.Rxe == right.Rxe && left.Dn == right.Dn && left.Dx == right.Dx &&
+                left.Dne == right.Dne && left.Dxe == right.Dxe && left.Th == right.Th && left.Rm == right.Rm && left.Pc == right.Pc &&
+                left.Je == right.Je && left.Pdt == right.Pdt && left.Mt == right.Mt && left.Nt == right.Nt &&
+                left.Pt == right.Pt && left.Hv == right.Hv && left.Ap == right.Ap && left.Ah == right.Ah;
+        }
+
+        private static char MediaTypeIntersection(char left, char right)
+        {
+            if (left == '\0' || left == 'a') return right;
+            if (right == '\0' || right == 'a' || left == right) return left;
+            return 'x';
+        }
+
+        private static bool MediaDiscrete(ref char current, char next)
+        {
+            if (next == '\0' || current == next) return true;
+            if (current == '\0') { current = next; return true; }
+            if (current == '*')
+            {
+                if (next == 'n') return false;
+                current = next;
+                return true;
+            }
+            return next == '*' && current != 'n';
+        }
+
+        private static bool MediaAnyPointer(ref char current, char next)
+        {
+            if (next == '\0' || current == next) return true;
+            if (current == '\0') { current = next; return true; }
+            if (current == 'n' || next == 'n') return false;
+            if (current == '*') { current = next; return true; }
+            if (next == '*') return true;
+            current = 'b';
+            return true;
+        }
+
+        private static bool MediaAll(Mc condition)
+        {
+            return condition != null && !condition.Cp && !condition.Nt && condition.D.Length == 0;
+        }
+
+        private static bool MediaTerm(string source, out int value)
+        {
+            return Int32.TryParse(source, out value) && value >= 1 && value <= MaxViewport;
+        }
+
+        private static bool MediaRatioTerm(string numeratorSource, string denominatorSource, out int numerator, out int denominator)
+        {
+            numerator = 0;
+            denominator = 0;
+            if (!MediaTerm(numeratorSource, out numerator) || !MediaTerm(denominatorSource, out denominator)) return false;
+            var divisor = RatioGcd(numerator, denominator);
+            numerator /= divisor;
+            denominator /= divisor;
+            return true;
+        }
+
+        private static bool MediaResolutionTerm(string source, string unit, out int value)
+        {
+            value = 0;
+            decimal number;
+            if (!Decimal.TryParse(source, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                CultureInfo.InvariantCulture, out number)) return false;
+            decimal factor;
+            if (unit.Equals("dppx", StringComparison.OrdinalIgnoreCase)) factor = 96000M;
+            else if (unit.Equals("dpcm", StringComparison.OrdinalIgnoreCase)) factor = 2540M;
+            else if (unit.Equals("dpi", StringComparison.OrdinalIgnoreCase)) factor = 1000M;
+            else return false;
+            var scaled = Decimal.Round(number * factor, 0, MidpointRounding.AwayFromZero);
+            if (scaled < -960000000M || scaled > 960000000M) return false;
+            value = Decimal.ToInt32(scaled);
+            return true;
+        }
+
+        private static string MediaInverse(string value)
+        {
+            if (value == "<") return ">";
+            if (value == "<=") return ">=";
+            if (value == ">") return "<";
+            if (value == ">=") return "<=";
+            return value;
+        }
+
+        private static void MediaDimension(ref int minimum, ref bool minimumExclusive, ref int maximum, ref bool maximumExclusive,
+            int value, string operation)
+        {
+            if (operation == ">" || operation == ">=" || operation == "=")
+            {
+                var exclusive = operation == ">";
+                if (minimum == 0 || value > minimum) { minimum = value; minimumExclusive = exclusive; }
+                else if (value == minimum) minimumExclusive = minimumExclusive || exclusive;
+            }
+            if (operation == "<" || operation == "<=" || operation == "=")
+            {
+                var exclusive = operation == "<";
+                if (maximum == 0 || value < maximum) { maximum = value; maximumExclusive = exclusive; }
+                else if (value == maximum) maximumExclusive = maximumExclusive || exclusive;
+            }
+        }
+
+        private static void MediaRatio(ref int minimum, ref int minimumDenominator, ref bool minimumExclusive,
+            ref int maximum, ref int maximumDenominator, ref bool maximumExclusive,
+            int numerator, int denominator, string operation)
+        {
+            if (operation == ">" || operation == ">=" || operation == "=")
+            {
+                var exclusive = operation == ">";
+                var comparison = minimum == 0 ? 1 : RatioCompare(numerator, denominator, minimum, minimumDenominator);
+                if (comparison > 0) { minimum = numerator; minimumDenominator = denominator; minimumExclusive = exclusive; }
+                else if (comparison == 0) minimumExclusive = minimumExclusive || exclusive;
+            }
+            if (operation == "<" || operation == "<=" || operation == "=")
+            {
+                var exclusive = operation == "<";
+                var comparison = maximum == 0 ? -1 : RatioCompare(numerator, denominator, maximum, maximumDenominator);
+                if (comparison < 0) { maximum = numerator; maximumDenominator = denominator; maximumExclusive = exclusive; }
+                else if (comparison == 0) maximumExclusive = maximumExclusive || exclusive;
+            }
+        }
+
+        private static void MediaResolution(ref int minimum, ref bool minimumExclusive,
+            ref int maximum, ref bool maximumExclusive, int value, string operation)
+        {
+            if (operation == ">" || operation == ">=" || operation == "=")
+            {
+                var exclusive = operation == ">";
+                if (minimum == Int32.MinValue || value > minimum) { minimum = value; minimumExclusive = exclusive; }
+                else if (value == minimum) minimumExclusive = minimumExclusive || exclusive;
+            }
+            if (operation == "<" || operation == "<=" || operation == "=")
+            {
+                var exclusive = operation == "<";
+                if (maximum == Int32.MaxValue || value < maximum) { maximum = value; maximumExclusive = exclusive; }
+                else if (value == maximum) maximumExclusive = maximumExclusive || exclusive;
+            }
+        }
+
+        private static bool MediaEmpty(int minimum, bool minimumExclusive, int maximum, bool maximumExclusive)
+        {
+            return minimum > 0 && maximum > 0 && (minimum > maximum || minimum == maximum && (minimumExclusive || maximumExclusive));
+        }
+
+        private static bool MediaRatioEmpty(int minimum, int minimumDenominator, bool minimumExclusive,
+            int maximum, int maximumDenominator, bool maximumExclusive)
+        {
+            if (minimum == 0 || maximum == 0) return false;
+            var comparison = RatioCompare(minimum, minimumDenominator, maximum, maximumDenominator);
+            return comparison > 0 || comparison == 0 && (minimumExclusive || maximumExclusive);
+        }
+
+        private static bool MediaResolutionEmpty(int minimum, bool minimumExclusive, int maximum, bool maximumExclusive)
+        {
+            return minimum != Int32.MinValue && maximum != Int32.MaxValue &&
+                (minimum > maximum || minimum == maximum && (minimumExclusive || maximumExclusive));
+        }
+
+        private static int RatioCompare(int leftNumerator, int leftDenominator, int rightNumerator, int rightDenominator)
+        {
+            return ((long)leftNumerator * rightDenominator).CompareTo((long)rightNumerator * leftDenominator);
+        }
+
+        private static int RatioGcd(int left, int right)
+        {
+            while (right != 0)
+            {
+                var next = left % right;
+                left = right;
+                right = next;
+            }
+            return Math.Max(1, left);
+        }
+
+        private static void FindAll(N node, string kind, List<N> found)
+        {
+            if (node.K == kind) found.Add(node);
+            foreach (var child in node.C) FindAll(child, kind, found);
+        }
+
+        private static string RawText(N node)
+        {
+            var text = new StringBuilder();
+            RawText(node, text);
+            return text.ToString();
+        }
+
+        private static void RawText(N node, StringBuilder text)
+        {
+            if (node.K == "#text") { text.Append(node.X); return; }
+            foreach (var child in node.C) RawText(child, text);
+        }
+
+        private static int Spec(List<Se> parts)
+        {
+            var score = 0;
+            foreach (var part in parts) score += part.W;
+            return score;
+        }
+
+        private static IEnumerable<string> CssGroups(string selectors)
+        {
+            var group = new StringBuilder();
+            var brackets = 0;
+            var parentheses = 0;
+            var quote = '\0';
+            for (var i = 0; i < (selectors ?? "").Length; i++)
+            {
+                var value = selectors[i];
+                if (quote != '\0')
+                {
+                    group.Append(value);
+                    if (value == quote && (i == 0 || selectors[i - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; group.Append(value); continue; }
+                if (value == '[') brackets++;
+                else if (value == ']' && brackets > 0) brackets--;
+                else if (value == '(') parentheses++;
+                else if (value == ')' && parentheses > 0) parentheses--;
+                if (value == ',' && brackets == 0 && parentheses == 0)
+                {
+                    yield return group.ToString();
+                    group.Clear();
+                }
+                else group.Append(value);
+            }
+            yield return group.ToString();
+        }
+
+        private static bool MatchCss(N node, R rule)
+        {
+            if (!MatchPart(node, rule.P[rule.P.Length - 1])) return false;
+
+            var current = node;
+            for (var i = rule.J.Length - 1; i >= 0; i--)
+            {
+                if (rule.J[i] == '>') current = current.Up;
+                else if (rule.J[i] == '+') current = PreviousElement(current);
+                else if (rule.J[i] == '~') current = PreviousMatchingElement(current, rule.P[i]);
+                else
+                {
+                    current = current.Up;
+                    while (current != null && !MatchPart(current, rule.P[i])) current = current.Up;
+                    if (current == null) return false;
+                    continue;
+                }
+
+                if (current == null || !MatchPart(current, rule.P[i])) return false;
+            }
+            return true;
+        }
+
+        internal static N MatchNode(N node, string query, bool ancestors)
+        {
+            var rules = query == null || query.Length > MaxQueryLength ? null : QueryRules(query);
+            if (rules == null) throw new FormatException("Invalid or unsupported Lea selector.");
+            if (node.K.Length == 0 || node.K[0] == '#') return null;
+            for (var depth = 0; node != null && depth < MaxHtmlDepth; depth++, node = ancestors ? node.Up : null)
+                if (ElementMatch(node, rules)) return node;
+            return null;
+        }
+
+        private static R[] QueryRules(string query)
+        {
+            var source = (query ?? "").Trim();
+            if (source.Length == 0 || source.Length > MaxQueryLength) return null;
+            var rules = new List<R>();
+            var totalParts = 0;
+            foreach (var group in CssGroups(source))
+            {
+                var value = group.Trim();
+                if (value.Length == 0 || rules.Count == MaxQueryGroups) return null;
+                var parts = new List<string>();
+                var joins = new List<char>();
+                if (!CssParts(value, parts, joins) || totalParts + parts.Count > MaxQueryParts) return null;
+                var simple = new List<Se>();
+                foreach (var part in parts)
+                {
+                    var selector = CssSimple(part);
+                    if (selector == null) return null;
+                    simple.Add(selector);
+                }
+                totalParts += parts.Count;
+                rules.Add(new R(value, "", Spec(simple), 0, simple.ToArray(), joins.ToArray()));
+            }
+            return rules.Count == 0 ? null : rules.ToArray();
+        }
+
+        private static N FindId(N node, string id)
+        {
+            if (node == null) return null;
+            if (node.K.Length > 0 && node.K[0] != '#' && node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return node;
+            foreach (var child in node.C)
+            {
+                var found = FindId(child, id);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static void FindAttributes(N node, string name, List<N> found, int maximum)
+        {
+            if (node == null || found.Count == maximum) return;
+            if (node.K.Length > 0 && node.K[0] != '#' && node.A.ContainsKey(name)) found.Add(node);
+            foreach (var child in node.C)
+            {
+                FindAttributes(child, name, found, maximum);
+                if (found.Count == maximum) return;
+            }
+        }
+
+        private static bool AsciiWhite(char value)
+        {
+            return value == ' ' || value == '\t' || value == '\n' || value == '\f' || value == '\r';
+        }
+
+        internal static bool NextWord(string source, ref int cursor, out int start, out int length)
+        {
+            while (cursor < source.Length && AsciiWhite(source[cursor])) cursor++;
+            start = cursor;
+            while (cursor < source.Length && !AsciiWhite(source[cursor])) cursor++;
+            length = cursor - start;
+            return length > 0;
+        }
+
+        private static bool MatchWord(string source, string wanted)
+        {
+            if (String.IsNullOrEmpty(source) || wanted.Length == 0) return false;
+            int start;
+            int length;
+            var cursor = 0;
+            while (NextWord(source, ref cursor, out start, out length))
+                if (length == wanted.Length && String.Compare(source, start, wanted, 0, length, StringComparison.OrdinalIgnoreCase) == 0)
+                    return true;
+            return false;
+        }
+
+        private static bool MatchClasses(string source, string[] wanted)
+        {
+            if (String.IsNullOrEmpty(source)) return false;
+            if (wanted.Length <= 8)
+            {
+                foreach (var value in wanted) if (!MatchWord(source, value)) return false;
+                return true;
+            }
+            // Dense compounds retain hashing without a per-node cache or fixed-width match mask.
+            var classes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int start;
+            int length;
+            var cursor = 0;
+            while (NextWord(source, ref cursor, out start, out length)) classes.Add(source.Substring(start, length));
+            foreach (var value in wanted) if (!classes.Contains(value)) return false;
+            return true;
+        }
+
+        private static N FindName(N node, string name)
+        {
+            if (node == null) return null;
+            if (node.K == "a" && node.Av("name").Equals(name, StringComparison.OrdinalIgnoreCase)) return node;
+            foreach (var child in node.C)
+            {
+                var found = FindName(child, name);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static N QueryOne(N node, R[] rules)
+        {
+            if (node == null) return null;
+            if (ElementMatch(node, rules)) return node;
+            foreach (var child in node.C)
+            {
+                var found = QueryOne(child, rules);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static void QueryAll(N node, R[] rules, List<N> found)
+        {
+            if (node == null || found.Count == MaxQueryResults) return;
+            if (ElementMatch(node, rules)) found.Add(node);
+            foreach (var child in node.C)
+            {
+                QueryAll(child, rules, found);
+                if (found.Count == MaxQueryResults) return;
+            }
+        }
+
+        private static bool ElementMatch(N node, R[] rules)
+        {
+            if (node.K.Length == 0 || node.K[0] == '#') return false;
+            foreach (var rule in rules) if (MatchCss(node, rule)) return true;
+            return false;
+        }
+
+        private static bool CssParts(string selector, List<string> parts, List<char> joins)
+        {
+            var source = (selector ?? "").Trim();
+            var part = new StringBuilder();
+            var join = ' ';
+            var explicitJoin = false;
+            var brackets = 0;
+            var parentheses = 0;
+            var quote = '\0';
+            for (var i = 0; i < source.Length; i++)
+            {
+                var value = source[i];
+                if (quote != '\0')
+                {
+                    part.Append(value);
+                    if (value == quote && (i == 0 || source[i - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if ((brackets > 0 || parentheses > 0) && (value == '\"' || value == '\'')) { quote = value; part.Append(value); continue; }
+                if (value == '[') { brackets++; part.Append(value); continue; }
+                if (value == ']')
+                {
+                    if (brackets == 0) return false;
+                    brackets--;
+                    part.Append(value);
+                    continue;
+                }
+                if (brackets == 0 && value == '(') { parentheses++; part.Append(value); continue; }
+                if (brackets == 0 && value == ')')
+                {
+                    if (parentheses == 0) return false;
+                    parentheses--;
+                    part.Append(value);
+                    continue;
+                }
+                if (brackets == 0 && parentheses == 0 && (value == '>' || value == '+' || value == '~'))
+                {
+                    if (part.Length > 0)
+                    {
+                        AddCssPart(parts, joins, part, join);
+                        explicitJoin = false;
+                        join = ' ';
+                    }
+                    else if (parts.Count == 0 || explicitJoin) return false;
+                    join = value;
+                    explicitJoin = true;
+                    continue;
+                }
+                if (brackets == 0 && parentheses == 0 && Char.IsWhiteSpace(value))
+                {
+                    if (part.Length > 0)
+                    {
+                        AddCssPart(parts, joins, part, join);
+                        explicitJoin = false;
+                        join = ' ';
+                    }
+                    continue;
+                }
+                part.Append(value);
+            }
+            if (quote != '\0' || brackets != 0 || parentheses != 0) return false;
+            if (part.Length > 0)
+            {
+                AddCssPart(parts, joins, part, join);
+                explicitJoin = false;
+            }
+            return parts.Count > 0 && !explicitJoin;
+        }
+
+        private static void AddCssPart(List<string> parts, List<char> joins, StringBuilder part, char join)
+        {
+            if (parts.Count > 0) joins.Add(join);
+            parts.Add(part.ToString());
+            part.Clear();
+        }
+
+        private static Se CssSimple(string selector)
+        {
+            return CssSimple(selector, true, true);
+        }
+
+        private static Se CssSimple(string selector, bool functions, bool nthFilters)
+        {
+            if (String.IsNullOrWhiteSpace(selector) || selector.Length > 512) return null;
+            var tag = "";
+            var index = 0;
+            var weight = 0;
+            var tags = Regex.Match(selector, "^(?<v>[a-z][a-z0-9-]*|\\*)", RegexOptions.IgnoreCase);
+            if (tags.Success)
+            {
+                tag = tags.Groups["v"].Value.ToLowerInvariant();
+                index = tags.Length;
+                if (tag != "*") weight++;
+            }
+
+            var ids = new List<string>();
+            var classes = new List<string>();
+            var attrs = new List<Ca>();
+            var pseudos = new List<Ps>();
+            var functionTests = 0;
+            while (index < selector.Length)
+            {
+                var tail = selector.Substring(index);
+                Match match;
+                if (tail[0] == '#')
+                {
+                    match = Regex.Match(tail, "^#(?<v>[a-z0-9_-]+)", RegexOptions.IgnoreCase);
+                    if (!match.Success) return null;
+                    ids.Add(match.Groups["v"].Value);
+                    weight += 100;
+                }
+                else if (tail[0] == '.')
+                {
+                    match = Regex.Match(tail, "^\\.(?<v>[a-z0-9_-]+)", RegexOptions.IgnoreCase);
+                    if (!match.Success) return null;
+                    classes.Add(match.Groups["v"].Value);
+                    weight += 10;
+                }
+                else if (tail[0] == '[')
+                {
+                    match = Regex.Match(tail, "^\\[\\s*(?<n>[a-z_:][a-z0-9_:.\\-]*)\\s*(?:(?<o>[~|^$*]?=)\\s*(?<v>\"[^\"]*\"|'[^']*'|[^\\]\\s]+))?\\s*\\]", RegexOptions.IgnoreCase);
+                    if (!match.Success) return null;
+                    var value = match.Groups["v"].Value;
+                    if (value.Length >= 2 && ((value[0] == '\"' && value[value.Length - 1] == '\"') || (value[0] == '\'' && value[value.Length - 1] == '\''))) value = value.Substring(1, value.Length - 2);
+                    attrs.Add(new Ca(match.Groups["n"].Value, match.Groups["o"].Value, WebUtility.HtmlDecode(value)));
+                    weight += 10;
+                }
+                else if (tail[0] == ':')
+                {
+                    var function = functions ? Regex.Match(tail, "^:(?<n>not|is|where|has)\\(", RegexOptions.IgnoreCase) : null;
+                    if (function != null && function.Success)
+                    {
+                        var open = function.Length - 1;
+                        var end = CssClose(tail, open);
+                        if (end < 0) return null;
+                        var name = function.Groups["n"].Value.ToLowerInvariant();
+                        int authored;
+                        if (name == "has")
+                        {
+                            var relatives = CssRelativeSelectors(tail.Substring(open + 1, end - open - 1), out authored);
+                            if (relatives == null || functionTests + authored > MaxCssFunctionTests) return null;
+                            functionTests += authored;
+                            pseudos.Add(new Ps(name, relatives));
+                            var maximum = 0;
+                            foreach (var relative in relatives) maximum = Math.Max(maximum, relative.W);
+                            weight += maximum;
+                        }
+                        else
+                        {
+                            var alternatives = CssFunctionSelectors(tail.Substring(open + 1, end - open - 1), name != "not", out authored);
+                            if (alternatives == null || functionTests + authored > MaxCssFunctionTests) return null;
+                            functionTests += authored;
+                            pseudos.Add(new Ps(name, alternatives));
+                            if (name != "where")
+                            {
+                                var maximum = 0;
+                                foreach (var alternative in alternatives) maximum = Math.Max(maximum, alternative.W);
+                                weight += maximum;
+                            }
+                        }
+                        index += end + 1;
+                        continue;
+                    }
+                    var nth = Regex.Match(tail, "^:(?<n>nth-last-child|nth-child|nth-last-of-type|nth-of-type)\\(", RegexOptions.IgnoreCase);
+                    if (nth.Success)
+                    {
+                        var open = nth.Length - 1;
+                        var end = CssClose(tail, open);
+                        var name = nth.Groups["n"].Value.ToLowerInvariant();
+                        int a;
+                        int b;
+                        int authored;
+                        Se[] filters;
+                        if (end < 0 || !CssNth(tail.Substring(open + 1, end - open - 1), nthFilters && name.IndexOf("of-type", StringComparison.Ordinal) < 0, out a, out b, out filters, out authored) || functionTests + authored > MaxCssFunctionTests) return null;
+                        functionTests += authored;
+                        pseudos.Add(new Ps(name, a, b, filters));
+                        var maximum = 0;
+                        foreach (var filter in filters) maximum = Math.Max(maximum, filter.W);
+                        weight += 10 + maximum;
+                        index += end + 1;
+                        continue;
+                    }
+                    match = Regex.Match(tail, "^:(?<n>first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|empty|root|link|checked|disabled|enabled|required|read-only|read-write|valid|invalid|hover|focus)\\b", RegexOptions.IgnoreCase);
+                    if (!match.Success) return null;
+                    pseudos.Add(new Ps(match.Groups["n"].Value.ToLowerInvariant()));
+                    weight += 10;
+                }
+                else return null;
+                index += match.Length;
+            }
+            return new Se(tag, ids.ToArray(), classes.ToArray(), attrs.ToArray(), pseudos.ToArray(), weight);
+        }
+
+        private static Se[] CssFunctionSelectors(string source, bool forgiving, out int authored)
+        {
+            var result = new List<Se>();
+            authored = 0;
+            foreach (var group in CssGroups(source))
+            {
+                authored++;
+                if (authored > MaxCssFunctionGroups) return null;
+                var value = group.Trim();
+                var selector = value.Length == 0 ? null : CssSimple(value, false, false);
+                if (selector == null)
+                {
+                    if (!forgiving) return null;
+                    continue;
+                }
+                result.Add(selector);
+            }
+            return result.ToArray();
+        }
+
+        private static Hr[] CssRelativeSelectors(string source, out int authored)
+        {
+            var result = new List<Hr>();
+            authored = 0;
+            var alternatives = 0;
+            foreach (var group in CssGroups(source))
+            {
+                if (++alternatives > MaxCssFunctionGroups) return null;
+                var value = group.Trim();
+                if (value.Length == 0) return null;
+                var leading = ' ';
+                if (value[0] == '>' || value[0] == '+' || value[0] == '~')
+                {
+                    leading = value[0];
+                    value = value.Substring(1).TrimStart();
+                }
+                var parts = new List<string>();
+                var joins = new List<char>();
+                if (value.Length == 0 || !CssParts(value, parts, joins) || parts.Count > MaxCssRelativeParts || authored + parts.Count > MaxCssFunctionTests) return null;
+                var simple = new List<Se>();
+                foreach (var part in parts)
+                {
+                    var selector = CssSimple(part, false, false);
+                    if (selector == null) return null;
+                    simple.Add(selector);
+                }
+                authored += simple.Count;
+                result.Add(new Hr(leading, simple.ToArray(), joins.ToArray(), Spec(simple)));
+            }
+            return result.Count == 0 ? null : result.ToArray();
+        }
+
+        private static bool CssNth(string source, bool filters, out int a, out int b, out Se[] selectors, out int authored)
+        {
+            a = 0;
+            b = 0;
+            selectors = NoSelectors;
+            authored = 0;
+            var value = (source ?? "").Trim();
+            var filtered = Regex.Match(value, "^(?<f>.+?)\\s+of\\s+(?<s>.+)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (filtered.Success)
+            {
+                if (!filters) return false;
+                value = filtered.Groups["f"].Value.Trim();
+                selectors = CssFunctionSelectors(filtered.Groups["s"].Value, false, out authored);
+                if (selectors == null || selectors.Length == 0) return false;
+            }
+            if (value.Length == 0 || value.Length > MaxNthExpression) return false;
+            if (value.Equals("odd", StringComparison.OrdinalIgnoreCase)) { a = 2; b = 1; return true; }
+            if (value.Equals("even", StringComparison.OrdinalIgnoreCase)) { a = 2; return true; }
+
+            var integer = Regex.Match(value, "^(?<b>[+-]?[0-9]{1,4})$");
+            if (integer.Success)
+            {
+                if (!Int32.TryParse(integer.Groups["b"].Value, out b)) return false;
+                return Math.Abs(b) <= MaxNthValue;
+            }
+
+            var formula = Regex.Match(value, "^(?<a>[+-]?(?:[0-9]{1,4})?)n(?:\\s*(?<s>[+-])\\s*(?<b>[0-9]{1,4}))?$", RegexOptions.IgnoreCase);
+            if (!formula.Success) return false;
+            var coefficient = formula.Groups["a"].Value;
+            if (coefficient.Length == 0 || coefficient == "+") a = 1;
+            else if (coefficient == "-") a = -1;
+            else if (!Int32.TryParse(coefficient, out a)) return false;
+            if (formula.Groups["b"].Success)
+            {
+                if (!Int32.TryParse(formula.Groups["b"].Value, out b)) return false;
+                if (formula.Groups["s"].Value == "-") b = -b;
+            }
+            return Math.Abs(a) <= MaxNthValue && Math.Abs(b) <= MaxNthValue;
+        }
+
+        private static int CssClose(string source, int open)
+        {
+            var depth = 0;
+            var brackets = 0;
+            var quote = '\0';
+            for (var i = open; i < (source ?? "").Length; i++)
+            {
+                var value = source[i];
+                if (quote != '\0')
+                {
+                    if (value == quote && (i == 0 || source[i - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (brackets > 0 && (value == '\"' || value == '\'')) { quote = value; continue; }
+                if (value == '[') { brackets++; continue; }
+                if (value == ']')
+                {
+                    if (brackets == 0) return -1;
+                    brackets--;
+                    continue;
+                }
+                if (brackets > 0) continue;
+                if (value == '(') depth++;
+                else if (value == ')' && --depth == 0) return i;
+            }
+            return -1;
+        }
+
+        private static N PreviousElement(N node)
+        {
+            if (node == null || node.Up == null) return null;
+            N previous = null;
+            foreach (var child in node.Up.C)
+            {
+                if (Object.ReferenceEquals(child, node)) return previous;
+                if (child.K.Length > 0 && child.K[0] != '#') previous = child;
+            }
+            return null;
+        }
+
+        private static N PreviousMatchingElement(N node, Se selector)
+        {
+            if (node == null || node.Up == null) return null;
+            N match = null;
+            foreach (var child in node.Up.C)
+            {
+                if (Object.ReferenceEquals(child, node)) return match;
+                if (child.K.Length > 0 && child.K[0] != '#' && MatchPart(child, selector)) match = child;
+            }
+            return null;
+        }
+
+        private static bool MatchPart(N node, Se selector)
+        {
+            if (selector.T.Length > 0 && selector.T != "*" && node.K != selector.T) return false;
+            foreach (var id in selector.I) if (!node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return false;
+            if (selector.C.Length > 0 && !MatchClasses(node.Av("class"), selector.C)) return false;
+            foreach (var attr in selector.A) if (!MatchAttribute(node, attr)) return false;
+            foreach (var pseudo in selector.Ps) if (!MatchPseudo(node, pseudo)) return false;
+            return true;
+        }
+
+        private static bool MatchAttribute(N node, Ca attr)
+        {
+            string actual;
+            if (!node.A.TryGetValue(attr.N, out actual)) return false;
+            if (attr.O.Length == 0) return true;
+            if (attr.O == "=") return actual.Equals(attr.V, StringComparison.OrdinalIgnoreCase);
+            if (attr.O == "^=") return actual.StartsWith(attr.V, StringComparison.OrdinalIgnoreCase);
+            if (attr.O == "$=") return actual.EndsWith(attr.V, StringComparison.OrdinalIgnoreCase);
+            if (attr.O == "*=") return actual.IndexOf(attr.V, StringComparison.OrdinalIgnoreCase) >= 0;
+            if (attr.O == "|=") return actual.Equals(attr.V, StringComparison.OrdinalIgnoreCase) || actual.StartsWith(attr.V + "-", StringComparison.OrdinalIgnoreCase);
+            if (attr.O == "~=") return MatchWord(actual, attr.V);
+            return false;
+        }
+
+        private static bool MatchPseudo(N node, Ps pseudo)
+        {
+            if (pseudo.N == "not") return pseudo.Ss.Length > 0 && !MatchAny(node, pseudo.Ss);
+            if (pseudo.N == "is" || pseudo.N == "where") return MatchAny(node, pseudo.Ss);
+            if (pseudo.N == "has") return MatchHas(node, pseudo.Rs);
+            if (pseudo.N == "hover") return node.Hv;
+            if (pseudo.N == "focus") return node.Fc;
+            if (pseudo.N == "root") return node.Up != null && node.Up.K == "#doc";
+            if (pseudo.N == "empty") return node.C.Count == 0;
+            if (pseudo.N == "link") return (node.K == "a" || node.K == "area") && node.A.ContainsKey("href");
+            if (pseudo.N == "checked") return (node.K == "input" && node.A.ContainsKey("checked")) || (node.K == "option" && node.A.ContainsKey("selected"));
+            if (pseudo.N == "disabled") return FormNode(node) && node.A.ContainsKey("disabled");
+            if (pseudo.N == "enabled") return FormNode(node) && !node.A.ContainsKey("disabled");
+            if (pseudo.N == "required") return RequiredNode(node) && node.A.ContainsKey("required");
+            if (pseudo.N == "read-only") return EditNode(node) && node.A.ContainsKey("readonly");
+            if (pseudo.N == "read-write") return EditNode(node) && !node.A.ContainsKey("readonly") && !node.A.ContainsKey("disabled");
+            if (pseudo.N == "invalid") return RequiredNode(node) && node.A.ContainsKey("data-lea-invalid");
+            if (pseudo.N == "valid") return RequiredNode(node) && !node.A.ContainsKey("data-lea-invalid");
+
+            var type = pseudo.N.IndexOf("of-type", StringComparison.Ordinal) >= 0;
+            int count;
+            var position = ElementPosition(node, type, pseudo.Ss, out count);
+            if (position == 0) return false;
+            if (pseudo.N == "first-child" || pseudo.N == "first-of-type") return position == 1;
+            if (pseudo.N == "last-child" || pseudo.N == "last-of-type") return position == count;
+            if (pseudo.N == "only-child" || pseudo.N == "only-of-type") return count == 1;
+            if (pseudo.N == "nth-child" || pseudo.N == "nth-last-child" || pseudo.N == "nth-of-type" || pseudo.N == "nth-last-of-type")
+            {
+                if (pseudo.N.StartsWith("nth-last", StringComparison.Ordinal)) position = count - position + 1;
+                return MatchNth(position, pseudo.A, pseudo.B);
+            }
+            return false;
+        }
+
+        private static bool MatchNth(int position, int a, int b)
+        {
+            var difference = position - b;
+            if (a == 0) return difference == 0;
+            return difference % a == 0 && difference / a >= 0;
+        }
+
+        private static bool MatchAny(N node, Se[] selectors)
+        {
+            foreach (var selector in selectors)
+                if (MatchPart(node, selector)) return true;
+            return false;
+        }
+
+        private static bool MatchHas(N anchor, Hr[] relatives)
+        {
+            var visits = 0;
+            foreach (var relative in relatives)
+            {
+                if (relative.P.Length == 1)
+                {
+                    if (relative.L == '>')
+                    {
+                        foreach (var child in anchor.C)
+                            if (ElementCandidate(child, anchor, relative, ref visits)) return true;
+                    }
+                    else if (relative.L == '+')
+                    {
+                        if (ElementCandidate(NextElement(anchor), anchor, relative, ref visits)) return true;
+                    }
+                    else if (relative.L == '~')
+                    {
+                        var following = false;
+                        if (anchor.Up != null)
+                            foreach (var child in anchor.Up.C)
+                            {
+                                if (Object.ReferenceEquals(child, anchor)) { following = true; continue; }
+                                if (following && ElementCandidate(child, anchor, relative, ref visits)) return true;
+                            }
+                    }
+                    else
+                    {
+                        foreach (var child in anchor.C)
+                            if (RelativeTree(child, anchor, relative, ref visits)) return true;
+                    }
+                }
+                else if (relative.L == '+' || relative.L == '~')
+                {
+                    var following = false;
+                    if (anchor.Up != null)
+                        foreach (var child in anchor.Up.C)
+                        {
+                            if (Object.ReferenceEquals(child, anchor)) { following = true; continue; }
+                            if (following && RelativeTree(child, anchor, relative, ref visits)) return true;
+                        }
+                }
+                else
+                {
+                    foreach (var child in anchor.C)
+                        if (RelativeTree(child, anchor, relative, ref visits)) return true;
+                }
+                if (visits >= MaxHasVisits) return false;
+            }
+            return false;
+        }
+
+        private static bool RelativeTree(N node, N anchor, Hr relative, ref int visits)
+        {
+            if (node == null || visits >= MaxHasVisits) return false;
+            if (ElementCandidate(node, anchor, relative, ref visits)) return true;
+            foreach (var child in node.C)
+            {
+                if (RelativeTree(child, anchor, relative, ref visits)) return true;
+                if (visits >= MaxHasVisits) return false;
+            }
+            return false;
+        }
+
+        private static bool ElementCandidate(N node, N anchor, Hr relative, ref int visits)
+        {
+            if (node == null || node.K.Length == 0 || node.K[0] == '#' || visits >= MaxHasVisits) return false;
+            visits++;
+            var current = RelativeLeft(node, relative);
+            if (current == null) return false;
+            if (relative.L == '>') return Object.ReferenceEquals(current.Up, anchor);
+            if (relative.L == '+') return Object.ReferenceEquals(PreviousElement(current), anchor);
+            if (relative.L == '~')
+            {
+                for (var previous = PreviousElement(current); previous != null; previous = PreviousElement(previous))
+                    if (Object.ReferenceEquals(previous, anchor)) return true;
+                return false;
+            }
+            for (var parent = current.Up; parent != null; parent = parent.Up)
+                if (Object.ReferenceEquals(parent, anchor)) return true;
+            return false;
+        }
+
+        private static N RelativeLeft(N node, Hr relative)
+        {
+            if (!MatchPart(node, relative.P[relative.P.Length - 1])) return null;
+            var current = node;
+            for (var index = relative.J.Length - 1; index >= 0; index--)
+            {
+                if (relative.J[index] == '>') current = current.Up;
+                else if (relative.J[index] == '+') current = PreviousElement(current);
+                else if (relative.J[index] == '~') current = PreviousMatchingElement(current, relative.P[index]);
+                else
+                {
+                    current = current.Up;
+                    while (current != null && !MatchPart(current, relative.P[index])) current = current.Up;
+                    if (current == null) return null;
+                    continue;
+                }
+                if (current == null || !MatchPart(current, relative.P[index])) return null;
+            }
+            return current;
+        }
+
+        private static N NextElement(N node)
+        {
+            if (node == null || node.Up == null) return null;
+            var following = false;
+            foreach (var child in node.Up.C)
+            {
+                if (Object.ReferenceEquals(child, node)) { following = true; continue; }
+                if (following && child.K.Length > 0 && child.K[0] != '#') return child;
+            }
+            return null;
+        }
+
+        private static int ElementPosition(N node, bool type, Se[] filters, out int count)
+        {
+            count = 0;
+            var position = 0;
+            if (node == null || node.Up == null) return 0;
+            foreach (var child in node.Up.C)
+            {
+                if (child.K.Length == 0 || child.K[0] == '#' || (type && child.K != node.K) || (filters.Length > 0 && !MatchAny(child, filters))) continue;
+                count++;
+                if (Object.ReferenceEquals(child, node)) position = count;
+            }
+            return position;
+        }
+
+        private static bool FormNode(N node)
+        {
+            return node.K == "button" || node.K == "fieldset" || node.K == "input" || node.K == "option" || node.K == "select" || node.K == "textarea";
+        }
+
+        private static bool RequiredNode(N node)
+        {
+            return node.K == "input" || node.K == "select" || node.K == "textarea";
+        }
+
+        private static bool EditNode(N node)
+        {
+            return node.K == "input" || node.K == "textarea";
+        }
+
+        private S Style(N node, S inherited, List<R> rules)
+        {
+            var style = inherited == null ? new S() : inherited.Inherit();
+            var matched = new List<R>();
+            foreach (var rule in rules)
+                if (rule.Ps == '\0' && ContainerOn(inherited, rule.Kqs) && MatchCss(node, rule)) matched.Add(rule);
+            var important = ImportantRules(matched);
+            var inline = CssDeclarations(node.Av("style"), StyleOrigin(node));
+            foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
+            Custom(style, inherited, inline, false);
+            foreach (var rule in important) Custom(style, inherited, rule.Ds, true);
+            Custom(style, inherited, inline, true);
+            TagStyle(style, node.K);
+            ListTypeAttribute(style, node);
+            DirectionAttribute(style, node.Av("dir"));
+            var baseDirection = style.Dr;
+            foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, false, baseDirection);
+            DirectionDeclarations(style, inherited, inline, false, baseDirection);
+            foreach (var rule in important) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
+            DirectionDeclarations(style, inherited, inline, true, baseDirection);
+            if (node.A.ContainsKey("hidden")) style.D = "none";
+            foreach (var rule in matched) Decls(style, inherited, rule.Ds, false);
+            Decls(style, inherited, inline, false);
+            foreach (var rule in important) Decls(style, inherited, rule.Ds, true);
+            Decls(style, inherited, inline, true);
+            if (node.A.ContainsKey("data-lea-hidden")) style.D = "none";
+            style.Sq = new Scq(node, style, inherited == null ? null : inherited.Sq);
+            return style;
+        }
+
+        private S MarkerStyle(N node, S inherited, List<R> rules)
+        {
+            var quoteDepth = 0;
+            return MarkerStyle(node, inherited, rules, ref quoteDepth);
+        }
+
+        private S MarkerStyle(N node, S inherited, List<R> rules, ref int quoteDepth)
+        {
+            return PseudoStyle(node, inherited, rules, 'm', MarkerDefaults(node), ref quoteDepth);
+        }
+
+        private S GeneratedStyle(N node, S inherited, List<R> rules, char pseudo)
+        {
+            var quoteDepth = 0;
+            return GeneratedStyle(node, inherited, rules, pseudo, ref quoteDepth);
+        }
+
+        private S GeneratedStyle(N node, S inherited, List<R> rules, char pseudo, ref int quoteDepth)
+        {
+            return PseudoStyle(node, inherited, rules, pseudo, NoDeclarations, ref quoteDepth);
+        }
+
+        private S PseudoStyle(N node, S inherited, List<R> rules, char pseudo, Pd[] defaults, ref int quoteDepth)
+        {
+            var style = inherited == null ? new S() : inherited.Inherit();
+            var quoteBase = quoteDepth;
+            var quoteEnd = quoteDepth;
+            if (pseudo == 'm')
+            {
+                style.Tt = "n";
+                style.Ws = "p";
+                style.Wm = "n";
+            }
+            var baseDirection = style.Dr;
+            Custom(style, inherited, defaults, false);
+            Custom(style, inherited, defaults, true);
+            DirectionDeclarations(style, inherited, defaults, false, baseDirection);
+            DirectionDeclarations(style, inherited, defaults, true, baseDirection);
+            var matched = new List<R>();
+            foreach (var rule in rules)
+                if (rule.Ps == pseudo && ContainerOn(inherited, rule.Kqs) && MatchCss(node, rule)) matched.Add(rule);
+            var important = ImportantRules(matched);
+            var attribute = pseudo == 'm' ? "data-lea-marker-style" : pseudo == 'b' ? "data-lea-before-style" : "data-lea-after-style";
+            var inline = CssDeclarations(node.Av(attribute), StyleOrigin(node));
+            foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
+            Custom(style, inherited, inline, false);
+            foreach (var rule in important) Custom(style, inherited, rule.Ds, true);
+            Custom(style, inherited, inline, true);
+            foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, false, baseDirection);
+            DirectionDeclarations(style, inherited, inline, false, baseDirection);
+            foreach (var rule in important) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
+            DirectionDeclarations(style, inherited, inline, true, baseDirection);
+            MarkerQuoteDecls(style, inherited, defaults, false);
+            MarkerQuoteDecls(style, inherited, defaults, true);
+            foreach (var rule in matched) MarkerQuoteDecls(style, inherited, rule.Ds, false);
+            MarkerQuoteDecls(style, inherited, inline, false);
+            foreach (var rule in important) MarkerQuoteDecls(style, inherited, rule.Ds, true);
+            MarkerQuoteDecls(style, inherited, inline, true);
+            MarkerDecls(style, inherited, node, defaults, false, quoteBase, ref quoteEnd);
+            MarkerDecls(style, inherited, node, defaults, true, quoteBase, ref quoteEnd);
+            foreach (var rule in matched) MarkerDecls(style, inherited, node, rule.Ds, false, quoteBase, ref quoteEnd);
+            MarkerDecls(style, inherited, node, inline, false, quoteBase, ref quoteEnd);
+            foreach (var rule in important) MarkerDecls(style, inherited, node, rule.Ds, true, quoteBase, ref quoteEnd);
+            MarkerDecls(style, inherited, node, inline, true, quoteBase, ref quoteEnd);
+            quoteDepth = quoteEnd;
+            return style;
+        }
+
+        private static List<R> ImportantRules(List<R> rules)
+        {
+            if (rules.Count < 2) return rules;
+            var layered = false;
+            foreach (var rule in rules) if (rule.L >= 0) { layered = true; break; }
+            if (!layered) return rules;
+            var important = new List<R>(rules);
+            important.Sort(CompareImportantRules);
+            return important;
+        }
+
+        private static Pd[] MarkerDefaults(N node)
+        {
+            for (var current = node == null ? null : node.Up; current != null; current = current.Up)
+                if (current.K == "body") return CssDeclarations(current.Av("data-lea-marker-style"), StyleOrigin(current));
+            return NoDeclarations;
+        }
+
+        private static Uri StyleOrigin(N node)
+        {
+            var root = node;
+            while (root != null && root.Up != null) root = root.Up;
+            return root == null ? null : root.Bu;
+        }
+
+        private static void Custom(S style, S inherited, Pd[] declarations, bool important)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (!declaration.C || declaration.I != important) continue;
+                var value = declaration.V;
+                if (value.Equals("initial", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (style.Vr != null && style.Vr.ContainsKey(declaration.N)) VarRemove(style, inherited, declaration.N);
+                    continue;
+                }
+                if (value.Equals("inherit", StringComparison.OrdinalIgnoreCase) || value.Equals("unset", StringComparison.OrdinalIgnoreCase) ||
+                    value.Equals("revert", StringComparison.OrdinalIgnoreCase) || value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase))
+                {
+                    string parent;
+                    if (inherited != null && inherited.Vr != null && inherited.Vr.TryGetValue(declaration.N, out parent))
+                    {
+                        Uri origin = null;
+                        if (inherited.Vo != null) inherited.Vo.TryGetValue(declaration.N, out origin);
+                        VarSet(style, inherited, declaration.N, parent, origin);
+                    }
+                    else if (style.Vr != null && style.Vr.ContainsKey(declaration.N)) VarRemove(style, inherited, declaration.N);
+                    continue;
+                }
+                if (value.Length == 0 || value.Length > MaxCustomValue) continue;
+                if (style.Vr == null || style.Vr.ContainsKey(declaration.N) || style.Vr.Count < MaxCustomProperties)
+                    VarSet(style, inherited, declaration.N, value, declaration.U);
+            }
+        }
+
+        private static void DirectionAttribute(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "ltr") style.Dr = "l";
+            else if (source == "rtl") style.Dr = "r";
+        }
+
+        private static void DirectionDeclarations(S style, S inherited, Pd[] declarations, bool important, string baseDirection)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important || declaration.N != "direction") continue;
+                string value;
+                Uri origin;
+                if (VarValue(style, declaration.V, declaration.U, out value, out origin))
+                    Direction(style, inherited, value, baseDirection);
+            }
+        }
+
+        private static void Direction(S style, S inherited, string value, string baseDirection)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "ltr") style.Dr = "l";
+            else if (source == "rtl") style.Dr = "r";
+            else if (source == "initial") style.Dr = "l";
+            else if (source == "inherit" || source == "unset") style.Dr = inherited == null ? "l" : inherited.Dr;
+            else if (source == "revert" || source == "revert-layer") style.Dr = baseDirection == "r" ? "r" : "l";
+        }
+
+        internal static bool Dr(string value, out string direction)
+        {
+            direction = (value ?? "").Trim().ToLowerInvariant();
+            return direction.Length == 0 || direction == "ltr" || direction == "rtl" || direction == "inherit" ||
+                direction == "initial" || direction == "unset" || direction == "revert" || direction == "revert-layer";
+        }
+
+        private static void VarSet(S style, S inherited, string name, string value, Uri origin)
+        {
+            VarWrite(style, inherited)[name] = value;
+            var origins = VarOriginWrite(style, inherited);
+            if (origin == null) origins.Remove(name);
+            else origins[name] = origin;
+        }
+
+        private static void VarRemove(S style, S inherited, string name)
+        {
+            VarWrite(style, inherited).Remove(name);
+            VarOriginWrite(style, inherited).Remove(name);
+        }
+
+        private static Dictionary<string, string> VarWrite(S style, S inherited)
+        {
+            if (style.Vr == null) style.Vr = new Dictionary<string, string>(StringComparer.Ordinal);
+            else if (inherited != null && Object.ReferenceEquals(style.Vr, inherited.Vr)) style.Vr = new Dictionary<string, string>(style.Vr, StringComparer.Ordinal);
+            return style.Vr;
+        }
+
+        private static Dictionary<string, Uri> VarOriginWrite(S style, S inherited)
+        {
+            if (style.Vo == null) style.Vo = new Dictionary<string, Uri>(StringComparer.Ordinal);
+            else if (inherited != null && Object.ReferenceEquals(style.Vo, inherited.Vo)) style.Vo = new Dictionary<string, Uri>(style.Vo, StringComparer.Ordinal);
+            return style.Vo;
+        }
+
+        private static void MarkerQuoteDecls(S style, S inherited, Pd[] declarations, bool important)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important || declaration.N != "quotes") continue;
+                string value;
+                Uri origin;
+                if (VarValue(style, declaration.V, declaration.U, out value, out origin)) Quotes(style, inherited, value);
+            }
+        }
+
+        private static void MarkerDecls(S style, S inherited, N node, Pd[] declarations, bool important, int quoteBase, ref int quoteEnd)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important || declaration.N == "direction") continue;
+                string value;
+                Uri origin;
+                if (!VarValue(style, declaration.V, declaration.U, out value, out origin)) continue;
+                var name = declaration.N;
+                if (name == "color") MarkerColor(style, inherited, value);
+                else if (name == "font-family") MarkerFontFamily(style, inherited, value);
+                else if (name == "font-weight") MarkerFontWeight(style, inherited, value);
+                else if (name == "font-style") MarkerFontStyle(style, inherited, value);
+                else if (name == "font-size") MarkerFontSize(style, inherited, value);
+                else if (name == "text-transform") MarkerTextTransform(style, inherited, value);
+                else if (name == "letter-spacing") MarkerSpacing(style, inherited, value, true);
+                else if (name == "word-spacing") MarkerSpacing(style, inherited, value, false);
+                else if (name == "line-height") MarkerLineHeight(style, inherited, value);
+                else if (name == "text-shadow") TextShadow(style, inherited, value);
+                else if (name == "content") MarkerContent(style, node, value, origin, quoteBase, ref quoteEnd);
+            }
+        }
+
+        private static bool MarkerParentValue(string value)
+        {
+            return value == "inherit" || value == "unset";
+        }
+
+        private static bool MarkerRevertValue(string value)
+        {
+            return value == "revert" || value == "revert-layer";
+        }
+
+        private static void MarkerColor(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (MarkerParentValue(lower) || MarkerRevertValue(lower) || lower == "currentcolor")
+                style.F = inherited == null ? "" : inherited.F;
+            else if (lower == "initial") style.F = "";
+            else if (source.Length > 0 && source.Length <= 128 && !MarkerControls(source)) style.F = source;
+        }
+
+        private static void MarkerFontFamily(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (MarkerParentValue(lower) || MarkerRevertValue(lower)) style.Ff = inherited == null ? "" : inherited.Ff;
+            else if (lower == "initial") style.Ff = "";
+            else FontFamily(style, source);
+        }
+
+        private static void MarkerFontWeight(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source) || MarkerRevertValue(source)) style.B = inherited != null && inherited.B;
+            else if (source == "initial" || source == "normal" || source == "lighter" || source == "100" || source == "200" || source == "300" || source == "400" || source == "500" || source == "600") style.B = false;
+            else if (source == "bold" || source == "bolder" || source == "700" || source == "800" || source == "900") style.B = true;
+        }
+
+        private static void MarkerFontStyle(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source) || MarkerRevertValue(source)) style.I = inherited != null && inherited.I;
+            else if (source == "initial" || source == "normal") style.I = false;
+            else if (source == "italic" || source == "oblique") style.I = true;
+        }
+
+        private static void MarkerFontSize(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source) || MarkerRevertValue(source)) { style.Fs = inherited == null ? 0 : inherited.Fs; return; }
+            if (source == "initial") { style.Fs = 0; return; }
+            var size = Regex.Match(source, "^(?<n>[0-9]{1,3})(?:px)?$");
+            int number;
+            if (size.Success && Int32.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
+        }
+
+        private static void MarkerTextTransform(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source)) style.Tt = inherited == null ? "n" : inherited.Tt;
+            else if (MarkerRevertValue(source) || source == "initial" || source == "none") style.Tt = "n";
+            else if (source == "uppercase") style.Tt = "u";
+            else if (source == "lowercase") style.Tt = "l";
+            else if (source == "capitalize") style.Tt = "c";
+        }
+
+        private static void MarkerSpacing(S style, S inherited, string value, bool letters)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "revert-layer") source = "inherit";
+            TextSpacing(style, inherited, source, letters);
+        }
+
+        private static void MarkerLineHeight(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source) || MarkerRevertValue(source))
+            {
+                style.Lh = inherited == null ? 0 : inherited.Lh;
+                style.Lm = inherited == null ? 0 : inherited.Lm;
+            }
+            else LineHeight(style, source);
+        }
+
+        private static void MarkerContent(S style, N node, string value, Uri origin, int quoteBase, ref int quoteEnd)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "normal" || lower == "initial" || MarkerParentValue(lower) || MarkerRevertValue(lower))
+            {
+                style.Mc = null;
+                style.Ma = null;
+                style.Mf = null;
+                style.Mn = false;
+                quoteEnd = quoteBase;
+                return;
+            }
+            if (lower == "none")
+            {
+                style.Mc = null;
+                style.Ma = null;
+                style.Mf = null;
+                style.Mn = true;
+                quoteEnd = quoteBase;
+                return;
+            }
+            string content;
+            string alternative;
+            IList<Cf> fragments;
+            var depth = quoteBase;
+            if (MarkerContentList(style, node, source, origin, ref depth, out content, out alternative, out fragments))
+            {
+                style.Mc = content;
+                style.Ma = alternative;
+                style.Mf = fragments;
+                style.Mn = false;
+                quoteEnd = depth;
+            }
+        }
+
+        private static bool MarkerContentList(S style, N node, string value, Uri origin, ref int quoteDepth,
+            out string content, out string alternative, out IList<Cf> fragments)
+        {
+            content = "";
+            alternative = null;
+            fragments = null;
+            var source = (value ?? "").Trim();
+            var result = new StringBuilder();
+            var speech = new StringBuilder();
+            var visual = new List<Cf>();
+            var index = 0;
+            var items = 0;
+            var speechItems = 0;
+            var inAlternative = false;
+            var hasImage = false;
+            while (index < source.Length)
+            {
+                while (index < source.Length && Char.IsWhiteSpace(source[index])) index++;
+                if (index >= source.Length) break;
+                if (source[index] == '/')
+                {
+                    if (inAlternative || items == 0) return false;
+                    inAlternative = true;
+                    index++;
+                    continue;
+                }
+                if (inAlternative)
+                {
+                    if (++speechItems > MaxMarkerContentItems) return false;
+                }
+                else if (++items > MaxMarkerContentItems) return false;
+                string item;
+                Uri image;
+                if (!inAlternative && MarkerImage(source, ref index, origin, out image))
+                {
+                    hasImage = true;
+                    visual.Add(new Cf { K = "i", X = "", U = image });
+                    continue;
+                }
+                if (source[index] == '"' || source[index] == '\'')
+                {
+                    if (!MarkerStringToken(source, ref index, out item)) return false;
+                }
+                else if (!MarkerAttribute(node, source, ref index, out item) &&
+                    !MarkerCounter(node, source, ref index, out item) &&
+                    (inAlternative || !MarkerQuote(style, source, ref index, ref quoteDepth, out item))) return false;
+                var output = inAlternative ? speech : result;
+                if (MarkerControls(item) || output.Length + item.Length > MaxMarkerText) return false;
+                output.Append(item);
+                if (!inAlternative && item.Length > 0)
+                {
+                    var previous = visual.Count == 0 ? null : visual[visual.Count - 1];
+                    if (previous != null && previous.K == "t") previous.X += item;
+                    else visual.Add(new Cf { K = "t", X = item });
+                }
+            }
+            if (items == 0 || inAlternative && speechItems == 0) return false;
+            content = result.ToString();
+            alternative = inAlternative ? speech.ToString() : null;
+            if (hasImage) fragments = visual.AsReadOnly();
+            return true;
+        }
+
+        private static bool MarkerImage(string source, ref int index, Uri origin, out Uri image)
+        {
+            image = null;
+            if (index + 4 > source.Length || !source.Substring(index, 4).Equals("url(", StringComparison.OrdinalIgnoreCase)) return false;
+            int close;
+            if (!MarkerFunctionClose(source, index + 4, out close)) return false;
+            var token = source.Substring(index, close - index + 1);
+            if (!BitmapUri(token, origin, out image) &&
+                (origin != null || !BitmapUri(token, new Uri("https://lea.invalid/"), out image))) return false;
+            index = close + 1;
+            return true;
+        }
+
+        private static bool MarkerQuote(S style, string source, ref int index, ref int quoteDepth, out string content)
+        {
+            content = "";
+            string keyword = null;
+            foreach (var candidate in new[] { "no-open-quote", "no-close-quote", "open-quote", "close-quote" })
+            {
+                if (index + candidate.Length > source.Length ||
+                    !source.Substring(index, candidate.Length).Equals(candidate, StringComparison.OrdinalIgnoreCase)) continue;
+                var end = index + candidate.Length;
+                if (end < source.Length && (Char.IsLetterOrDigit(source[end]) || source[end] == '-' || source[end] == '_')) return false;
+                keyword = candidate;
+                index = end;
+                break;
+            }
+            if (keyword == null) return false;
+            if (keyword == "open-quote" || keyword == "no-open-quote")
+            {
+                if (quoteDepth >= MaxQuoteDepth) return false;
+                if (keyword == "open-quote") content = (style ?? new S()).Qo(quoteDepth);
+                quoteDepth++;
+                return true;
+            }
+            if (quoteDepth == 0) return true;
+            quoteDepth--;
+            if (keyword == "close-quote") content = (style ?? new S()).Qx(quoteDepth);
+            return true;
+        }
+
+        private static bool MarkerStringToken(string source, ref int index, out string content)
+        {
+            content = "";
+            if (index >= source.Length || source[index] != '"' && source[index] != '\'') return false;
+            var start = index;
+            var quote = source[index++];
+            while (index < source.Length)
+            {
+                var current = source[index++];
+                if (current == quote) return MarkerString(source.Substring(start, index - start), out content);
+                if (current != '\\') continue;
+                if (index >= source.Length) return false;
+                if (source[index] == '\r' && index + 1 < source.Length && source[index + 1] == '\n') index += 2;
+                else index++;
+            }
+            return false;
+        }
+
+        private static bool MarkerAttribute(N node, string source, ref int index, out string content)
+        {
+            content = "";
+            if (index + 5 > source.Length || !source.Substring(index, 5).Equals("attr(", StringComparison.OrdinalIgnoreCase)) return false;
+            int close;
+            if (!MarkerFunctionClose(source, index + 5, out close)) return false;
+            var argument = source.Substring(index + 5, close - index - 5).Trim();
+            List<string> parts;
+            if (!ShadowParts(argument, ',', out parts) || parts.Count < 1 || parts.Count > 2) return false;
+            var match = Regex.Match(parts[0], "^(?<n>-?[_a-zA-Z][_a-zA-Z0-9-]{0,63})(?:\\s+raw-string)?$", RegexOptions.IgnoreCase);
+            if (!match.Success) return false;
+            var fallback = "";
+            if (parts.Count == 2)
+            {
+                var cursor = 0;
+                if (!MarkerStringToken(parts[1], ref cursor, out fallback) || cursor != parts[1].Length || fallback.Length > MaxMarkerText || MarkerControls(fallback)) return false;
+            }
+            index = close + 1;
+            var name = match.Groups["n"].Value;
+            if (name.Length > 64) return false;
+            content = node != null && node.A.ContainsKey(name) ? node.Av(name) : fallback;
+            return content.Length <= MaxMarkerText;
+        }
+
+        private static bool MarkerCounter(N node, string source, ref int index, out string content)
+        {
+            content = "";
+            var many = false;
+            var prefix = 0;
+            if (index + 9 <= source.Length && source.Substring(index, 9).Equals("counters(", StringComparison.OrdinalIgnoreCase))
+            {
+                many = true;
+                prefix = 9;
+            }
+            else if (index + 8 <= source.Length && source.Substring(index, 8).Equals("counter(", StringComparison.OrdinalIgnoreCase)) prefix = 8;
+            else return false;
+            int close;
+            if (!MarkerFunctionClose(source, index + prefix, out close)) return false;
+            var argument = source.Substring(index + prefix, close - index - prefix).Trim();
+            if (many)
+            {
+                if (!MarkerCountersValue(node, argument, out content)) return false;
+            }
+            else if (!MarkerCounterValue(node, argument, out content)) return false;
+            index = close + 1;
+            return true;
+        }
+
+        private static bool MarkerFunctionClose(string source, int index, out int close)
+        {
+            close = -1;
+            var quote = '\0';
+            while (index < source.Length)
+            {
+                var current = source[index++];
+                if (quote != '\0')
+                {
+                    if (current == quote) quote = '\0';
+                    else if (current == '\\')
+                    {
+                        if (index >= source.Length) return false;
+                        if (source[index] == '\r' && index + 1 < source.Length && source[index + 1] == '\n') index += 2;
+                        else index++;
+                    }
+                    continue;
+                }
+                if (current == '"' || current == '\'') quote = current;
+                else if (current == ')')
+                {
+                    close = index - 1;
+                    return true;
+                }
+                else if (current == '(') return false;
+            }
+            return false;
+        }
+
+        private static bool MarkerCounterValue(N node, string argument, out string content)
+        {
+            content = "";
+            var parts = argument.Split(',');
+            if (parts.Length < 1 || parts.Length > 2) return false;
+            var name = parts[0].Trim();
+            if (!CounterName(name, true)) return false;
+            string style;
+            if (!MarkerCounterStyle(parts.Length == 1 ? "decimal" : parts[1], out style)) return false;
+            List<int> values;
+            if (!MarkerCounterValues(node, name, out values)) return false;
+            content = CounterText(values[values.Count - 1], style);
+            return content.Length <= MaxMarkerText;
+        }
+
+        private static bool MarkerCountersValue(N node, string argument, out string content)
+        {
+            content = "";
+            var comma = argument.IndexOf(',');
+            if (comma < 0) return false;
+            var name = argument.Substring(0, comma).Trim();
+            if (!CounterName(name, true)) return false;
+            var rest = argument.Substring(comma + 1);
+            var cursor = 0;
+            while (cursor < rest.Length && Char.IsWhiteSpace(rest[cursor])) cursor++;
+            string separator;
+            if (!MarkerStringToken(rest, ref cursor, out separator) || separator.Length > MaxMarkerCounterSeparator || MarkerControls(separator)) return false;
+            while (cursor < rest.Length && Char.IsWhiteSpace(rest[cursor])) cursor++;
+            string style;
+            if (cursor == rest.Length) style = "1";
+            else
+            {
+                if (rest[cursor++] != ',') return false;
+                if (!MarkerCounterStyle(rest.Substring(cursor), out style)) return false;
+            }
+            List<int> values;
+            if (!MarkerCounterValues(node, name, out values)) return false;
+            var result = new StringBuilder();
+            for (var valueIndex = 0; valueIndex < values.Count; valueIndex++)
+            {
+                if (valueIndex > 0) result.Append(separator);
+                result.Append(CounterText(values[valueIndex], style));
+                if (result.Length > MaxMarkerText) return false;
+            }
+            content = result.ToString();
+            return true;
+        }
+
+        private static bool MarkerCounterValues(N node, string name, out List<int> values)
+        {
+            values = new List<int>();
+            if (name.Equals("list-item", StringComparison.OrdinalIgnoreCase))
+            {
+                for (var current = node; current != null; current = current.Up)
+                    if (current.K == "li")
+                    {
+                        if (values.Count == MaxMarkerCounterDepth) return false;
+                        values.Add(MarkerCounterNumber(current));
+                    }
+                values.Reverse();
+            }
+            else if (node != null && node.Ct != null)
+            {
+                foreach (var counter in node.Ct)
+                    if (counter.N.Equals(name, StringComparison.Ordinal))
+                    {
+                        if (values.Count == MaxMarkerCounterDepth) return false;
+                        values.Add(counter.V);
+                    }
+            }
+            if (values.Count > 0) return true;
+            values.Add(0);
+            if (node != null && !name.Equals("list-item", StringComparison.OrdinalIgnoreCase))
+            {
+                var counters = node.Ct ?? new List<Cn>();
+                if (CounterCreate(counters, node, name, 0) >= 0) node.Ct = counters;
+            }
+            return true;
+        }
+
+        private static bool MarkerCounterStyle(string value, out string style)
+        {
+            style = ListStyleCode((value ?? "").Trim().ToLowerInvariant());
+            return style != null;
+        }
+
+        private static int MarkerCounterNumber(N node)
+        {
+            int number;
+            return node != null && Int32.TryParse(node.Mk, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number) ? number : node == null ? 0 : 1;
+        }
+
+        internal static bool Ctv(string value, int kind, out string counters)
+        {
+            counters = "";
+            if (kind < 0 || kind > 2) return false;
+            var source = (value ?? "").Trim();
+            if (source.Length == 0) return true;
+            if (source.Length > 512) return false;
+            var lower = source.ToLowerInvariant();
+            if (lower == "none" || lower == "initial" || lower == "inherit" || lower == "unset" || lower == "revert" || lower == "revert-layer")
+            {
+                counters = lower;
+                return true;
+            }
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || parts.Count == 0) return false;
+            var result = new StringBuilder();
+            var operations = 0;
+            for (var index = 0; index < parts.Count; index++)
+            {
+                var name = parts[index];
+                if (!CounterName(name, false) || ++operations > MaxCounterOperations) return false;
+                var number = kind == 1 ? 1 : 0;
+                int explicitValue;
+                if (index + 1 < parts.Count && CounterInteger(parts[index + 1], out explicitValue))
+                {
+                    number = explicitValue;
+                    index++;
+                }
+                if (result.Length > 0) result.Append(' ');
+                result.Append(name).Append(' ').Append(number.ToString(CultureInfo.InvariantCulture));
+            }
+            counters = result.ToString();
+            return true;
+        }
+
+        private static void CounterProperty(S style, S inherited, string value, int kind)
+        {
+            string counters;
+            if (!Ctv(value, kind, out counters)) return;
+            var lower = counters.ToLowerInvariant();
+            if (lower == "inherit") counters = inherited == null ? "" : kind == 0 ? inherited.Cr : kind == 1 ? inherited.Ci : inherited.Cs;
+            else if (lower == "none" || lower == "initial" || lower == "unset" || lower == "revert" || lower == "revert-layer") counters = "";
+            if (kind == 0) style.Cr = counters;
+            else if (kind == 1) style.Ci = counters;
+            else style.Cs = counters;
+        }
+
+        private static bool CounterName(string value, bool listItem)
+        {
+            var name = (value ?? "").Trim();
+            if (name.Length == 0 || name.Length > MaxCounterName || !Regex.IsMatch(name, "^-?[_a-zA-Z][_a-zA-Z0-9-]*$")) return false;
+            var lower = name.ToLowerInvariant();
+            if (lower == "none" || lower == "initial" || lower == "inherit" || lower == "unset" || lower == "revert" || lower == "revert-layer") return false;
+            return listItem || lower != "list-item";
+        }
+
+        private static bool CounterInteger(string value, out int number)
+        {
+            return Int32.TryParse(value, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number) &&
+                number >= -MaxCounterValue && number <= MaxCounterValue;
+        }
+
+        private static bool MarkerString(string value, out string content)
+        {
+            content = "";
+            var source = (value ?? "").Trim();
+            if (source.Length < 2 || source[0] != source[source.Length - 1] || source[0] != '"' && source[0] != '\'') return false;
+            var quote = source[0];
+            var result = new StringBuilder();
+            for (var index = 1; index < source.Length - 1; index++)
+            {
+                var current = source[index];
+                if (current == quote || current == '\0' || current == '\r' || current == '\n' || current == '\f') return false;
+                if (current != '\\')
+                {
+                    result.Append(current);
+                    if (result.Length > MaxMarkerText) return false;
+                    continue;
+                }
+                if (++index >= source.Length - 1) return false;
+                current = source[index];
+                if (current == '\r' || current == '\n' || current == '\f')
+                {
+                    if (current == '\r' && index + 1 < source.Length - 1 && source[index + 1] == '\n') index++;
+                    continue;
+                }
+                var start = index;
+                while (index < source.Length - 1 && index - start < 6 && Uri.IsHexDigit(source[index])) index++;
+                if (index > start)
+                {
+                    int scalar;
+                    if (!Int32.TryParse(source.Substring(start, index - start), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out scalar)) return false;
+                    if (index < source.Length - 1 && Char.IsWhiteSpace(source[index])) { }
+                    else index--;
+                    var decoded = scalar == 0 || scalar > 0x10ffff || scalar >= 0xd800 && scalar <= 0xdfff ? "\ufffd" : Char.ConvertFromUtf32(scalar);
+                    if (result.Length + decoded.Length > MaxMarkerText) return false;
+                    result.Append(decoded);
+                    continue;
+                }
+                if (current == '\0') return false;
+                result.Append(current);
+                if (result.Length > MaxMarkerText) return false;
+            }
+            content = result.ToString();
+            return true;
+        }
+
+        private static bool MarkerControls(string value)
+        {
+            foreach (var current in value ?? "") if (Char.IsControl(current) && !Char.IsWhiteSpace(current)) return true;
+            return false;
+        }
+
+        private static void Quotes(S style, S inherited, string value)
+        {
+            string[] pairs;
+            int mode;
+            if (!QuoteValues(value, out pairs, out mode)) return;
+            style.Qs = mode == 1 ? null : mode == 2 ? new string[0] : mode == 3 ? inherited == null ? null : inherited.Qs : pairs;
+        }
+
+        internal static bool Quv(string value, out string quotes)
+        {
+            quotes = (value ?? "").Trim();
+            if (quotes.Length == 0) return true;
+            if (quotes.Length > 512 || MarkerControls(quotes)) return false;
+            string[] pairs;
+            int mode;
+            return QuoteValues(quotes, out pairs, out mode);
+        }
+
+        private static bool QuoteValues(string value, out string[] pairs, out int mode)
+        {
+            pairs = null;
+            mode = 0;
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "auto" || lower == "initial" || lower == "revert" || lower == "revert-layer") { mode = 1; return true; }
+            if (lower == "none") { mode = 2; return true; }
+            if (lower == "inherit" || lower == "unset") { mode = 3; return true; }
+            var values = new List<string>();
+            var index = 0;
+            while (index < source.Length)
+            {
+                while (index < source.Length && Char.IsWhiteSpace(source[index])) index++;
+                if (index >= source.Length) break;
+                string item;
+                if (!MarkerStringToken(source, ref index, out item) || item.Length > MaxQuoteText || MarkerControls(item)) return false;
+                values.Add(item);
+                if (values.Count > MaxQuotePairs * 2) return false;
+            }
+            if (values.Count < 2 || values.Count % 2 != 0) return false;
+            pairs = values.ToArray();
+            return true;
+        }
+
+        internal static bool Msv(string value, out string markerStyle)
+        {
+            markerStyle = (value ?? "").Trim();
+            if (markerStyle.Length == 0) return true;
+            if (markerStyle.Length > MaxMarkerStyle || MarkerControls(markerStyle)) return false;
+            var clean = CssClean(markerStyle);
+            var segments = MarkerDeclarationSegments(clean);
+            if (segments < 1 || segments > MaxMarkerDeclarations) return false;
+            var declarations = CssDeclarations(clean);
+            if (declarations.Length != segments || declarations.Length > MaxMarkerDeclarations) return false;
+            foreach (var declaration in declarations)
+            {
+                if (!declaration.C && !MarkerProperty(declaration.N)) return false;
+                if (!declaration.C && declaration.N == "quotes" &&
+                    declaration.V.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    string quotes;
+                    if (!Quv(declaration.V, out quotes)) return false;
+                }
+                if (!declaration.C && declaration.N == "content" &&
+                    declaration.V.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0 && !MarkerContentValue(declaration.V, declaration.U)) return false;
+            }
+            return true;
+        }
+
+        private static bool MarkerContentValue(string value, Uri origin)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            string content;
+            string alternative;
+            IList<Cf> fragments;
+            var depth = 0;
+            return lower == "normal" || lower == "none" || lower == "initial" || MarkerParentValue(lower) || MarkerRevertValue(lower) ||
+                MarkerContentList(new S(), null, source, origin, ref depth, out content, out alternative, out fragments);
+        }
+
+        private static bool MarkerProperty(string name)
+        {
+            return name == "color" || name == "font-family" || name == "font-weight" || name == "font-style" || name == "font-size" ||
+                name == "text-transform" || name == "letter-spacing" || name == "word-spacing" || name == "line-height" ||
+                name == "text-shadow" || name == "direction" || name == "quotes" || name == "content";
+        }
+
+        private static int MarkerDeclarationSegments(string source)
+        {
+            var count = 0;
+            var start = 0;
+            var quote = '\0';
+            var escaped = false;
+            var parentheses = 0;
+            for (var index = 0; index <= (source ?? "").Length; index++)
+            {
+                var end = index == source.Length;
+                var current = end ? ';' : source[index];
+                if (!end && quote != '\0')
+                {
+                    if (escaped) escaped = false;
+                    else if (current == '\\') escaped = true;
+                    else if (current == quote) quote = '\0';
+                    continue;
+                }
+                if (!end && (current == '"' || current == '\'')) { quote = current; continue; }
+                if (!end && current == '(') { parentheses++; continue; }
+                if (!end && current == ')')
+                {
+                    if (parentheses == 0) return -1;
+                    parentheses--;
+                    continue;
+                }
+                if (current != ';' || parentheses != 0) continue;
+                if (source.Substring(start, index - start).Trim().Length > 0) count++;
+                start = index + 1;
+            }
+            return quote == '\0' && parentheses == 0 ? count : -1;
+        }
+
+        private static void Decls(S style, S inherited, Pd[] declarations, bool important)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important) continue;
+                var name = declaration.N;
+                if (name == "direction") continue;
+                string value;
+                Uri origin;
+                if (!VarValue(style, declaration.V, declaration.U, out value, out origin)) continue;
+                if (name == "color") style.F = value;
+                else if (name == "background") Background(style, value, origin);
+                else if (name == "background-color") style.Bg = value;
+                else if (name == "background-image") BackgroundImage(style, value, origin);
+                else if (name == "background-repeat") BackgroundRepeat(style, value);
+                else if (name == "background-position") BackgroundPosition(style, value);
+                else if (name == "background-size") BackgroundSize(style, value);
+                else if (name == "font-family") FontFamily(style, value);
+                else if (name == "font-weight") style.B = value.Equals("bold", StringComparison.OrdinalIgnoreCase) || value == "700" || value == "800" || value == "900";
+                else if (name == "font-style") style.I = value.Equals("italic", StringComparison.OrdinalIgnoreCase) || value.Equals("oblique", StringComparison.OrdinalIgnoreCase);
+                else if (name == "text-decoration") TextDecoration(style, value);
+                else if (name == "text-decoration-line") TextDecorationLine(style, value);
+                else if (name == "text-decoration-color") TextDecorationColor(style, value);
+                else if (name == "text-decoration-style") TextDecorationStyle(style, value);
+                else if (name == "text-decoration-thickness") TextDecorationThickness(style, value);
+                else if (name == "text-underline-offset") TextUnderlineOffset(style, inherited, value);
+                else if (name == "text-align") TextAlign(style, inherited, value, true);
+                else if (name == "text-align-all") TextAlign(style, inherited, value, false);
+                else if (name == "text-align-last") TextAlignLast(style, inherited, value);
+                else if (name == "text-transform") TextTransform(style, value);
+                else if (name == "text-indent") TextIndent(style, inherited, value);
+                else if (name == "text-shadow") TextShadow(style, inherited, value);
+                else if (name == "letter-spacing") TextSpacing(style, inherited, value, true);
+                else if (name == "word-spacing") TextSpacing(style, inherited, value, false);
+                else if (name == "line-height") LineHeight(style, value);
+                else if (name == "white-space") WhiteSpace(style, inherited, value);
+                else if (name == "text-wrap") TextWrap(style, inherited, value, 0);
+                else if (name == "text-wrap-mode") TextWrap(style, inherited, value, 1);
+                else if (name == "text-wrap-style") TextWrap(style, inherited, value, 2);
+                else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
+                else if (name == "overflow") Overflow(style, value);
+                else if (name == "text-overflow") TextOverflow(style, inherited, value);
+                else if (name == "line-clamp" || name == "-webkit-line-clamp") LineClamp(style, inherited, value);
+                else if (name == "list-style-type") ListStyleType(style, inherited, value);
+                else if (name == "list-style-image") ListStyleImage(style, inherited, value, origin);
+                else if (name == "list-style-position") ListStylePosition(style, inherited, value);
+                else if (name == "list-style") ListStyle(style, inherited, value, origin);
+                else if (name == "counter-reset") CounterProperty(style, inherited, value, 0);
+                else if (name == "counter-increment") CounterProperty(style, inherited, value, 1);
+                else if (name == "counter-set") CounterProperty(style, inherited, value, 2);
+                else if (name == "quotes") Quotes(style, inherited, value);
+                else if (name == "container-name")
+                {
+                    string names;
+                    if (ContainerNameValue(value, inherited, out names)) style.Cn = names;
+                }
+                else if (name == "container-type")
+                {
+                    string type;
+                    if (ContainerTypeValue(value, inherited, out type)) style.Ct = type;
+                }
+                else if (name == "container")
+                {
+                    string names;
+                    string type;
+                    if (ContainerValue(value, inherited, out names, out type)) { style.Cn = names; style.Ct = type; }
+                }
+                else if (name == "cursor") CursorStyle(style, value);
+                else if (name == "pointer-events") PointerEvents(style, value);
+                else if (name == "object-fit") ObjectFit(style, value);
+                else if (name == "object-position") ObjectPosition(style, value);
+                else if (name == "visibility") Visibility(style, value);
+                else if (name == "clip-path" && value.Length <= 128) style.Cp = value;
+                else if (name == "opacity") Opacity(style, value);
+                else if (name == "isolation") Isolation(style, value);
+                else if (name == "transform") Transform(style, value);
+                else if (name == "display") Display(style, inherited, value);
+                else if (name == "flex-direction") FlexDirection(style, value);
+                else if (name == "flex-wrap") FlexWrap(style, value);
+                else if (name == "flex-grow") FlexGrow(style, value);
+                else if (name == "flex-shrink") FlexShrink(style, value);
+                else if (name == "flex-basis") FlexBasis(style, value);
+                else if (name == "flex") FlexValue(style, value);
+                else if (name == "order") FlexOrder(style, value);
+                else if (name == "justify-content") JustifyContent(style, value);
+                else if (name == "align-content") AlignContent(style, value);
+                else if (name == "justify-items") JustifyItems(style, value);
+                else if (name == "justify-self") JustifySelf(style, value);
+                else if (name == "align-items") AlignItems(style, value);
+                else if (name == "align-self") AlignSelf(style, value);
+                else if (name == "place-items") PlaceAlignment(style, value, false);
+                else if (name == "place-self") PlaceAlignment(style, value, true);
+                else if (name == "place-content") PlaceContent(style, value);
+                else if (name == "gap" || name == "grid-gap") Gap(style, value);
+                else if (name == "column-gap" || name == "grid-column-gap") OneGap(style, value, false);
+                else if (name == "row-gap" || name == "grid-row-gap") OneGap(style, value, true);
+                else if (name == "grid-template") GridShorthand(style, value, true);
+                else if (name == "grid") GridShorthand(style, value, false);
+                else if (name == "grid-template-columns") GridTemplate(style, value, false);
+                else if (name == "grid-template-rows") GridTemplate(style, value, true);
+                else if (name == "grid-template-areas") GridTemplateAreas(style, value);
+                else if (name == "grid-auto-columns") GridAutoTracks(style, value, false);
+                else if (name == "grid-auto-rows") GridAutoTracks(style, value, true);
+                else if (name == "grid-auto-flow") GridAutoFlow(style, value);
+                else if (name == "grid-column") GridPlacement(style, value, false);
+                else if (name == "grid-column-start") GridPlacementStart(style, value, false);
+                else if (name == "grid-column-end") GridPlacementEnd(style, value, false);
+                else if (name == "grid-row") GridPlacement(style, value, true);
+                else if (name == "grid-row-start") GridPlacementStart(style, value, true);
+                else if (name == "grid-row-end") GridPlacementEnd(style, value, true);
+                else if (name == "grid-area") GridArea(style, value);
+                else if (name == "position") Position(style, value);
+                else if (name == "inset") Inset(style, value);
+                else if (name == "inset-inline") AxisInset(style, value, false);
+                else if (name == "inset-block") AxisInset(style, value, true);
+                else if (name == "top") Offset(style, value, 0);
+                else if (name == "right") Offset(style, value, 1);
+                else if (name == "bottom") Offset(style, value, 2);
+                else if (name == "left") Offset(style, value, 3);
+                else if (name == "inset-block-start") Offset(style, value, 0);
+                else if (name == "inset-block-end") Offset(style, value, 2);
+                else if (name == "inset-inline-start") Offset(style, value, InlineEdge(style, true));
+                else if (name == "inset-inline-end") Offset(style, value, InlineEdge(style, false));
+                else if (name == "z-index") ZIndex(style, value);
+                else if (name == "margin") Box(style, inherited, value, true);
+                else if (name == "margin-inline") AxisBox(style, inherited, value, true, false);
+                else if (name == "margin-block") AxisBox(style, inherited, value, true, true);
+                else if (name == "padding") Box(style, inherited, value, false);
+                else if (name == "padding-inline") AxisBox(style, inherited, value, false, false);
+                else if (name == "padding-block") AxisBox(style, inherited, value, false, true);
+                else if (name == "margin-top") BoxEdge(style, inherited, value, true, 0);
+                else if (name == "margin-right") BoxEdge(style, inherited, value, true, 1);
+                else if (name == "margin-bottom") BoxEdge(style, inherited, value, true, 2);
+                else if (name == "margin-left") BoxEdge(style, inherited, value, true, 3);
+                else if (name == "margin-block-start") LogicalBoxEdge(style, inherited, value, true, true, true);
+                else if (name == "margin-block-end") LogicalBoxEdge(style, inherited, value, true, true, false);
+                else if (name == "margin-inline-start") LogicalBoxEdge(style, inherited, value, true, false, true);
+                else if (name == "margin-inline-end") LogicalBoxEdge(style, inherited, value, true, false, false);
+                else if (name == "padding-top") BoxEdge(style, inherited, value, false, 0);
+                else if (name == "padding-right") BoxEdge(style, inherited, value, false, 1);
+                else if (name == "padding-bottom") BoxEdge(style, inherited, value, false, 2);
+                else if (name == "padding-left") BoxEdge(style, inherited, value, false, 3);
+                else if (name == "padding-block-start") LogicalBoxEdge(style, inherited, value, false, true, true);
+                else if (name == "padding-block-end") LogicalBoxEdge(style, inherited, value, false, true, false);
+                else if (name == "padding-inline-start") LogicalBoxEdge(style, inherited, value, false, false, true);
+                else if (name == "padding-inline-end") LogicalBoxEdge(style, inherited, value, false, false, false);
+                else if (name == "box-sizing") BoxSizing(style, value);
+                else if (name == "width" || name == "inline-size") Width(style, inherited, value, 0);
+                else if (name == "height" || name == "block-size") Height(style, inherited, value, 0);
+                else if (name == "min-width" || name == "min-inline-size") Width(style, inherited, value, 1);
+                else if (name == "max-width" || name == "max-inline-size") Width(style, inherited, value, 2);
+                else if (name == "min-height" || name == "min-block-size") Height(style, inherited, value, 1);
+                else if (name == "max-height" || name == "max-block-size") Height(style, inherited, value, 2);
+                else if (name == "aspect-ratio") AspectRatio(style, value);
+                else if (name == "border") Border(style, inherited, value, 15);
+                else if (name == "border-top") Border(style, inherited, value, 1);
+                else if (name == "border-right") Border(style, inherited, value, 2);
+                else if (name == "border-bottom") Border(style, inherited, value, 4);
+                else if (name == "border-left") Border(style, inherited, value, 8);
+                else if (name == "border-inline") LogicalBorder(style, inherited, value, 1);
+                else if (name == "border-block") LogicalBorder(style, inherited, value, 2);
+                else if (name == "border-inline-start") LogicalBorder(style, inherited, value, 7);
+                else if (name == "border-inline-end") LogicalBorder(style, inherited, value, 8);
+                else if (name == "border-block-start") LogicalBorder(style, inherited, value, 9);
+                else if (name == "border-block-end") LogicalBorder(style, inherited, value, 10);
+                else if (name == "border-width") BorderValues(style, inherited, value, 0, 0);
+                else if (name == "border-inline-width") BorderValues(style, inherited, value, 0, 1);
+                else if (name == "border-block-width") BorderValues(style, inherited, value, 0, 2);
+                else if (name == "border-top-width") BorderValues(style, inherited, value, 0, 3);
+                else if (name == "border-right-width") BorderValues(style, inherited, value, 0, 4);
+                else if (name == "border-bottom-width") BorderValues(style, inherited, value, 0, 5);
+                else if (name == "border-left-width") BorderValues(style, inherited, value, 0, 6);
+                else if (name == "border-inline-start-width") BorderValues(style, inherited, value, 0, 7);
+                else if (name == "border-inline-end-width") BorderValues(style, inherited, value, 0, 8);
+                else if (name == "border-block-start-width") BorderValues(style, inherited, value, 0, 9);
+                else if (name == "border-block-end-width") BorderValues(style, inherited, value, 0, 10);
+                else if (name == "border-style") BorderValues(style, inherited, value, 1, 0);
+                else if (name == "border-inline-style") BorderValues(style, inherited, value, 1, 1);
+                else if (name == "border-block-style") BorderValues(style, inherited, value, 1, 2);
+                else if (name == "border-top-style") BorderValues(style, inherited, value, 1, 3);
+                else if (name == "border-right-style") BorderValues(style, inherited, value, 1, 4);
+                else if (name == "border-bottom-style") BorderValues(style, inherited, value, 1, 5);
+                else if (name == "border-left-style") BorderValues(style, inherited, value, 1, 6);
+                else if (name == "border-inline-start-style") BorderValues(style, inherited, value, 1, 7);
+                else if (name == "border-inline-end-style") BorderValues(style, inherited, value, 1, 8);
+                else if (name == "border-block-start-style") BorderValues(style, inherited, value, 1, 9);
+                else if (name == "border-block-end-style") BorderValues(style, inherited, value, 1, 10);
+                else if (name == "border-color") BorderValues(style, inherited, value, 2, 0);
+                else if (name == "border-inline-color") BorderValues(style, inherited, value, 2, 1);
+                else if (name == "border-block-color") BorderValues(style, inherited, value, 2, 2);
+                else if (name == "border-top-color") BorderValues(style, inherited, value, 2, 3);
+                else if (name == "border-right-color") BorderValues(style, inherited, value, 2, 4);
+                else if (name == "border-bottom-color") BorderValues(style, inherited, value, 2, 5);
+                else if (name == "border-left-color") BorderValues(style, inherited, value, 2, 6);
+                else if (name == "border-inline-start-color") BorderValues(style, inherited, value, 2, 7);
+                else if (name == "border-inline-end-color") BorderValues(style, inherited, value, 2, 8);
+                else if (name == "border-block-start-color") BorderValues(style, inherited, value, 2, 9);
+                else if (name == "border-block-end-color") BorderValues(style, inherited, value, 2, 10);
+                else if (name == "outline") Outline(style, value);
+                else if (name == "outline-width") OutlineWidth(style, value);
+                else if (name == "outline-style") OutlineStyle(style, value);
+                else if (name == "outline-color") OutlineColor(style, value);
+                else if (name == "outline-offset") OutlineOffset(style, value);
+                else if (name == "border-radius") BorderRadius(style, inherited, value);
+                else if (name == "border-top-left-radius") BorderCornerRadius(style, inherited, value, 0);
+                else if (name == "border-top-right-radius") BorderCornerRadius(style, inherited, value, 1);
+                else if (name == "border-bottom-right-radius") BorderCornerRadius(style, inherited, value, 2);
+                else if (name == "border-bottom-left-radius") BorderCornerRadius(style, inherited, value, 3);
+                else if (name == "border-start-start-radius") LogicalCornerRadius(style, inherited, value, true, true);
+                else if (name == "border-start-end-radius") LogicalCornerRadius(style, inherited, value, true, false);
+                else if (name == "border-end-start-radius") LogicalCornerRadius(style, inherited, value, false, true);
+                else if (name == "border-end-end-radius") LogicalCornerRadius(style, inherited, value, false, false);
+                else if (name == "box-shadow") BoxShadow(style, value);
+                else if (name == "font-size")
+                {
+                    var size = Regex.Match(value, "^(?<n>[0-9]{1,3})(?:px)?$", RegexOptions.IgnoreCase);
+                    int number;
+                    if (size.Success && int.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
+                }
+            }
+        }
+
+        private static Pd[] CssDeclarations(string declarations)
+        {
+            return CssDeclarations(declarations, null);
+        }
+
+        private static Pd[] CssDeclarations(string declarations, Uri origin)
+        {
+            var source = CssClean(declarations ?? "");
+            if (source.Length == 0 || source.Length > 64 * 1024) return NoDeclarations;
+            var result = new List<Pd>();
+            var start = 0;
+            var quote = '\0';
+            var parentheses = 0;
+            for (var index = 0; index <= source.Length; index++)
+            {
+                var end = index == source.Length;
+                var value = end ? ';' : source[index];
+                if (!end && quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (!end && (value == '"' || value == '\'')) { quote = value; continue; }
+                if (!end && value == '(') { parentheses++; continue; }
+                if (!end && value == ')' && parentheses > 0) { parentheses--; continue; }
+                if (value != ';' || parentheses != 0) continue;
+                CssDeclaration(source.Substring(start, index - start), origin, result);
+                if (result.Count == MaxCssDeclarations) break;
+                start = index + 1;
+            }
+            return result.ToArray();
+        }
+
+        private static void CssDeclaration(string source, Uri origin, IList<Pd> result)
+        {
+            var quote = '\0';
+            var parentheses = 0;
+            var split = -1;
+            for (var index = 0; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; continue; }
+                if (value == '(') parentheses++;
+                else if (value == ')' && parentheses > 0) parentheses--;
+                else if (value == ':' && parentheses == 0) { split = index; break; }
+            }
+            if (split < 1) return;
+            var name = source.Substring(0, split).Trim();
+            var custom = CustomName(name);
+            if (!custom) name = name.ToLowerInvariant();
+            if (name.Length == 0) return;
+            string declarationValue;
+            var important = CssImportant(source.Substring(split + 1), out declarationValue);
+            if (declarationValue.Length == 0) return;
+            result.Add(new Pd(name, declarationValue, origin, custom, important));
+        }
+
+        private static bool CssImportant(string source, out string value)
+        {
+            value = (source ?? "").Trim();
+            var quote = '\0';
+            var parentheses = 0;
+            var marker = -1;
+            for (var index = 0; index < value.Length; index++)
+            {
+                var current = value[index];
+                if (quote != '\0')
+                {
+                    if (current == quote && (index == 0 || value[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (current == '"' || current == '\'') { quote = current; continue; }
+                if (current == '(') { parentheses++; continue; }
+                if (current == ')' && parentheses > 0) { parentheses--; continue; }
+                if (current == '!' && parentheses == 0) marker = index;
+            }
+            if (marker < 0 || !Regex.IsMatch(value.Substring(marker), "^!\\s*important\\s*$", RegexOptions.IgnoreCase)) return false;
+            value = value.Substring(0, marker).TrimEnd();
+            return true;
+        }
+
+        private static bool CustomName(string name)
+        {
+            if (String.IsNullOrEmpty(name) || name.Length < 3 || name.Length > MaxCustomName || name[0] != '-' || name[1] != '-') return false;
+            for (var index = 2; index < name.Length; index++)
+            {
+                var value = name[index];
+                var ascii = value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z' || value >= '0' && value <= '9';
+                if (!ascii && value != '-' && value != '_') return false;
+            }
+            return true;
+        }
+
+        private static bool VarValue(S style, string source, out string value)
+        {
+            value = source ?? "";
+            if (value.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0) return true;
+            return ResolveVars(style, value, new HashSet<string>(StringComparer.Ordinal), 0, out value);
+        }
+
+        private static bool VarValue(S style, string source, Uri origin, out string value, out Uri valueOrigin)
+        {
+            valueOrigin = origin;
+            if (!VarValue(style, source, out value)) return false;
+            var match = Regex.Match((source ?? "").Trim(), "^var\\(\\s*(?<n>--[A-Za-z0-9_-]{1,64})\\s*\\)$", RegexOptions.IgnoreCase);
+            Uri customOrigin;
+            if (match.Success && style != null && style.Vo != null && style.Vo.TryGetValue(match.Groups["n"].Value, out customOrigin))
+                valueOrigin = customOrigin;
+            return true;
+        }
+
+        private static bool ResolveVars(S style, string source, HashSet<string> stack, int depth, out string value)
+        {
+            value = "";
+            if (source == null || source.Length > MaxVarValue || depth > MaxVarDepth) return false;
+            var result = new StringBuilder();
+            var quote = '\0';
+            for (var index = 0; index < source.Length; index++)
+            {
+                var current = source[index];
+                if (quote != '\0')
+                {
+                    result.Append(current);
+                    if (current == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (current == '"' || current == '\'') { quote = current; result.Append(current); continue; }
+                if (!VarAt(source, index))
+                {
+                    result.Append(current);
+                    if (result.Length > MaxVarValue) return false;
+                    continue;
+                }
+
+                var close = CssFunctionClose(source, index + 3);
+                if (close < 0) return false;
+                var inside = source.Substring(index + 4, close - index - 4);
+                var comma = CssVarComma(inside);
+                var name = (comma < 0 ? inside : inside.Substring(0, comma)).Trim();
+                if (!CustomName(name)) return false;
+                var fallback = comma < 0 ? null : inside.Substring(comma + 1).Trim();
+                string replacement;
+                var resolved = ResolveCustom(style, name, stack, depth + 1, out replacement);
+                if (!resolved && fallback != null) resolved = ResolveVars(style, fallback, stack, depth + 1, out replacement);
+                if (!resolved) return false;
+                result.Append(replacement);
+                if (result.Length > MaxVarValue) return false;
+                index = close;
+            }
+            value = result.ToString().Trim();
+            return true;
+        }
+
+        private static bool ResolveCustom(S style, string name, HashSet<string> stack, int depth, out string value)
+        {
+            value = "";
+            string source;
+            if (style == null || style.Vr == null || depth > MaxVarDepth || stack.Contains(name) || !style.Vr.TryGetValue(name, out source)) return false;
+            stack.Add(name);
+            try { return ResolveVars(style, source, stack, depth, out value); }
+            finally { stack.Remove(name); }
+        }
+
+        private static bool VarAt(string source, int index)
+        {
+            if (index < 0 || index + 4 > (source ?? "").Length || !source.Substring(index, 4).Equals("var(", StringComparison.OrdinalIgnoreCase)) return false;
+            if (index == 0) return true;
+            var prior = source[index - 1];
+            return !Char.IsLetterOrDigit(prior) && prior != '-' && prior != '_';
+        }
+
+        private static int CssFunctionClose(string source, int open)
+        {
+            var depth = 1;
+            var quote = '\0';
+            for (var index = open + 1; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && source[index - 1] != '\\') quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') quote = value;
+                else if (value == '(') depth++;
+                else if (value == ')' && --depth == 0) return index;
+            }
+            return -1;
+        }
+
+        private static int CssVarComma(string source)
+        {
+            var depth = 0;
+            var quote = '\0';
+            for (var index = 0; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') quote = value;
+                else if (value == '(') depth++;
+                else if (value == ')' && depth > 0) depth--;
+                else if (value == ',' && depth == 0) return index;
+            }
+            return -1;
+        }
+
+        private static void BoxSizing(S style, string value)
+        {
+            var sizing = (value ?? "").Trim().ToLowerInvariant();
+            if (sizing == "border-box") style.Bz = "b";
+            else if (sizing == "content-box" || sizing == "initial" || sizing == "unset" || sizing == "revert") style.Bz = "c";
+        }
+
+        private static void Position(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "relative") style.Pn = "r";
+            else if (mode == "absolute") style.Pn = "a";
+            else if (mode == "fixed") style.Pn = "f";
+            else if (mode == "sticky") style.Pn = "k";
+            else if (mode == "static" || mode == "initial" || mode == "unset" || mode == "revert") style.Pn = "s";
+        }
+
+        private static void Display(S style, S inherited, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit") style.D = inherited == null ? "" : inherited.D;
+            else if (mode == "initial" || mode == "unset" || mode == "revert" || mode == "revert-layer") style.D = "";
+            else if (mode == "none" || mode == "block" || mode == "inline" || mode == "inline-block" ||
+                mode == "flex" || mode == "inline-flex" || mode == "grid" || mode == "inline-grid" ||
+                mode == "list-item" || mode == "table" || mode == "table-row" || mode == "table-cell") style.D = mode;
+        }
+
+        private static void FlexDirection(S style, string value)
+        {
+            var direction = (value ?? "").Trim().ToLowerInvariant();
+            if (direction == "row" || direction == "initial" || direction == "normal") style.Fd = "r";
+            else if (direction == "row-reverse") style.Fd = "x";
+            else if (direction == "column") style.Fd = "c";
+            else if (direction == "column-reverse") style.Fd = "y";
+        }
+
+        private static void FlexWrap(S style, string value)
+        {
+            var wrap = (value ?? "").Trim().ToLowerInvariant();
+            if (wrap == "wrap") style.Wr = "w";
+            else if (wrap == "nowrap" || wrap == "initial" || wrap == "normal") style.Wr = "n";
+        }
+
+        private static void FlexGrow(S style, string value)
+        {
+            int grow;
+            if (GrowValue(value, out grow)) style.Fg = grow;
+        }
+
+        private static void FlexShrink(S style, string value)
+        {
+            int shrink;
+            if (GrowValue(value, out shrink)) style.Sh = shrink;
+        }
+
+        private static void FlexBasis(S style, string value)
+        {
+            int basis;
+            if (BasisValue(value, out basis)) style.Fb = basis;
+        }
+
+        private static void FlexOrder(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "initial" || source == "normal" || source == "unset" || source == "revert") { style.Or = 0; return; }
+            var match = Regex.Match(source, "^(?<n>[+-]?[0-9]{1,2})$");
+            int order;
+            if (match.Success && Int32.TryParse(match.Groups["n"].Value, out order) && order >= -64 && order <= 64) style.Or = order;
+        }
+
+        private static void GridTemplate(S style, string value, bool rows)
+        {
+            var source = Regex.Replace((value ?? "").Trim(), "minmax\\(\\s*0(?:px)?\\s*,\\s*(?<n>[1-9][0-9]?)fr\\s*\\)", "${n}fr", RegexOptions.IgnoreCase);
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
+            {
+                if (rows) { style.Rd = null; style.Rnd = null; }
+                else { style.Gd = null; style.Gnd = null; }
+                return;
+            }
+            if (source.Length == 0 || source.Length > 512) return;
+
+            for (var expansion = 0; expansion < 8; expansion++)
+            {
+                var repeat = Regex.Match(source, "repeat\\(\\s*(?<n>[1-8])\\s*,\\s*(?<t>(?:[0-9]{1,4}px|[1-9][0-9]?fr|auto))\\s*\\)", RegexOptions.IgnoreCase);
+                if (!repeat.Success) break;
+                int count;
+                if (!Int32.TryParse(repeat.Groups["n"].Value, out count)) return;
+                var values = new string[count];
+                for (var index = 0; index < count; index++) values[index] = repeat.Groups["t"].Value;
+                source = source.Substring(0, repeat.Index) + String.Join(" ", values) + source.Substring(repeat.Index + repeat.Length);
+                if (source.Length > 512) return;
+            }
+            if (source.IndexOf("repeat", StringComparison.OrdinalIgnoreCase) >= 0 || source.IndexOf('(') >= 0 || source.IndexOf(')') >= 0) return;
+
+            var parts = Regex.Matches(source, "\\[(?<names>[^\\[\\]]*)\\]|(?<track>[^\\s\\[\\]]+)");
+            if (parts.Count == 0) return;
+            var tracks = new List<int>();
+            Dictionary<string, int> names = null;
+            var cursor = 0;
+            foreach (Match part in parts)
+            {
+                if (!Regex.IsMatch(source.Substring(cursor, part.Index - cursor), "^\\s*$")) return;
+                cursor = part.Index + part.Length;
+                if (part.Groups["names"].Success)
+                {
+                    var group = part.Groups["names"].Value.Trim();
+                    if (group.Length == 0) continue;
+                    if (group.Length > 263) return;
+                    var lineNames = Regex.Split(group, "\\s+");
+                    if (lineNames.Length > 8) return;
+                    foreach (var name in lineNames)
+                    {
+                        if (!GridLineName(name)) return;
+                        if (names == null) names = new Dictionary<string, int>(StringComparer.Ordinal);
+                        if (names.ContainsKey(name) || names.Count == 16) return;
+                        names[name] = tracks.Count + 1;
+                    }
+                    continue;
+                }
+                if (tracks.Count == 8) return;
+                var token = part.Groups["track"].Value;
+                var pixels = Regex.Match(token, "^(?<n>[0-9]{1,4})px$", RegexOptions.IgnoreCase);
+                var fraction = Regex.Match(token, "^(?<n>[1-9][0-9]?)fr$", RegexOptions.IgnoreCase);
+                int number;
+                if (token.Equals("auto", StringComparison.OrdinalIgnoreCase)) tracks.Add(S.Av);
+                else if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number <= 2000) tracks.Add(number);
+                else if (fraction.Success && Int32.TryParse(fraction.Groups["n"].Value, out number) && number <= 64) tracks.Add(-number);
+                else return;
+            }
+            if (!Regex.IsMatch(source.Substring(cursor), "^\\s*$") || tracks.Count == 0) return;
+            if (rows) { style.Rd = tracks.ToArray(); style.Rnd = names; }
+            else { style.Gd = tracks.ToArray(); style.Gnd = names; }
+        }
+
+        private static bool GridLineName(string value)
+        {
+            if (!Regex.IsMatch(value ?? "", "^[A-Za-z_][A-Za-z0-9_-]{0,31}$")) return false;
+            return !value.Equals("auto", StringComparison.OrdinalIgnoreCase) && !value.Equals("span", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("initial", StringComparison.OrdinalIgnoreCase) && !value.Equals("inherit", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("unset", StringComparison.OrdinalIgnoreCase) && !value.Equals("revert", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase) && !value.Equals("default", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool GridPlacementName(string value)
+        {
+            return Regex.IsMatch(value ?? "", "^[A-Za-z_][A-Za-z0-9_-]{0,37}$") &&
+                !value.Equals("auto", StringComparison.OrdinalIgnoreCase) && !value.Equals("span", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("initial", StringComparison.OrdinalIgnoreCase) && !value.Equals("inherit", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("unset", StringComparison.OrdinalIgnoreCase) && !value.Equals("revert", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase) && !value.Equals("default", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void GridAutoTracks(S style, string value, bool rows)
+        {
+            var source = Regex.Replace((value ?? "").Trim(), "minmax\\(\\s*0(?:px)?\\s*,\\s*(?<n>[1-9][0-9]?)fr\\s*\\)", "${n}fr", RegexOptions.IgnoreCase);
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) ||
+                source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase) ||
+                source.Equals("revert-layer", StringComparison.OrdinalIgnoreCase))
+            {
+                if (rows) style.Rad = null;
+                else style.Gad = null;
+                return;
+            }
+            if (source.Length == 0 || source.Length > 512 || source.IndexOf('(') >= 0 || source.IndexOf(')') >= 0 ||
+                source.IndexOf('[') >= 0 || source.IndexOf(']') >= 0) return;
+            var parts = Regex.Split(source, "\\s+");
+            if (parts.Length == 0 || parts.Length > 8) return;
+            var tracks = new List<int>();
+            foreach (var token in parts)
+            {
+                if (token.Equals("auto", StringComparison.OrdinalIgnoreCase)) { tracks.Add(S.Av); continue; }
+                var pixels = Regex.Match(token, "^(?<n>[0-9]{1,4})px$", RegexOptions.IgnoreCase);
+                var fraction = Regex.Match(token, "^(?<n>[1-9][0-9]?)fr$", RegexOptions.IgnoreCase);
+                int number;
+                if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number <= 2000) tracks.Add(number);
+                else if (fraction.Success && Int32.TryParse(fraction.Groups["n"].Value, out number) && number <= 64) tracks.Add(-number);
+                else return;
+            }
+            if (rows) style.Rad = tracks.ToArray();
+            else style.Gad = tracks.ToArray();
+        }
+
+        private static void GridAutoFlow(S style, string value)
+        {
+            var source = Regex.Replace((value ?? "").Trim().ToLowerInvariant(), "\\s+", " ");
+            if (source == "row" || source == "initial" || source == "unset" || source == "revert") style.Gf = "r";
+            else if (source == "dense" || source == "row dense" || source == "dense row") style.Gf = "d";
+            else if (source == "column") style.Gf = "c";
+            else if (source == "column dense" || source == "dense column") style.Gf = "x";
+        }
+
+        private static void GridShorthand(S style, string value, bool templateOnly)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Length == 0 || source.Length > 1024) return;
+            var reset = source.Equals("none", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) ||
+                source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase) ||
+                source.Equals("revert-layer", StringComparison.OrdinalIgnoreCase);
+            var parsed = new S();
+            if (!reset && !GridShorthandParse(parsed, source, !templateOnly)) return;
+            GridTemplateCopy(style, parsed);
+            if (!templateOnly) GridAutomaticCopy(style, parsed);
+        }
+
+        private static bool GridShorthandParse(S style, string source, bool allowFlow)
+        {
+            var slash = GridShorthandSlash(source);
+            if (slash == -2) return false;
+            var left = (slash < 0 ? source : source.Substring(0, slash)).Trim();
+            var right = slash < 0 ? "" : source.Substring(slash + 1).Trim();
+            if (left.Length == 0 || slash >= 0 && right.Length == 0) return false;
+
+            bool leftDense;
+            var rightDense = false;
+            string leftAutomatic;
+            var rightAutomatic = "";
+            var leftFlow = GridFlowShorthandSide(left, out leftDense, out leftAutomatic);
+            var rightFlow = slash >= 0 && GridFlowShorthandSide(right, out rightDense, out rightAutomatic);
+            if (leftFlow || rightFlow)
+            {
+                if (!allowFlow || slash < 0 || leftFlow && rightFlow) return false;
+                if (leftFlow)
+                {
+                    if (!GridTemplateAxis(style, right, false) || !GridAutomaticAxis(style, leftAutomatic, true)) return false;
+                    style.Gf = leftDense ? "d" : "r";
+                }
+                else
+                {
+                    if (!GridTemplateAxis(style, left, true) || !GridAutomaticAxis(style, rightAutomatic, false)) return false;
+                    style.Gf = rightDense ? "x" : "c";
+                }
+                return true;
+            }
+            if (left.IndexOf("auto-flow", StringComparison.OrdinalIgnoreCase) >= 0 || right.IndexOf("auto-flow", StringComparison.OrdinalIgnoreCase) >= 0) return false;
+            if (left.IndexOf('"') >= 0 || left.IndexOf('\'') >= 0) return GridAreaShorthand(style, left, slash < 0 ? null : right);
+            return slash >= 0 && GridTemplateAxis(style, left, true) && GridTemplateAxis(style, right, false);
+        }
+
+        private static int GridShorthandSlash(string source)
+        {
+            var quote = '\0';
+            var parentheses = 0;
+            var brackets = 0;
+            var slash = -1;
+            for (var index = 0; index < source.Length; index++)
+            {
+                var current = source[index];
+                if (quote != '\0')
+                {
+                    if (current == quote) quote = '\0';
+                    continue;
+                }
+                if (current == '"' || current == '\'') { quote = current; continue; }
+                if (current == '(') parentheses++;
+                else if (current == ')' && --parentheses < 0) return -2;
+                else if (current == '[') brackets++;
+                else if (current == ']' && --brackets < 0) return -2;
+                else if (current == '/' && parentheses == 0 && brackets == 0)
+                {
+                    if (slash >= 0) return -2;
+                    slash = index;
+                }
+            }
+            return quote == '\0' && parentheses == 0 && brackets == 0 ? slash : -2;
+        }
+
+        private static bool GridFlowShorthandSide(string source, out bool dense, out string tracks)
+        {
+            dense = false;
+            tracks = "";
+            var match = Regex.Match(source ?? "", "^(?:auto-flow(?:\\s+(?<d>dense))?|(?<d>dense)\\s+auto-flow)(?:\\s+(?<t>.+))?$", RegexOptions.IgnoreCase);
+            if (!match.Success) return false;
+            dense = match.Groups["d"].Success;
+            tracks = match.Groups["t"].Success ? match.Groups["t"].Value.Trim() : "";
+            return true;
+        }
+
+        private static bool GridTemplateAxis(S style, string source, bool rows)
+        {
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase)) return true;
+            GridTemplate(style, source, rows);
+            return rows ? style.Rc > 0 : style.Gc > 0;
+        }
+
+        private static bool GridAutomaticAxis(S style, string source, bool rows)
+        {
+            if (String.IsNullOrEmpty(source) || source.Equals("auto", StringComparison.OrdinalIgnoreCase)) return true;
+            GridAutoTracks(style, source, rows);
+            return rows ? style.Rac > 0 : style.Gac > 0;
+        }
+
+        private static bool GridAreaShorthand(S style, string rows, string columns)
+        {
+            var matches = Regex.Matches(rows, "\"(?<d>[^\"]*)\"|'(?<s>[^']*)'");
+            if (matches.Count < 1 || matches.Count > 8 || !Regex.IsMatch(rows.Substring(0, matches[0].Index), "^\\s*$")) return false;
+            var areas = new List<string>();
+            var tracks = new List<string>();
+            for (var index = 0; index < matches.Count; index++)
+            {
+                var match = matches[index];
+                areas.Add(match.Value);
+                var end = index + 1 < matches.Count ? matches[index + 1].Index : rows.Length;
+                var track = rows.Substring(match.Index + match.Length, end - match.Index - match.Length).Trim();
+                tracks.Add(track.Length == 0 ? "auto" : track);
+            }
+            GridTemplateAreas(style, String.Join(" ", areas));
+            if (style.Ar != matches.Count) return false;
+            GridTemplate(style, String.Join(" ", tracks), true);
+            if (style.Rc != matches.Count) return false;
+            return columns == null || GridTemplateAxis(style, columns, false);
+        }
+
+        private static void GridTemplateCopy(S target, S source)
+        {
+            target.Gd = source.Gd;
+            target.Rd = source.Rd;
+            target.Gnd = source.Gnd;
+            target.Rnd = source.Rnd;
+            target.Ad = source.Ad;
+            target.Ar = source.Ar;
+            target.Ac = source.Ac;
+        }
+
+        private static void GridAutomaticCopy(S target, S source)
+        {
+            target.Gad = source.Gad;
+            target.Rad = source.Rad;
+            target.Gf = source.Gf;
+        }
+
+        private static void GridPlacement(S style, string value, bool rows)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase)) { GridPlacementSet(style, rows, 0, 1); return; }
+            var spanOnly = Regex.Match(source, "^span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
+            var placed = Regex.Match(source, "^(?<s>[1-8])(?:\\s*/\\s*span\\s+(?<n>[1-8]))?$", RegexOptions.IgnoreCase);
+            var autoSpan = Regex.Match(source, "^auto\\s*/\\s*span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
+            int number;
+            if (spanOnly.Success && Int32.TryParse(spanOnly.Groups["n"].Value, out number)) GridPlacementSet(style, rows, 0, number);
+            else if (autoSpan.Success && Int32.TryParse(autoSpan.Groups["n"].Value, out number)) GridPlacementSet(style, rows, 0, number);
+            else if (placed.Success)
+            {
+                int start;
+                if (!Int32.TryParse(placed.Groups["s"].Value, out start)) return;
+                var span = 1;
+                if (placed.Groups["n"].Success && !Int32.TryParse(placed.Groups["n"].Value, out span)) return;
+                GridPlacementSet(style, rows, start, span);
+            }
+            else
+            {
+                var sides = Regex.Split(source, "\\s*/\\s*");
+                if (sides.Length == 1 && GridPlacementName(sides[0])) GridPlacementNamedSet(style, rows, 0, sides[0], sides[0], 1);
+                else if (sides.Length == 2)
+                {
+                    var startName = GridPlacementName(sides[0]) ? sides[0] : "";
+                    var endName = GridPlacementName(sides[1]) ? sides[1] : "";
+                    var spanMatch = Regex.Match(sides[1], "^span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
+                    var reverseSpan = Regex.Match(sides[0], "^span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
+                    int start;
+                    if (startName.Length > 0 && endName.Length > 0) GridPlacementNamedSet(style, rows, 0, startName, endName, 1);
+                    else if (startName.Length > 0 && spanMatch.Success && Int32.TryParse(spanMatch.Groups["n"].Value, out number)) GridPlacementNamedSet(style, rows, 0, startName, "", number);
+                    else if ((sides[0].Equals("auto", StringComparison.OrdinalIgnoreCase) || reverseSpan.Success) && endName.Length > 0)
+                    {
+                        var span = reverseSpan.Success && Int32.TryParse(reverseSpan.Groups["n"].Value, out number) ? number : 1;
+                        GridPlacementNamedSet(style, rows, 0, "", endName, span);
+                    }
+                    else if (Int32.TryParse(sides[0], out start) && start >= 1 && start <= 8 && endName.Length > 0) GridPlacementNamedSet(style, rows, start, "", endName, 1);
+                    else
+                    {
+                        int end;
+                        if (Int32.TryParse(sides[0], out start) && Int32.TryParse(sides[1], out end) && start >= 1 && start <= 8 && end > start && end <= 9) GridPlacementSet(style, rows, start, end - start);
+                    }
+                }
+            }
+        }
+
+        private static void GridPlacementStart(S style, string value, bool rows)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
+            {
+                style.An = "";
+                if (rows) style.Rn = ""; else style.Gn = "";
+                if (rows) style.Rl = 0; else style.Gl = 0;
+                return;
+            }
+            int start;
+            if (Regex.IsMatch(source, "^[1-8]$") && Int32.TryParse(source, out start))
+            {
+                style.An = "";
+                if (rows) style.Rn = ""; else style.Gn = "";
+                if (rows) style.Rl = start; else style.Gl = start;
+            }
+            else if (GridPlacementName(source))
+            {
+                style.An = "";
+                if (rows) { style.Rl = 0; style.Rn = source; }
+                else { style.Gl = 0; style.Gn = source; }
+            }
+        }
+
+        private static void GridPlacementEnd(S style, string value, bool rows)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
+            {
+                style.An = "";
+                if (rows) style.Re = ""; else style.Ge = "";
+                if (rows) style.Rs = 1; else style.Gs = 1;
+                return;
+            }
+            var match = Regex.Match(source, "^span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
+            int span;
+            if (match.Success && Int32.TryParse(match.Groups["n"].Value, out span))
+            {
+                style.An = "";
+                if (rows) style.Re = ""; else style.Ge = "";
+                if (rows) style.Rs = span; else style.Gs = span;
+            }
+            else if (GridPlacementName(source))
+            {
+                style.An = "";
+                if (rows) style.Re = source; else style.Ge = source;
+            }
+        }
+
+        private static void GridPlacementSet(S style, bool rows, int start, int span)
+        {
+            style.An = "";
+            if (rows) { style.Rl = start; style.Rs = span; style.Rn = ""; style.Re = ""; }
+            else { style.Gl = start; style.Gs = span; style.Gn = ""; style.Ge = ""; }
+        }
+
+        private static void GridPlacementNamedSet(S style, bool rows, int start, string startName, string endName, int span)
+        {
+            style.An = "";
+            if (rows) { style.Rl = start; style.Rs = span; style.Rn = startName; style.Re = endName; }
+            else { style.Gl = start; style.Gs = span; style.Gn = startName; style.Ge = endName; }
+        }
+
+        private static void GridTemplateAreas(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
+            {
+                style.Ad = null;
+                style.Ar = 0;
+                style.Ac = 0;
+                return;
+            }
+            if (source.Length == 0 || source.Length > 512) return;
+
+            var rows = Regex.Matches(source, "\"(?<d>[^\"]*)\"|'(?<s>[^']*)'");
+            if (rows.Count < 1 || rows.Count > 8) return;
+            var cells = new string[rows.Count][];
+            var cursor = 0;
+            var columns = 0;
+            for (var row = 0; row < rows.Count; row++)
+            {
+                var match = rows[row];
+                if (!Regex.IsMatch(source.Substring(cursor, match.Index - cursor), "^\\s*$")) return;
+                var text = match.Groups["d"].Success ? match.Groups["d"].Value : match.Groups["s"].Value;
+                if (text.Length == 0 || text.Length > 263 || text.IndexOf('\\') >= 0) return;
+                var parts = Regex.Split(text.Trim(), "\\s+");
+                if (parts.Length < 1 || parts.Length > 8 || columns != 0 && parts.Length != columns) return;
+                columns = parts.Length;
+                cells[row] = parts;
+                cursor = match.Index + match.Length;
+            }
+            if (!Regex.IsMatch(source.Substring(cursor), "^\\s*$")) return;
+
+            var areas = new Dictionary<string, int[]>(StringComparer.Ordinal);
+            for (var row = 0; row < cells.Length; row++)
+            {
+                for (var column = 0; column < columns; column++)
+                {
+                    var name = cells[row][column];
+                    if (Regex.IsMatch(name, "^\\.+$")) continue;
+                    if (!Regex.IsMatch(name, "^[A-Za-z_][A-Za-z0-9_-]{0,31}$")) return;
+                    int[] area;
+                    if (!areas.TryGetValue(name, out area))
+                    {
+                        if (areas.Count == 16) return;
+                        areas[name] = new[] { row, column, row, column, 1 };
+                    }
+                    else
+                    {
+                        area[0] = Math.Min(area[0], row);
+                        area[1] = Math.Min(area[1], column);
+                        area[2] = Math.Max(area[2], row);
+                        area[3] = Math.Max(area[3], column);
+                        area[4]++;
+                    }
+                }
+            }
+            foreach (var area in areas.Values)
+            {
+                if ((area[2] - area[0] + 1) * (area[3] - area[1] + 1) != area[4]) return;
+                area[2] = area[2] - area[0] + 1;
+                area[3] = area[3] - area[1] + 1;
+                area[0]++;
+                area[1]++;
+            }
+            style.Ad = areas;
+            style.Ar = cells.Length;
+            style.Ac = columns;
+        }
+
+        private static void GridArea(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
+            {
+                style.An = "";
+                style.Gl = 0;
+                style.Gs = 1;
+                style.Rl = 0;
+                style.Rs = 1;
+                style.Gn = "";
+                style.Ge = "";
+                style.Rn = "";
+                style.Re = "";
+                return;
+            }
+            if (!Regex.IsMatch(source, "^[A-Za-z_][A-Za-z0-9_-]{0,31}$")) return;
+            style.Gl = 0;
+            style.Gs = 1;
+            style.Rl = 0;
+            style.Rs = 1;
+            style.Gn = "";
+            style.Ge = "";
+            style.Rn = "";
+            style.Re = "";
+            style.An = source;
+        }
+
+        private static void FlexValue(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "none") { style.Fg = 0; style.Sh = 0; style.Fb = -1; return; }
+            if (source == "initial") { style.Fg = 0; style.Sh = 1; style.Fb = -1; return; }
+            if (source == "auto") { style.Fg = 1; style.Sh = 1; style.Fb = -1; return; }
+            var parts = Regex.Split(source, "\\s+");
+            int grow;
+            if (parts.Length < 1 || parts.Length > 3 || !GrowValue(parts[0], out grow)) return;
+            var shrink = 1;
+            var basis = 0;
+            if (parts.Length == 2)
+            {
+                if (!FlexTokenBasis(parts[1], out basis))
+                {
+                    if (!GrowValue(parts[1], out shrink)) return;
+                    basis = 0;
+                }
+            }
+            else if (parts.Length == 3)
+            {
+                if (!GrowValue(parts[1], out shrink) || !BasisValue(parts[2], out basis)) return;
+            }
+            style.Fg = grow;
+            style.Sh = shrink;
+            style.Fb = basis;
+        }
+
+        private static bool FlexTokenBasis(string value, out int basis)
+        {
+            basis = -1;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source != "auto" && source != "content" && source != "0%" && !source.EndsWith("px", StringComparison.Ordinal)) return false;
+            return BasisValue(source, out basis);
+        }
+
+        private static bool GrowValue(string value, out int grow)
+        {
+            grow = 0;
+            var match = Regex.Match((value ?? "").Trim(), "^(?<n>[0-9]{1,2})$");
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, out grow) && grow <= 64;
+        }
+
+        private static bool BasisValue(string value, out int basis)
+        {
+            basis = -1;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "auto" || source == "content") return true;
+            if (source == "0%") { basis = 0; return true; }
+            var match = Regex.Match(source, "^(?<n>[0-9]{1,4})(?:px)?$");
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, out basis);
+        }
+
+        private static void Gap(S style, string value)
+        {
+            var parts = Regex.Split((value ?? "").Trim().ToLowerInvariant(), "\\s+");
+            int row;
+            int column;
+            if (parts.Length < 1 || parts.Length > 2 || !GapValue(parts[0], out row) || !GapValue(parts.Length == 2 ? parts[1] : parts[0], out column)) return;
+            style.Rg = row;
+            style.Gp = column;
+        }
+
+        private static void OneGap(S style, string value, bool row)
+        {
+            int gap;
+            if (!GapValue(value, out gap)) return;
+            if (row) style.Rg = gap; else style.Gp = gap;
+        }
+
+        private static bool GapValue(string value, out int gap)
+        {
+            gap = 0;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "normal") return true;
+            var match = Regex.Match(source, "^(?<n>[0-9]{1,3})(?:px)?$");
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, out gap) && gap <= 512;
+        }
+
+        private static void JustifyContent(S style, string value)
+        {
+            string align;
+            if (ContentAlignmentValue(value, true, out align)) style.Jc = align;
+        }
+
+        private static void AlignContent(S style, string value)
+        {
+            string align;
+            if (ContentAlignmentValue(value, false, out align)) style.Al = align;
+        }
+
+        private static void PlaceContent(S style, string value)
+        {
+            var source = Regex.Replace((value ?? "").Trim(), "\\s+", " ");
+            if (source.Length == 0 || source.Length > 64) return;
+            var parts = source.Split(' ');
+            if (parts.Length < 1 || parts.Length > 2) return;
+            string vertical;
+            string horizontal;
+            if (!ContentAlignmentValue(parts[0], false, out vertical) ||
+                !ContentAlignmentValue(parts.Length == 1 ? parts[0] : parts[1], true, out horizontal)) return;
+            style.Al = vertical;
+            style.Jc = horizontal;
+        }
+
+        private static bool ContentAlignmentValue(string value, bool horizontal, out string align)
+        {
+            align = "s";
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "normal" || source == "stretch" || source == "initial" || source == "unset" || source == "revert" || source == "revert-layer") return true;
+            if (source == "flex-start" || source == "start" || horizontal && source == "left") { align = "s"; return true; }
+            if (source == "center") { align = "c"; return true; }
+            if (source == "flex-end" || source == "end" || horizontal && source == "right") { align = "e"; return true; }
+            if (source == "space-between") { align = "b"; return true; }
+            if (source == "space-around") { align = "a"; return true; }
+            if (source == "space-evenly") { align = "v"; return true; }
+            return false;
+        }
+
+        private static void AlignItems(S style, string value)
+        {
+            string align;
+            if (AlignmentValue(value, false, false, out align)) style.Ai = align;
+        }
+
+        private static void AlignSelf(S style, string value)
+        {
+            string align;
+            if (AlignmentValue(value, true, false, out align)) style.As = align;
+        }
+
+        private static void JustifyItems(S style, string value)
+        {
+            string align;
+            if (AlignmentValue(value, false, true, out align)) style.Ji = align;
+        }
+
+        private static void JustifySelf(S style, string value)
+        {
+            string align;
+            if (AlignmentValue(value, true, true, out align)) style.Js = align;
+        }
+
+        private static void PlaceAlignment(S style, string value, bool self)
+        {
+            var source = Regex.Replace((value ?? "").Trim(), "\\s+", " ");
+            if (source.Length == 0 || source.Length > 64) return;
+            var parts = source.Split(' ');
+            if (parts.Length < 1 || parts.Length > 2) return;
+            string vertical;
+            string horizontal;
+            if (!AlignmentValue(parts[0], self, false, out vertical) ||
+                !AlignmentValue(parts.Length == 1 ? parts[0] : parts[1], self, true, out horizontal)) return;
+            if (self) { style.As = vertical; style.Js = horizontal; }
+            else { style.Ai = vertical; style.Ji = horizontal; }
+        }
+
+        private static bool AlignmentValue(string value, bool self, bool horizontal, out string align)
+        {
+            align = "";
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (self && (source == "auto" || source == "initial" || source == "unset" || source == "revert" || source == "revert-layer")) return true;
+            if (!self && (source == "initial" || source == "unset" || source == "revert" || source == "revert-layer")) { align = "t"; return true; }
+            if (source == "stretch" || source == "normal") { align = "t"; return true; }
+            if (source == "flex-start" || source == "start" || source == "self-start" || horizontal && source == "left") { align = "s"; return true; }
+            if (source == "center") { align = "c"; return true; }
+            if (source == "flex-end" || source == "end" || source == "self-end" || horizontal && source == "right") { align = "e"; return true; }
+            return false;
+        }
+
+        private static void Offset(S style, string value, int side)
+        {
+            int? offset;
+            if (!OffsetValue(value, out offset)) return;
+
+            SetOffset(style, side, offset);
+        }
+
+        private static void SetOffset(S style, int side, int? offset)
+        {
+            if (side == 0) style.Tp = offset;
+            else if (side == 1) style.Rt = offset;
+            else if (side == 2) style.Bm = offset;
+            else style.Lt = offset;
+        }
+
+        private static void Inset(S style, string value)
+        {
+            var parts = Regex.Split((value ?? "").Trim(), "\\s+");
+            if (parts.Length < 1 || parts.Length > 4 || parts[0].Length == 0) return;
+            int? top;
+            int? right;
+            int? bottom;
+            int? left;
+            if (!OffsetValue(parts[0], out top) ||
+                !OffsetValue(parts.Length > 1 ? parts[1] : parts[0], out right) ||
+                !OffsetValue(parts.Length > 2 ? parts[2] : parts[0], out bottom) ||
+                !OffsetValue(parts.Length > 3 ? parts[3] : parts.Length > 1 ? parts[1] : parts[0], out left)) return;
+            style.Tp = top;
+            style.Rt = right;
+            style.Bm = bottom;
+            style.Lt = left;
+        }
+
+        private static void AxisInset(S style, string value, bool block)
+        {
+            var parts = Regex.Split((value ?? "").Trim(), "\\s+");
+            if (parts.Length < 1 || parts.Length > 2 || parts[0].Length == 0) return;
+            int? start;
+            int? end;
+            if (!OffsetValue(parts[0], out start) ||
+                !OffsetValue(parts.Length == 2 ? parts[1] : parts[0], out end)) return;
+            if (block) { style.Tp = start; style.Bm = end; }
+            else
+            {
+                SetOffset(style, InlineEdge(style, true), start);
+                SetOffset(style, InlineEdge(style, false), end);
+            }
+        }
+
+        private static int InlineEdge(S style, bool start)
+        {
+            var rtl = style != null && style.Dr == "r";
+            return rtl ? start ? 1 : 3 : start ? 3 : 1;
+        }
+
+        private static int LogicalEdge(S style, bool block, bool start)
+        {
+            return block ? start ? 0 : 2 : InlineEdge(style, start);
+        }
+
+        private static int LogicalCorner(S style, bool blockStart, bool inlineStart)
+        {
+            var left = InlineEdge(style, inlineStart) == 3;
+            return blockStart ? left ? 0 : 1 : left ? 3 : 2;
+        }
+
+        private static bool OffsetValue(string value, out int? offset)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            offset = null;
+            if (source == "auto" || source == "initial" || source == "unset" || source == "revert") return true;
+            var match = Regex.Match(source, "^(?<n>-?[0-9]{1,5})(?:px)?$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, out number)) return false;
+            offset = Math.Max(-8192, Math.Min(8192, number));
+            return true;
+        }
+
+        private static void ZIndex(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "auto" || source == "initial" || source == "unset" || source == "revert")
+            {
+                style.Zi = 0;
+                style.Za = false;
+                return;
+            }
+
+            var match = Regex.Match(source, "^-?[0-9]{1,5}$");
+            int number;
+            if (match.Success && Int32.TryParse(match.Value, out number))
+            {
+                style.Zi = Math.Max(-1000, Math.Min(1000, number));
+                style.Za = true;
+            }
+        }
+
+        private static void FontFamily(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit") return;
+            if (lower == "initial" || lower == "unset" || lower == "revert") { style.Ff = ""; return; }
+            if (source.Length == 0 || source.Length > 512) return;
+
+            var names = new List<string>();
+            foreach (var item in source.Split(','))
+            {
+                var name = Regex.Replace(item.Trim(), "\\s+", " ");
+                if (name.Length >= 2 && ((name[0] == '\"' && name[name.Length - 1] == '\"') || (name[0] == '\'' && name[name.Length - 1] == '\'')))
+                    name = name.Substring(1, name.Length - 2).Trim();
+                lower = name.ToLowerInvariant();
+                if (lower == "sans-serif") name = "ss";
+                else if (lower == "serif") name = "s";
+                else if (lower == "monospace") name = "m";
+                else if (lower == "cursive") name = "c";
+                else if (lower == "fantasy") name = "f";
+                else if (lower == "system-ui" || lower == "ui-sans-serif") name = "ui";
+                else if (!Regex.IsMatch(name, "^[a-z0-9 _-]{1,64}$", RegexOptions.IgnoreCase)) continue;
+                names.Add(name);
+                if (names.Count == 8) break;
+            }
+            if (names.Count > 0) style.Ff = String.Join("|", names.ToArray());
+        }
+
+        private static void TextDecoration(S style, string value)
+        {
+            string line;
+            string color;
+            string type;
+            int width;
+            bool inherit;
+            if (!TextDecorationValue(value, out line, out color, out type, out width, out inherit) || inherit) return;
+            style.Td = line;
+            style.Tc = color;
+            style.Tds = type;
+            style.Tw = width;
+        }
+
+        private static void TextDecorationLine(S style, string value)
+        {
+            string line;
+            bool inherit;
+            if (DecorationLineValue(value, out line, out inherit) && !inherit) style.Td = line;
+        }
+
+        private static void TextDecorationColor(S style, string value)
+        {
+            string color;
+            bool inherit;
+            if (DecorationColorValue(value, out color, out inherit) && !inherit) style.Tc = color;
+        }
+
+        private static void TextDecorationStyle(S style, string value)
+        {
+            string type;
+            bool inherit;
+            if (DecorationStyleValue(value, out type, out inherit) && !inherit) style.Tds = type;
+        }
+
+        private static void TextDecorationThickness(S style, string value)
+        {
+            int width;
+            bool inherit;
+            if (DecorationThicknessValue(value, out width, out inherit) && !inherit) style.Tw = width;
+        }
+
+        private static void TextUnderlineOffset(S style, S inherited, string value)
+        {
+            string source;
+            if (!Uo(value, out source) || source.Length == 0) return;
+            if (source == "inherit" || source == "unset" || source == "revert" || source == "revert-layer")
+            {
+                style.Uo = inherited == null ? 0 : inherited.Uo;
+                style.Uop = inherited != null && inherited.Uop;
+                return;
+            }
+            if (source == "auto" || source == "initial")
+            {
+                style.Uo = 0;
+                style.Uop = false;
+                return;
+            }
+            var percent = source.EndsWith("%", StringComparison.Ordinal);
+            var number = percent ? source.Substring(0, source.Length - 1) : source.EndsWith("px", StringComparison.Ordinal) ? source.Substring(0, source.Length - 2) : source;
+            style.Uo = Int32.Parse(number, CultureInfo.InvariantCulture);
+            style.Uop = percent;
+        }
+
+        internal static bool Uo(string value, out string offset)
+        {
+            offset = (value ?? "").Trim().ToLowerInvariant();
+            if (offset.Length == 0 || offset == "auto" || offset == "initial" || offset == "inherit" || offset == "unset" || offset == "revert" || offset == "revert-layer") return true;
+            var match = Regex.Match(offset, "^(?<n>[+-]?[0-9]{1,3})(?<u>px|%)?$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number)) return false;
+            var unit = match.Groups["u"].Value;
+            if ((number != 0 && unit.Length == 0) ||
+                (unit == "%" && (number < -100 || number > 100)) ||
+                (unit != "%" && (number < -32 || number > 32))) return false;
+            offset = number.ToString(CultureInfo.InvariantCulture) + (unit == "%" ? "%" : "px");
+            return true;
+        }
+
+        internal static bool Tdv(string name, string value, out string decoration)
+        {
+            decoration = (value ?? "").Trim();
+            if (decoration.Length == 0) return true;
+            bool inherit;
+            if (name == "td")
+            {
+                string line;
+                string color;
+                string type;
+                int width;
+                return TextDecorationValue(decoration, out line, out color, out type, out width, out inherit);
+            }
+            if (name == "tdl")
+            {
+                string line;
+                return DecorationLineValue(decoration, out line, out inherit);
+            }
+            if (name == "tdc")
+            {
+                string color;
+                return DecorationColorValue(decoration, out color, out inherit);
+            }
+            if (name == "tds")
+            {
+                string type;
+                return DecorationStyleValue(decoration, out type, out inherit);
+            }
+            if (name == "tdw")
+            {
+                int width;
+                return DecorationThicknessValue(decoration, out width, out inherit);
+            }
+            return false;
+        }
+
+        private static bool TextDecorationValue(string value, out string line, out string color, out string type, out int width, out bool inherit)
+        {
+            line = "n";
+            color = "";
+            type = "";
+            width = 0;
+            inherit = false;
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit") { inherit = true; return true; }
+            if (lower == "none" || DecorationReset(lower)) return true;
+            List<string> parts;
+            if (source.Length == 0 || source.Length > 256 || !ShadowParts(source, '\0', out parts) || parts.Count < 1 || parts.Count > 6) return false;
+            var underline = false;
+            var strike = false;
+            var hasColor = false;
+            var hasType = false;
+            var hasWidth = false;
+            foreach (var raw in parts)
+            {
+                var part = raw.Trim();
+                var token = part.ToLowerInvariant();
+                if (token == "underline") { if (underline) return false; underline = true; continue; }
+                if (token == "line-through") { if (strike) return false; strike = true; continue; }
+                string parsedType;
+                bool inheritedType;
+                if (DecorationStyleValue(part, out parsedType, out inheritedType) && !inheritedType)
+                {
+                    if (hasType) return false;
+                    type = parsedType;
+                    hasType = true;
+                    continue;
+                }
+                int parsedWidth;
+                bool inheritedWidth;
+                if (DecorationThicknessValue(part, out parsedWidth, out inheritedWidth) && !inheritedWidth)
+                {
+                    if (hasWidth) return false;
+                    width = parsedWidth;
+                    hasWidth = true;
+                    continue;
+                }
+                if (token == "none" || token == "overline" || token == "blink" || token == "spelling-error" || token == "grammar-error" ||
+                    token == "initial" || token == "unset" || token == "revert" || token == "revert-layer" || token == "inherit" ||
+                    hasColor || !ShadowColor(part)) return false;
+                color = part;
+                hasColor = true;
+            }
+            line = underline ? strike ? "us" : "u" : strike ? "s" : "n";
+            return true;
+        }
+
+        private static bool DecorationLineValue(string value, out string line, out bool inherit)
+        {
+            line = "n";
+            inherit = false;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { inherit = true; return true; }
+            if (source == "none" || DecorationReset(source)) return true;
+            var parts = Regex.Split(source, "\\s+");
+            if (source.Length == 0 || source.Length > 64 || parts.Length < 1 || parts.Length > 2) return false;
+            var underline = false;
+            var strike = false;
+            foreach (var part in parts)
+            {
+                if (part == "underline" && !underline) underline = true;
+                else if (part == "line-through" && !strike) strike = true;
+                else return false;
+            }
+            line = underline ? strike ? "us" : "u" : strike ? "s" : "n";
+            return true;
+        }
+
+        private static bool DecorationColorValue(string value, out string color, out bool inherit)
+        {
+            color = "";
+            inherit = false;
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit") { inherit = true; return true; }
+            if (DecorationReset(lower)) return true;
+            if (source.Length == 0 || source.Length > MaxColorText || DecorationColorKeyword(lower) || !ShadowColor(source)) return false;
+            color = source;
+            return true;
+        }
+
+        private static bool DecorationColorKeyword(string value)
+        {
+            return value == "none" || value == "underline" || value == "line-through" || value == "overline" || value == "blink" ||
+                value == "spelling-error" || value == "grammar-error" || value == "solid" || value == "double" || value == "dotted" ||
+                value == "dashed" || value == "wavy" || value == "auto" || value == "from-font";
+        }
+
+        private static bool DecorationStyleValue(string value, out string type, out bool inherit)
+        {
+            type = "";
+            inherit = false;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { inherit = true; return true; }
+            if (source == "solid" || DecorationReset(source)) return true;
+            if (source == "double") type = "d";
+            else if (source == "dotted") type = "o";
+            else if (source == "dashed") type = "a";
+            else if (source == "wavy") type = "w";
+            else return false;
+            return true;
+        }
+
+        private static bool DecorationThicknessValue(string value, out int width, out bool inherit)
+        {
+            width = 0;
+            inherit = false;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { inherit = true; return true; }
+            if (source == "auto" || source == "from-font" || DecorationReset(source)) return true;
+            var match = Regex.Match(source, "^(?<n>[1-8])(?:px)?$");
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out width);
+        }
+
+        private static bool DecorationReset(string value)
+        {
+            return value == "initial" || value == "unset" || value == "revert" || value == "revert-layer";
+        }
+
+        private static void TextAlign(S style, S inherited, string value, bool shorthand)
+        {
+            string align;
+            if (!Tav(value, shorthand, out align) || align.Length == 0) return;
+            if (align == "inherit" || align == "unset" || align == "revert" || align == "revert-layer")
+            {
+                style.Ta = inherited == null ? "" : inherited.Ta;
+                if (shorthand) style.Tl = inherited == null ? "" : inherited.Tl;
+                return;
+            }
+            if (align == "initial")
+            {
+                style.Ta = "";
+                if (shorthand) style.Tl = "";
+                return;
+            }
+            if (align == "match-parent")
+            {
+                style.Ta = TextAlignParent(inherited, false);
+                if (shorthand) style.Tl = TextAlignParent(inherited, true);
+                return;
+            }
+            if (align == "justify-all")
+            {
+                style.Ta = "j";
+                style.Tl = "j";
+                return;
+            }
+            if (align == "left") style.Ta = "l";
+            else if (align == "center") style.Ta = "c";
+            else if (align == "right") style.Ta = "r";
+            else if (align == "start") style.Ta = "s";
+            else if (align == "end") style.Ta = "e";
+            else if (align == "justify") style.Ta = "j";
+            if (shorthand) style.Tl = "";
+        }
+
+        internal static bool Tav(string value, bool shorthand, out string align)
+        {
+            align = (value ?? "").Trim().ToLowerInvariant();
+            return align.Length == 0 || align == "start" || align == "end" || align == "left" || align == "right" ||
+                align == "center" || align == "justify" || align == "match-parent" || shorthand && align == "justify-all" ||
+                align == "initial" || align == "inherit" || align == "unset" || align == "revert" || align == "revert-layer";
+        }
+
+        private static void TextAlignLast(S style, S inherited, string value)
+        {
+            string align;
+            if (!Tal(value, out align) || align.Length == 0) return;
+            if (align == "inherit" || align == "unset" || align == "revert" || align == "revert-layer")
+            {
+                style.Tl = inherited == null ? "" : inherited.Tl;
+                return;
+            }
+            if (align == "match-parent") { style.Tl = TextAlignParent(inherited, true); return; }
+            if (align == "auto" || align == "initial") { style.Tl = ""; return; }
+            if (align == "left") style.Tl = "l";
+            else if (align == "center") style.Tl = "c";
+            else if (align == "right") style.Tl = "r";
+            else if (align == "start") style.Tl = "s";
+            else if (align == "end") style.Tl = "e";
+            else if (align == "justify") style.Tl = "j";
+        }
+
+        internal static bool Tal(string value, out string align)
+        {
+            align = (value ?? "").Trim().ToLowerInvariant();
+            return align.Length == 0 || align == "auto" || align == "start" || align == "end" || align == "left" || align == "right" ||
+                align == "center" || align == "justify" || align == "match-parent" || align == "initial" || align == "inherit" ||
+                align == "unset" || align == "revert" || align == "revert-layer";
+        }
+
+        private static string TextAlignParent(S inherited, bool last)
+        {
+            if (inherited == null) return last ? "s" : "";
+            var align = last ? inherited.Tl : inherited.Ta;
+            if (align == "s" || (!last && align.Length == 0)) return inherited.Dr == "r" ? "r" : "l";
+            if (align == "e") return inherited.Dr == "r" ? "l" : "r";
+            return align;
+        }
+
+        private static void TextTransform(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit" || mode == "unset") return;
+            if (mode == "none" || mode == "initial" || mode == "revert") style.Tt = "n";
+            else if (mode == "uppercase") style.Tt = "u";
+            else if (mode == "lowercase") style.Tt = "l";
+            else if (mode == "capitalize") style.Tt = "c";
+        }
+
+        private static void TextIndent(S style, S inherited, string value)
+        {
+            string source;
+            if (!Tn(value, out source)) return;
+            if (source.Length == 0) return;
+            if (source == "inherit" || source == "unset" || source == "revert" || source == "revert-layer")
+            {
+                style.Ti = inherited == null ? 0 : inherited.Ti;
+                style.Tip = inherited != null && inherited.Tip;
+                return;
+            }
+            if (source == "initial")
+            {
+                style.Ti = 0;
+                style.Tip = false;
+                return;
+            }
+            var percent = source.EndsWith("%", StringComparison.Ordinal);
+            var number = percent ? source.Substring(0, source.Length - 1) : source.EndsWith("px", StringComparison.Ordinal) ? source.Substring(0, source.Length - 2) : source;
+            style.Ti = Int32.Parse(number, CultureInfo.InvariantCulture);
+            style.Tip = percent;
+        }
+
+        internal static bool Tn(string value, out string indent)
+        {
+            indent = (value ?? "").Trim().ToLowerInvariant();
+            if (indent.Length == 0 || indent == "initial" || indent == "inherit" || indent == "unset" || indent == "revert" || indent == "revert-layer") return true;
+            var match = Regex.Match(indent, "^(?<n>[+-]?[0-9]{1,4})(?<u>px|%)?$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number)) return false;
+            var unit = match.Groups["u"].Value;
+            if ((number != 0 && unit.Length == 0) ||
+                (unit == "%" && (number < -100 || number > 100)) ||
+                (unit != "%" && (number < -2000 || number > 2000))) return false;
+            indent = number.ToString(CultureInfo.InvariantCulture) + (unit == "%" ? "%" : "px");
+            return true;
+        }
+
+        private static void TextShadow(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit" || lower == "unset" || lower == "revert" || lower == "revert-layer")
+            {
+                style.Ts = inherited == null ? null : inherited.Ts;
+                return;
+            }
+            if (lower == "none" || lower == "initial")
+            {
+                style.Ts = null;
+                return;
+            }
+            Sw shadow;
+            if (source.Length == 0 || source.Length > 256 || !TextShadowValue(source, out shadow)) return;
+            style.Ts = shadow;
+        }
+
+        internal static bool Tsh(string value, out string shadow)
+        {
+            shadow = (value ?? "").Trim();
+            var lower = shadow.ToLowerInvariant();
+            if (shadow.Length == 0 || lower == "none" || lower == "initial" || lower == "inherit" ||
+                lower == "unset" || lower == "revert" || lower == "revert-layer") return true;
+            Sw parsed;
+            return shadow.Length <= 256 && TextShadowValue(shadow, out parsed);
+        }
+
+        private static void TextSpacing(S style, S inherited, string value, bool letters)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit" || source == "unset" || source == "revert")
+            {
+                if (letters) style.Ls = inherited == null ? 0 : inherited.Ls;
+                else style.Wg = inherited == null ? 0 : inherited.Wg;
+                return;
+            }
+            if (source == "normal" || source == "initial")
+            {
+                if (letters) style.Ls = 0;
+                else style.Wg = 0;
+                return;
+            }
+
+            var match = Regex.Match(source, "^(?<n>[+-]?[0-9]{1,3})(?<u>px)?$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) ||
+                number != 0 && match.Groups["u"].Value != "px" || number < -32 || number > 128) return;
+            if (letters) style.Ls = number;
+            else style.Wg = number;
+        }
+
+        private static void LineHeight(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "normal" || source == "initial")
+            {
+                style.Lh = 0;
+                style.Lm = 0;
+                return;
+            }
+
+            var pixels = Regex.Match(source, "^(?<n>[0-9]{1,3})px$");
+            int number;
+            if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number > 0)
+            {
+                style.Lh = Math.Min(400, number);
+                style.Lm = 0;
+                return;
+            }
+
+            var relative = Regex.Match(source, "^(?<n>[0-9]{1,3}(?:\\.[0-9]{1,2})?)(?<p>%?)$");
+            double scale;
+            if (!relative.Success || !Double.TryParse(relative.Groups["n"].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out scale)) return;
+            if (relative.Groups["p"].Value == "%") scale /= 100D;
+            if (scale < 0.25D || scale > 5D) return;
+            style.Lm = Math.Max(25, Math.Min(500, (int)Math.Round(scale * 100D)));
+            style.Lh = 0;
+        }
+
+        private static void WhiteSpace(S style, S inherited, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit" || mode == "unset" || mode == "revert" || mode == "revert-layer")
+            {
+                style.Ws = inherited == null ? "" : inherited.Ws;
+                style.Wm = inherited == null ? "" : inherited.Wm;
+            }
+            else if (mode == "normal" || mode == "initial") { style.Ws = "n"; style.Wm = "w"; }
+            else if (mode == "nowrap") { style.Ws = "nw"; style.Wm = "n"; }
+            else if (mode == "pre") { style.Ws = "p"; style.Wm = "n"; }
+            else if (mode == "pre-wrap" || mode == "break-spaces") { style.Ws = "pw"; style.Wm = "w"; }
+            else if (mode == "pre-line") { style.Ws = "pl"; style.Wm = "w"; }
+        }
+
+        private static void TextWrap(S style, S inherited, string value, int part)
+        {
+            string source;
+            if (!Twv(value, part, out source) || source.Length == 0) return;
+            if (source == "inherit" || source == "unset" || source == "revert" || source == "revert-layer")
+            {
+                if (part != 2) style.Wm = inherited == null ? "" : inherited.Wm;
+                if (part != 1) style.Wt = inherited == null ? "" : inherited.Wt;
+                return;
+            }
+            if (source == "initial")
+            {
+                if (part != 2) style.Wm = "w";
+                if (part != 1) style.Wt = "";
+                return;
+            }
+
+            if (part == 1) { style.Wm = source == "nowrap" ? "n" : "w"; return; }
+            if (part == 2) { style.Wt = source == "balance" ? "b" : ""; return; }
+
+            var mode = "w";
+            var type = "";
+            foreach (var token in Regex.Split(source, "\\s+"))
+            {
+                if (token == "wrap") mode = "w";
+                else if (token == "nowrap") mode = "n";
+                else if (token == "balance") type = "b";
+                else if (token == "auto") type = "";
+            }
+            style.Wm = mode;
+            style.Wt = type;
+        }
+
+        internal static bool Twv(string value, int part, out string wrap)
+        {
+            wrap = (value ?? "").Trim().ToLowerInvariant();
+            if (wrap.Length == 0 || wrap == "initial" || wrap == "inherit" || wrap == "unset" || wrap == "revert" || wrap == "revert-layer") return true;
+            if (part == 1) return wrap == "wrap" || wrap == "nowrap";
+            if (part == 2) return wrap == "auto" || wrap == "balance";
+            var tokens = Regex.Split(wrap, "\\s+");
+            if (tokens.Length < 1 || tokens.Length > 2) return false;
+            var mode = false;
+            var type = false;
+            foreach (var token in tokens)
+            {
+                if (token == "wrap" || token == "nowrap") { if (mode) return false; mode = true; }
+                else if (token == "auto" || token == "balance") { if (type) return false; type = true; }
+                else return false;
+            }
+            return true;
+        }
+
+        private static void WordBreak(S style, string value, bool direct)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "normal" || mode == "initial") style.Wb = "n";
+            else if (mode == "break-word") style.Wb = "b";
+            else if (mode == "anywhere" || (direct && mode == "break-all")) style.Wb = "a";
+            else if (direct && mode == "keep-all") style.Wb = "k";
+        }
+
+        private static void CursorStyle(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit" || mode == "unset") return;
+            if (mode == "auto" || mode == "initial" || mode == "revert") style.Cu = "";
+            else if (mode == "default") style.Cu = "d";
+            else if (mode == "pointer" || mode == "grab" || mode == "grabbing") style.Cu = "p";
+            else if (mode == "text" || mode == "vertical-text") style.Cu = "t";
+            else if (mode == "wait" || mode == "progress") style.Cu = "w";
+            else if (mode == "crosshair") style.Cu = "c";
+            else if (mode == "move" || mode == "all-scroll") style.Cu = "m";
+            else if (mode == "help") style.Cu = "h";
+            else if (mode == "not-allowed" || mode == "no-drop") style.Cu = "n";
+            else if (mode == "ew-resize" || mode == "e-resize" || mode == "w-resize" || mode == "col-resize") style.Cu = "e";
+            else if (mode == "ns-resize" || mode == "n-resize" || mode == "s-resize" || mode == "row-resize") style.Cu = "s";
+        }
+
+        private static void PointerEvents(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit" || mode == "unset") return;
+            if (mode == "auto" || mode == "initial" || mode == "revert") style.Pe = true;
+            else if (mode == "none") style.Pe = false;
+        }
+
+        private static void TextOverflow(S style, S inherited, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit") style.To = inherited == null ? "c" : inherited.To;
+            else if (mode == "clip" || mode == "initial" || mode == "unset" || mode == "revert") style.To = "c";
+            else if (mode == "ellipsis") style.To = "e";
+        }
+
+        private static void LineClamp(S style, S inherited, string value)
+        {
+            string clamp;
+            if (!Lcv(value, out clamp) || clamp.Length == 0) return;
+            if (clamp == "inherit") style.Lc = inherited == null ? 0 : inherited.Lc;
+            else if (clamp == "none" || clamp == "initial" || clamp == "unset" || clamp == "revert" || clamp == "revert-layer") style.Lc = 0;
+            else
+            {
+                int lines;
+                if (Int32.TryParse(clamp, NumberStyles.None, CultureInfo.InvariantCulture, out lines)) style.Lc = lines;
+            }
+        }
+
+        internal static bool Lcv(string value, out string clamp)
+        {
+            clamp = (value ?? "").Trim().ToLowerInvariant();
+            if (clamp.Length == 0 || clamp == "none" || clamp == "initial" || clamp == "inherit" || clamp == "unset" || clamp == "revert" || clamp == "revert-layer") return true;
+            int lines;
+            return clamp.Length <= 2 && Int32.TryParse(clamp, NumberStyles.None, CultureInfo.InvariantCulture, out lines) && lines >= 1 && lines <= 32;
+        }
+
+        private static void ListStyleType(S style, S inherited, string value)
+        {
+            string type;
+            if (!Lsv(value, out type) || type.Length == 0) return;
+            if (type == "inherit" || type == "unset" || type == "revert" || type == "revert-layer")
+                style.Lst = inherited == null ? "" : inherited.Lst;
+            else if (type == "initial") style.Lst = "d";
+            else style.Lst = ListStyleCode(type);
+        }
+
+        internal static bool Lsv(string value, out string type)
+        {
+            type = (value ?? "").Trim().ToLowerInvariant();
+            if (type.Length == 0 || ListStyleWide(type)) return true;
+            return ListStyleCode(type) != null;
+        }
+
+        private static void ListStylePosition(S style, S inherited, string value)
+        {
+            string position;
+            if (!Lpv(value, out position) || position.Length == 0) return;
+            if (position == "inherit" || position == "unset" || position == "revert" || position == "revert-layer")
+                style.Lp = inherited == null ? "o" : inherited.Lp;
+            else style.Lp = position == "inside" ? "i" : "o";
+        }
+
+        internal static bool Lpv(string value, out string position)
+        {
+            position = (value ?? "").Trim().ToLowerInvariant();
+            return position.Length == 0 || position == "inside" || position == "outside" || ListStyleWide(position);
+        }
+
+        private static void ListStyleImage(S style, S inherited, string value, Uri origin)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (source.Length == 0) return;
+            if (lower == "inherit" || lower == "unset" || lower == "revert" || lower == "revert-layer")
+            {
+                style.Li = inherited == null ? null : inherited.Li;
+                return;
+            }
+            if (lower == "none" || lower == "initial")
+            {
+                style.Li = null;
+                return;
+            }
+            Uri image;
+            if (source.Length <= MaxBackgroundText && BitmapUri(source, origin, out image)) style.Li = image;
+        }
+
+        internal static bool Liv(string value, out string image)
+        {
+            image = (value ?? "").Trim();
+            var lower = image.ToLowerInvariant();
+            if (image.Length == 0 || lower == "none" || ListStyleWide(lower)) return true;
+            Uri url;
+            return image.Length <= MaxBackgroundText && BitmapUri(image, ListStyleValidationOrigin, out url);
+        }
+
+        private static void ListStyle(S style, S inherited, string value, Uri origin)
+        {
+            var shorthand = (value ?? "").Trim();
+            var lower = shorthand.ToLowerInvariant();
+            string type;
+            string position;
+            Uri image;
+            if (shorthand.Length == 0 || !ListStyleParts(shorthand, origin, out type, out position, out image)) return;
+            if (ListStyleWide(lower))
+            {
+                ListStyleType(style, inherited, lower);
+                ListStyleImage(style, inherited, lower, origin);
+                ListStylePosition(style, inherited, lower);
+                return;
+            }
+            style.Lst = type.Length == 0 ? "d" : ListStyleCode(type);
+            style.Li = image;
+            style.Lp = position == "inside" ? "i" : "o";
+        }
+
+        internal static bool Lshv(string value, out string shorthand)
+        {
+            shorthand = (value ?? "").Trim();
+            if (shorthand.Length == 0) return true;
+            string type;
+            string position;
+            Uri image;
+            return ListStyleParts(shorthand, ListStyleValidationOrigin, out type, out position, out image);
+        }
+
+        private static bool ListStyleParts(string value, Uri origin, out string type, out string position, out Uri image)
+        {
+            type = "";
+            position = "";
+            image = null;
+            if (value.Length > MaxBackgroundText) return false;
+            var lower = value.ToLowerInvariant();
+            if (ListStyleWide(lower)) return true;
+            List<string> parts;
+            if (!BackgroundParts(value, out parts) || parts.Count == 0 || parts.Count > 3) return false;
+            var none = 0;
+            var imageSeen = false;
+            foreach (var raw in parts)
+            {
+                var part = raw.ToLowerInvariant();
+                if (part == "inside" || part == "outside")
+                {
+                    if (position.Length > 0) return false;
+                    position = part;
+                }
+                else if (part == "none") none++;
+                else if (ListStyleCode(part) != null)
+                {
+                    if (type.Length > 0) return false;
+                    type = part;
+                }
+                else
+                {
+                    Uri url;
+                    if (imageSeen || !BitmapUri(raw, origin, out url)) return false;
+                    image = url;
+                    imageSeen = true;
+                }
+            }
+            if (type.Length > 0 && imageSeen && none > 0) return false;
+            if (type.Length > 0)
+            {
+                if (none > 1) return false;
+            }
+            else if (imageSeen)
+            {
+                if (none > 1) return false;
+                if (none == 1) type = "none";
+            }
+            else if (none > 0)
+            {
+                if (none > 2) return false;
+                type = "none";
+            }
+            return type.Length > 0 || position.Length > 0 || imageSeen;
+        }
+
+        private static bool ListStyleWide(string value)
+        {
+            return value == "initial" || value == "inherit" || value == "unset" || value == "revert" || value == "revert-layer";
+        }
+
+        private static string ListStyleCode(string type)
+        {
+            if (type == "none") return "n";
+            if (type == "disc") return "d";
+            if (type == "circle") return "c";
+            if (type == "square") return "s";
+            if (type == "decimal") return "1";
+            if (type == "decimal-leading-zero") return "0";
+            if (type == "lower-alpha" || type == "lower-latin") return "a";
+            if (type == "upper-alpha" || type == "upper-latin") return "A";
+            if (type == "lower-roman") return "r";
+            if (type == "upper-roman") return "R";
+            return null;
+        }
+
+        private static void Overflow(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "visible" || mode == "initial") style.Ov = "v";
+            else if (mode == "hidden") style.Ov = "h";
+            else if (mode == "clip") style.Ov = "c";
+            else if (mode == "auto") style.Ov = "a";
+            else if (mode == "scroll") style.Ov = "s";
+        }
+
+        private static void Visibility(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "visible" || mode == "initial") style.Vi = "v";
+            else if (mode == "hidden") style.Vi = "h";
+            else if (mode == "collapse") style.Vi = "c";
+        }
+
+        private static void Opacity(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit" || source == "initial" || source == "unset" || source == "revert")
+            {
+                style.Op = style.Ao;
+                style.Zo = false;
+                UpdateStackContext(style);
+                return;
+            }
+            var match = Regex.Match(source, "^(?<n>-?(?:[0-9]{1,3}(?:\\.[0-9]{1,3})?|\\.[0-9]{1,3}))(?<p>%?)$");
+            double number;
+            if (!match.Success || !Double.TryParse(match.Groups["n"].Value, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number)) return;
+            if (match.Groups["p"].Value == "%") number /= 100D;
+            number = Math.Max(0D, Math.Min(1D, number));
+            style.Op = Math.Max(0, Math.Min(100, (int)Math.Round(style.Ao * number)));
+            style.Zo = number < 1D;
+            UpdateStackContext(style);
+        }
+
+        private static void Isolation(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode != "isolate" && mode != "auto" && mode != "initial" && mode != "unset" && mode != "revert") return;
+            style.Zs = mode == "isolate";
+            UpdateStackContext(style);
+        }
+
+        private static void Transform(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "none" || source == "initial" || source == "unset" || source == "revert")
+            {
+                style.Tx = 0;
+                style.Ty = 0;
+                style.Zt = false;
+                UpdateStackContext(style);
+                return;
+            }
+
+            var match = Regex.Match(source, "^translate\\(\\s*(?<x>-?[0-9]{1,5})(?:px)?(?:\\s*,\\s*|\\s+)(?<y>-?[0-9]{1,5})(?:px)?\\s*\\)$");
+            var xOnly = Regex.Match(source, "^translate(?:x)?\\(\\s*(?<x>-?[0-9]{1,5})(?:px)?\\s*\\)$");
+            var yOnly = Regex.Match(source, "^translatey\\(\\s*(?<y>-?[0-9]{1,5})(?:px)?\\s*\\)$");
+            var x = 0;
+            var y = 0;
+            if (match.Success)
+            {
+                if (!Int32.TryParse(match.Groups["x"].Value, out x) || !Int32.TryParse(match.Groups["y"].Value, out y)) return;
+            }
+            else if (xOnly.Success)
+            {
+                if (!Int32.TryParse(xOnly.Groups["x"].Value, out x)) return;
+            }
+            else if (yOnly.Success)
+            {
+                if (!Int32.TryParse(yOnly.Groups["y"].Value, out y)) return;
+            }
+            else return;
+            style.Tx = Math.Max(-8192, Math.Min(8192, x));
+            style.Ty = Math.Max(-8192, Math.Min(8192, y));
+            style.Zt = true;
+            UpdateStackContext(style);
+        }
+
+        private static void UpdateStackContext(S style)
+        {
+            style.Zc = style.Zo || style.Zs || style.Zt;
+        }
+
+        private static void Box(S style, S inherited, string value, bool margin)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit")
+            {
+                for (var edge = 0; edge < 4; edge++) BoxSet(style, margin, edge, BoxGet(inherited, margin, edge));
+                return;
+            }
+            if (source == "initial" || source == "unset")
+            {
+                for (var edge = 0; edge < 4; edge++) BoxSet(style, margin, edge, 0);
+                return;
+            }
+            var parts = Regex.Split(source, "\\s+");
+            if (parts.Length < 1 || parts.Length > 4) return;
+            int top;
+            int right;
+            int bottom;
+            int left;
+            if (!BoxPixel(parts[0], margin, out top)) return;
+            right = bottom = left = top;
+            if (parts.Length > 1 && !BoxPixel(parts[1], margin, out right)) return;
+            if (parts.Length > 2 && !BoxPixel(parts[2], margin, out bottom)) return;
+            if (parts.Length > 3 && !BoxPixel(parts[3], margin, out left)) return;
+            if (parts.Length == 2) bottom = top;
+            if (parts.Length < 4) left = right;
+            BoxSet(style, margin, 0, top);
+            BoxSet(style, margin, 1, right);
+            BoxSet(style, margin, 2, bottom);
+            BoxSet(style, margin, 3, left);
+        }
+
+        private static void AxisBox(S style, S inherited, string value, bool margin, bool block)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            var startEdge = LogicalEdge(style, block, true);
+            var endEdge = LogicalEdge(style, block, false);
+            int start;
+            int end;
+            if (source == "inherit")
+            {
+                start = BoxGet(inherited, margin, LogicalEdge(inherited, block, true));
+                end = BoxGet(inherited, margin, LogicalEdge(inherited, block, false));
+            }
+            else if (source == "initial" || source == "unset") start = end = 0;
+            else
+            {
+                var parts = Regex.Split(source, "\\s+");
+                if (parts.Length < 1 || parts.Length > 2 || !BoxPixel(parts[0], margin, out start) ||
+                    !BoxPixel(parts.Length == 2 ? parts[1] : parts[0], margin, out end)) return;
+            }
+            BoxSet(style, margin, startEdge, start);
+            BoxSet(style, margin, endEdge, end);
+        }
+
+        private static void BoxEdge(S style, S inherited, string value, bool margin, int edge)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            int pixels;
+            if (source == "inherit") pixels = BoxGet(inherited, margin, edge);
+            else if (source == "initial" || source == "unset") pixels = 0;
+            else if (!BoxPixel(source, margin, out pixels)) return;
+            BoxSet(style, margin, edge, pixels);
+        }
+
+        private static void LogicalBoxEdge(S style, S inherited, string value, bool margin, bool block, bool start)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            var edge = LogicalEdge(style, block, start);
+            int pixels;
+            if (source == "inherit") pixels = BoxGet(inherited, margin, LogicalEdge(inherited, block, start));
+            else if (source == "initial" || source == "unset") pixels = 0;
+            else if (!BoxPixel(source, margin, out pixels)) return;
+            BoxSet(style, margin, edge, pixels);
+        }
+
+        internal static bool Bx(string value, bool margin, int maximumParts, out string box)
+        {
+            box = (value ?? "").Trim().ToLowerInvariant();
+            if (box.Length == 0 || box == "inherit" || box == "initial" || box == "unset") return true;
+            var parts = Regex.Split(box, "\\s+");
+            if (parts.Length < 1 || parts.Length > maximumParts) return false;
+            int pixels;
+            for (var index = 0; index < parts.Length; index++) if (!BoxPixel(parts[index], margin, out pixels)) return false;
+            return true;
+        }
+
+        private static bool BoxPixel(string value, bool margin, out int pixels)
+        {
+            var match = Regex.Match(value ?? "", margin ? "^(?<n>-?[0-9]{1,4})(?:px)?$" : "^(?<n>[0-9]{1,4})(?:px)?$", RegexOptions.IgnoreCase);
+            int authored;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, out authored)) { pixels = 0; return false; }
+            pixels = Math.Max(margin ? -2000 : 0, Math.Min(2000, authored));
+            return true;
+        }
+
+        private static int BoxGet(S style, bool margin, int edge)
+        {
+            if (style == null) return 0;
+            if (margin) return edge == 0 ? style.Mt : edge == 1 ? style.Mr : edge == 2 ? style.Mb : style.Ml;
+            return edge == 0 ? style.Pt : edge == 1 ? style.Pr : edge == 2 ? style.Pb : style.Pl;
+        }
+
+        private static void BoxSet(S style, bool margin, int edge, int pixels)
+        {
+            if (margin)
+            {
+                if (edge == 0) style.Mt = pixels;
+                else if (edge == 1) style.Mr = pixels;
+                else if (edge == 2) style.Mb = pixels;
+                else style.Ml = pixels;
+            }
+            else
+            {
+                if (edge == 0) style.Pt = pixels;
+                else if (edge == 1) style.Pr = pixels;
+                else if (edge == 2) style.Pb = pixels;
+                else style.Pl = pixels;
+            }
+        }
+
+        private static int Px(string value)
+        {
+            var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,4})(?:px)?$", RegexOptions.IgnoreCase);
+            int number;
+            return match.Success && int.TryParse(match.Groups["n"].Value, out number) ? Math.Min(number, 2000) : 0;
+        }
+
+        private static void Width(S style, S inherited, string value, int part)
+        {
+            int pixels;
+            int percent;
+            int offset;
+            int unit;
+            int function;
+            int[] values;
+            bool inherit;
+            if (!WidthValue(value, part, out pixels, out percent, out offset, out unit, out inherit, out function, out values)) return;
+            if (inherit && inherited != null)
+            {
+                if (part == 0) { pixels = inherited.W; percent = inherited.Wp; offset = inherited.Wo; unit = inherited.Wu; }
+                else if (part == 1) { pixels = inherited.Wn; percent = inherited.Wnp; offset = inherited.Wno; unit = inherited.Wnu; }
+                else { pixels = inherited.Wx; percent = inherited.Wxp; offset = inherited.Wxo; unit = inherited.Wxu; }
+            }
+            if (part == 0) style.W = pixels;
+            else if (part == 1) style.Wn = pixels;
+            else style.Wx = pixels;
+            style.SetWidth(part, percent, offset, unit);
+            if (inherit)
+            {
+                style.CopyFunction(false, part, inherited);
+                style.CopyContainerOrigin(false, part, inherited);
+            }
+            else
+            {
+                style.SetFunction(false, part, function, values);
+                style.SetContainerOrigin(false, part, null);
+            }
+        }
+
+        internal static bool Wd(string value, out string width)
+        {
+            width = (value ?? "").Trim().ToLowerInvariant();
+            if (width.Length == 0) return true;
+            int pixels;
+            int percent;
+            int offset;
+            int unit;
+            int function;
+            int[] values;
+            bool inherit;
+            return WidthValue(width, 0, out pixels, out percent, out offset, out unit, out inherit, out function, out values);
+        }
+
+        private static void Height(S style, S inherited, string value, int part)
+        {
+            int pixels;
+            int percent;
+            int offset;
+            int unit;
+            int function;
+            int[] values;
+            bool inherit;
+            if (!HeightValue(value, part, out pixels, out percent, out offset, out unit, out inherit, out function, out values)) return;
+            if (inherit && inherited != null)
+            {
+                if (part == 0) { pixels = inherited.H; percent = inherited.Hp; offset = inherited.Ho; unit = inherited.Hu; }
+                else if (part == 1) { pixels = inherited.Hn; percent = inherited.Hnp; offset = inherited.Hno; unit = inherited.Hnu; }
+                else { pixels = inherited.Hx; percent = inherited.Hxp; offset = inherited.Hxo; unit = inherited.Hxu; }
+            }
+            if (part == 0) style.H = pixels;
+            else if (part == 1) style.Hn = pixels;
+            else style.Hx = pixels;
+            style.SetHeight(part, percent, offset, unit);
+            if (inherit)
+            {
+                style.CopyFunction(true, part, inherited);
+                style.CopyContainerOrigin(true, part, inherited);
+            }
+            else
+            {
+                style.SetFunction(true, part, function, values);
+                style.SetContainerOrigin(true, part, null);
+            }
+        }
+
+        private static bool HeightValue(string value, int part, out int pixels, out int percent, out int offset, out int unit, out bool inherit, out int function, out int[] values)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            var fixedValue = Regex.Match(source, "^(?<n>[0-9]{1,4})(?:px)?$");
+            int authoredPixels;
+            if (fixedValue.Success && Int32.TryParse(fixedValue.Groups["n"].Value, out authoredPixels))
+            {
+                pixels = Math.Min(authoredPixels, 2000);
+                percent = 0;
+                offset = 0;
+                unit = 0;
+                inherit = false;
+                function = 0;
+                values = null;
+                return true;
+            }
+            return WidthValue(source, part, out pixels, out percent, out offset, out unit, out inherit, out function, out values);
+        }
+
+        internal static bool Ht(string value, out string height)
+        {
+            height = (value ?? "").Trim().ToLowerInvariant();
+            if (height.Length == 0) return true;
+            int pixels;
+            int percent;
+            int offset;
+            int unit;
+            int function;
+            int[] values;
+            bool inherit;
+            return WidthValue(height, 0, out pixels, out percent, out offset, out unit, out inherit, out function, out values);
+        }
+
+        private static bool WidthValue(string value, int part, out int pixels, out int percent, out int offset, out int unit, out bool inherit, out int function, out int[] values)
+        {
+            pixels = 0;
+            percent = 0;
+            offset = 0;
+            unit = 0;
+            inherit = false;
+            function = 0;
+            values = null;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { inherit = true; return true; }
+            if (source == "initial" || source == "unset" || source == "revert" || source == "revert-layer" ||
+                (part < 2 && source == "auto") || (part == 2 && source == "none")) return true;
+
+            if (source.StartsWith("min(", StringComparison.Ordinal) || source.StartsWith("max(", StringComparison.Ordinal) ||
+                source.StartsWith("clamp(", StringComparison.Ordinal))
+            {
+                if (!SizeFunction(source, out function, out values)) return false;
+                pixels = values[0];
+                percent = values[1];
+                offset = values[2];
+                unit = values[3];
+                return true;
+            }
+
+            return SizeTerm(source, out pixels, out percent, out offset, out unit);
+        }
+
+        private static bool SizeFunction(string source, out int function, out int[] values)
+        {
+            function = source.StartsWith("min(", StringComparison.Ordinal) ? 1 :
+                source.StartsWith("max(", StringComparison.Ordinal) ? 2 :
+                source.StartsWith("clamp(", StringComparison.Ordinal) ? 3 : 0;
+            values = null;
+            if (function == 0 || source.Length > 192 || source[source.Length - 1] != ')') return false;
+            var nameLength = function == 3 ? 6 : 4;
+            List<string> parts;
+            if (!ShadowParts(source.Substring(nameLength, source.Length - nameLength - 1), ',', out parts) ||
+                (function == 3 ? parts.Count != 3 : parts.Count < 2 || parts.Count > 3)) return false;
+            values = new int[parts.Count * 4];
+            for (var index = 0; index < parts.Count; index++)
+            {
+                int pixels;
+                int percent;
+                int offset;
+                int unit;
+                if (!SizeTerm(parts[index], out pixels, out percent, out offset, out unit)) { values = null; return false; }
+                values[index * 4] = pixels;
+                values[index * 4 + 1] = percent;
+                values[index * 4 + 2] = offset;
+                values[index * 4 + 3] = unit;
+            }
+            return true;
+        }
+
+        private static bool SizeTerm(string source, out int pixels, out int percent, out int offset, out int unit)
+        {
+            pixels = 0;
+            percent = 0;
+            offset = 0;
+            unit = 0;
+            var fixedValue = Regex.Match(source, "^(?<n>[0-9]{1,4})(?:px)?$");
+            if (fixedValue.Success && Int32.TryParse(fixedValue.Groups["n"].Value, out pixels) && pixels <= 2000) return true;
+            pixels = 0;
+
+            var relative = Regex.Match(source, "^(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax|em|rem|cqw|cqh|cqi|cqb|cqmin|cqmax)$");
+            if (relative.Success && Int32.TryParse(relative.Groups["p"].Value, out percent) && percent <= 100)
+            {
+                unit = RelativeUnit(relative.Groups["u"].Value);
+                return true;
+            }
+            percent = 0;
+
+            var calculated = Regex.Match(source, "^calc\\(\\s*(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax|em|rem|cqw|cqh|cqi|cqb|cqmin|cqmax)\\s*(?<s>[+-])\\s*(?<n>[0-9]{1,4})px\\s*\\)$");
+            int amount;
+            if (!calculated.Success || !Int32.TryParse(calculated.Groups["p"].Value, out percent) || percent > 100 ||
+                !Int32.TryParse(calculated.Groups["n"].Value, out amount) || amount > 2000) return false;
+            unit = RelativeUnit(calculated.Groups["u"].Value);
+            offset = calculated.Groups["s"].Value == "-" ? -amount : amount;
+            return true;
+        }
+
+        private static int RelativeUnit(string unit)
+        {
+            return unit == "vw" ? 1 : unit == "vh" ? 2 : unit == "vmin" ? 3 : unit == "vmax" ? 4 :
+                unit == "em" ? 5 : unit == "rem" ? 6 : unit == "cqw" ? 7 : unit == "cqh" ? 8 :
+                unit == "cqi" ? 9 : unit == "cqb" ? 10 : unit == "cqmin" ? 11 : unit == "cqmax" ? 12 : 0;
+        }
+
+        private static void Border(S style, S inherited, string value, int mask)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit")
+            {
+                CopyBorder(style, inherited, mask);
+                return;
+            }
+            if (lower == "initial" || lower == "unset")
+            {
+                for (var edge = 0; edge < 4; edge++)
+                    if ((mask & (1 << edge)) != 0) SetBorderWidth(style, edge, 0);
+                SetBorderStrings(style, mask, 1, "");
+                SetBorderStrings(style, mask, 2, "");
+                return;
+            }
+
+            int width;
+            string borderStyle;
+            string color;
+            bool hasWidth;
+            bool hasStyle;
+            bool hasColor;
+            if (!BorderValue(source, out width, out borderStyle, out color, out hasWidth, out hasStyle, out hasColor)) return;
+            if (hasWidth)
+                for (var edge = 0; edge < 4; edge++)
+                    if ((mask & (1 << edge)) != 0) SetBorderWidth(style, edge, width);
+            if (hasStyle) SetBorderStrings(style, mask, 1, borderStyle);
+            if (hasColor) SetBorderStrings(style, mask, 2, color);
+        }
+
+        private static void LogicalBorder(S style, S inherited, string value, int scope)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            var count = BorderScopeCount(scope);
+            if (lower == "inherit")
+            {
+                for (var index = 0; index < count; index++)
+                    CopyBorderEdge(style, BorderScopeEdge(style, scope, index), inherited, BorderScopeEdge(inherited, scope, index));
+                return;
+            }
+            if (lower == "initial" || lower == "unset")
+            {
+                for (var index = 0; index < count; index++)
+                    ResetBorderEdge(style, BorderScopeEdge(style, scope, index));
+                return;
+            }
+
+            int width;
+            string borderStyle;
+            string color;
+            bool hasWidth;
+            bool hasStyle;
+            bool hasColor;
+            if (!BorderValue(source, out width, out borderStyle, out color, out hasWidth, out hasStyle, out hasColor)) return;
+            for (var index = 0; index < count; index++)
+            {
+                var edge = BorderScopeEdge(style, scope, index);
+                if (hasWidth) SetBorderWidth(style, edge, width);
+                if (hasStyle) style.SetBorderStyle(edge, borderStyle);
+                if (hasColor) style.SetBorderColor(edge, color);
+            }
+        }
+
+        private static bool BorderValue(string value, out int width, out string borderStyle, out string color,
+            out bool hasWidth, out bool hasStyle, out bool hasColor)
+        {
+            width = -1;
+            borderStyle = "";
+            color = "";
+            hasWidth = hasStyle = hasColor = false;
+            List<string> parts;
+            if (String.IsNullOrWhiteSpace(value) || value.Length > 128 || !ShadowParts(value.Trim(), '\0', out parts) || parts.Count < 1 || parts.Count > 3) return false;
+            foreach (var part in parts)
+            {
+                var size = BorderPx(part);
+                string parsedStyle;
+                if (size >= 0)
+                {
+                    if (hasWidth) return false;
+                    width = size;
+                    hasWidth = true;
+                }
+                else if (BorderStyleValue(part, out parsedStyle))
+                {
+                    if (hasStyle) return false;
+                    borderStyle = parsedStyle;
+                    hasStyle = true;
+                }
+                else if (ShadowColor(part))
+                {
+                    if (hasColor) return false;
+                    color = part;
+                    hasColor = true;
+                }
+                else return false;
+            }
+            if (!hasWidth && hasStyle && borderStyle != "none" && borderStyle != "hidden")
+            {
+                width = 3;
+                hasWidth = true;
+            }
+            return true;
+        }
+
+        private static void BorderValues(S style, S inherited, string value, int component, int scope)
+        {
+            var count = BorderScopeCount(scope);
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            var widths = component == 0 ? new int[count] : null;
+            var strings = component == 0 ? null : new string[count];
+            if (lower == "inherit" || lower == "initial" || lower == "unset")
+            {
+                for (var index = 0; index < count; index++)
+                {
+                    var edge = BorderScopeEdge(inherited, scope, index);
+                    if (component == 0) widths[index] = lower == "inherit" ? GetBorderWidth(inherited, edge) : 0;
+                    else if (component == 1) strings[index] = lower == "inherit" && inherited != null ? inherited.Bsv(edge) : "";
+                    else strings[index] = lower == "inherit" && inherited != null ? inherited.Bcv(edge) : "";
+                }
+                ApplyBorderValues(style, component, scope, widths, strings);
+                return;
+            }
+
+            List<string> parts;
+            if (!BorderParts(source, component, count, out parts)) return;
+            for (var index = 0; index < count; index++)
+            {
+                var part = parts[BorderPartIndex(index, count, parts.Count)];
+                if (component == 0) widths[index] = BorderPx(part);
+                else if (component == 1) BorderStyleValue(part, out strings[index]);
+                else strings[index] = part;
+            }
+            ApplyBorderValues(style, component, scope, widths, strings);
+        }
+
+        private static bool BorderParts(string value, int component, int maximum, out List<string> parts)
+        {
+            parts = null;
+            if (String.IsNullOrWhiteSpace(value) || value.Length > 256 || !ShadowParts(value.Trim(), '\0', out parts) || parts.Count < 1 || parts.Count > maximum) return false;
+            foreach (var part in parts)
+            {
+                string parsedStyle;
+                if (component == 0 && BorderPx(part) < 0) return false;
+                if (component == 1 && !BorderStyleValue(part, out parsedStyle)) return false;
+                if (component == 2 && !ShadowColor(part)) return false;
+            }
+            return true;
+        }
+
+        internal static bool Bd(string value, int component, int maximum, out string border)
+        {
+            border = (value ?? "").Trim();
+            if (border.Length == 0) return true;
+            var lower = border.ToLowerInvariant();
+            if (lower == "inherit" || lower == "initial" || lower == "unset") return true;
+            if (component >= 0)
+            {
+                List<string> parts;
+                return BorderParts(border, component, maximum, out parts);
+            }
+            int width;
+            string borderStyle;
+            string color;
+            bool hasWidth;
+            bool hasStyle;
+            bool hasColor;
+            return BorderValue(border, out width, out borderStyle, out color, out hasWidth, out hasStyle, out hasColor);
+        }
+
+        private static bool BorderStyleValue(string value, out string borderStyle)
+        {
+            borderStyle = (value ?? "").Trim().ToLowerInvariant();
+            return borderStyle == "none" || borderStyle == "hidden" || borderStyle == "solid" || borderStyle == "dashed" || borderStyle == "dotted" || borderStyle == "double";
+        }
+
+        private static int BorderPartIndex(int index, int count, int authored)
+        {
+            if (count == 4)
+            {
+                if (index == 0) return 0;
+                if (index == 1) return authored > 1 ? 1 : 0;
+                if (index == 2) return authored > 2 ? 2 : 0;
+                return authored > 3 ? 3 : authored > 1 ? 1 : 0;
+            }
+            return index == 1 && authored > 1 ? 1 : 0;
+        }
+
+        private static int BorderScopeCount(int scope)
+        {
+            return scope == 0 ? 4 : scope < 3 ? 2 : 1;
+        }
+
+        private static int BorderScopeEdge(S style, int scope, int index)
+        {
+            if (scope == 0) return index;
+            if (scope == 1) return InlineEdge(style, index == 0);
+            if (scope == 2) return index == 0 ? 0 : 2;
+            if (scope < 7) return scope - 3;
+            if (scope == 7) return InlineEdge(style, true);
+            if (scope == 8) return InlineEdge(style, false);
+            return scope == 9 ? 0 : 2;
+        }
+
+        private static void ApplyBorderValues(S style, int component, int scope, int[] widths, string[] strings)
+        {
+            var count = BorderScopeCount(scope);
+            if (component == 0)
+            {
+                for (var index = 0; index < count; index++) SetBorderWidth(style, BorderScopeEdge(style, scope, index), widths[index]);
+                return;
+            }
+            if (scope == 0)
+            {
+                if (component == 1) style.SetBorderStyle(-1, strings[0]);
+                else style.SetBorderColor(-1, strings[0]);
+                for (var index = 1; index < 4; index++)
+                {
+                    if (component == 1) style.SetBorderStyle(index, strings[index]);
+                    else style.SetBorderColor(index, strings[index]);
+                }
+                return;
+            }
+            for (var index = 0; index < count; index++)
+            {
+                var edge = BorderScopeEdge(style, scope, index);
+                if (component == 1) style.SetBorderStyle(edge, strings[index]);
+                else style.SetBorderColor(edge, strings[index]);
+            }
+        }
+
+        private static void CopyBorderEdge(S style, int targetEdge, S inherited, int sourceEdge)
+        {
+            SetBorderWidth(style, targetEdge, GetBorderWidth(inherited, sourceEdge));
+            style.SetBorderStyle(targetEdge, inherited == null ? "" : inherited.Bsv(sourceEdge));
+            style.SetBorderColor(targetEdge, inherited == null ? "" : inherited.Bcv(sourceEdge));
+        }
+
+        private static void ResetBorderEdge(S style, int edge)
+        {
+            SetBorderWidth(style, edge, 0);
+            style.SetBorderStyle(edge, "");
+            style.SetBorderColor(edge, "");
+        }
+
+        private static void CopyBorder(S style, S inherited, int mask)
+        {
+            for (var edge = 0; edge < 4; edge++)
+                if ((mask & (1 << edge)) != 0) SetBorderWidth(style, edge, GetBorderWidth(inherited, edge));
+            if (mask == 15)
+            {
+                style.SetBorderStyle(-1, inherited == null ? "" : inherited.Bsv(0));
+                style.SetBorderColor(-1, inherited == null ? "" : inherited.Bcv(0));
+                for (var edge = 1; edge < 4; edge++)
+                {
+                    style.SetBorderStyle(edge, inherited == null ? "" : inherited.Bsv(edge));
+                    style.SetBorderColor(edge, inherited == null ? "" : inherited.Bcv(edge));
+                }
+                return;
+            }
+            for (var edge = 0; edge < 4; edge++)
+            {
+                if ((mask & (1 << edge)) == 0) continue;
+                style.SetBorderStyle(edge, inherited == null ? "" : inherited.Bsv(edge));
+                style.SetBorderColor(edge, inherited == null ? "" : inherited.Bcv(edge));
+            }
+        }
+
+        private static void SetBorderStrings(S style, int mask, int component, string value)
+        {
+            if (mask == 15)
+            {
+                if (component == 1) style.SetBorderStyle(-1, value);
+                else style.SetBorderColor(-1, value);
+                return;
+            }
+            for (var edge = 0; edge < 4; edge++)
+            {
+                if ((mask & (1 << edge)) == 0) continue;
+                if (component == 1) style.SetBorderStyle(edge, value);
+                else style.SetBorderColor(edge, value);
+            }
+        }
+
+        private static int GetBorderWidth(S style, int edge)
+        {
+            if (style == null) return 0;
+            return edge == 0 ? style.Bt : edge == 1 ? style.Br : edge == 2 ? style.Bb : style.Bl;
+        }
+
+        private static void SetBorderWidth(S style, int edge, int width)
+        {
+            if (edge == 0) style.Bt = width;
+            else if (edge == 1) style.Br = width;
+            else if (edge == 2) style.Bb = width;
+            else if (edge == 3) style.Bl = width;
+        }
+
+        private static int BorderPx(string value)
+        {
+            value = (value ?? "").Trim().ToLowerInvariant();
+            if (value == "thin") return 1;
+            if (value == "medium") return 3;
+            if (value == "thick") return 5;
+            var match = Regex.Match(value, "^(?<n>[0-9]{1,3})(?:px)?$", RegexOptions.IgnoreCase);
+            int number;
+            return match.Success && int.TryParse(match.Groups["n"].Value, out number) ? Math.Min(number, 100) : -1;
+        }
+
+        private static void Outline(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (RadiusReset(lower))
+            {
+                SetOutline(style, 3, "n", "");
+                return;
+            }
+            List<string> parts;
+            if (source.Length == 0 || source.Length > 128 || !ShadowParts(source, '\0', out parts) || parts.Count < 1 || parts.Count > 3) return;
+            var width = 3;
+            var outlineStyle = "n";
+            var color = "";
+            var hasWidth = false;
+            var hasStyle = false;
+            var hasColor = false;
+            foreach (var part in parts)
+            {
+                int parsedWidth;
+                string parsedStyle;
+                if (OutlineWidthValue(part, out parsedWidth))
+                {
+                    if (hasWidth) return;
+                    width = parsedWidth;
+                    hasWidth = true;
+                }
+                else if (OutlineStyleValue(part, out parsedStyle))
+                {
+                    if (hasStyle) return;
+                    outlineStyle = parsedStyle;
+                    hasStyle = true;
+                }
+                else if (ShadowColor(part))
+                {
+                    if (hasColor) return;
+                    color = part;
+                    hasColor = true;
+                }
+                else return;
+            }
+            SetOutline(style, width, outlineStyle, color);
+        }
+
+        private static void OutlineWidth(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(source)) { style.Ow = 3; return; }
+            int width;
+            if (OutlineWidthValue(source, out width)) style.Ow = width;
+        }
+
+        private static bool OutlineWidthValue(string value, out int width)
+        {
+            width = 0;
+            var parsed = BorderPx((value ?? "").Trim().ToLowerInvariant());
+            if (parsed < 0 || parsed > 32) return false;
+            width = parsed;
+            return true;
+        }
+
+        private static void OutlineStyle(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(source)) { style.Os = "n"; return; }
+            string outlineStyle;
+            if (OutlineStyleValue(source, out outlineStyle)) style.Os = outlineStyle;
+        }
+
+        private static bool OutlineStyleValue(string value, out string outlineStyle)
+        {
+            outlineStyle = "";
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "none" || source == "hidden") outlineStyle = "n";
+            else if (source == "solid") outlineStyle = "s";
+            else if (source == "dashed") outlineStyle = "d";
+            else if (source == "dotted") outlineStyle = "o";
+            else if (source == "auto") outlineStyle = "a";
+            return outlineStyle.Length > 0;
+        }
+
+        private static void OutlineColor(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            if (RadiusReset(source.ToLowerInvariant())) { style.Oc = ""; return; }
+            if (ShadowColor(source)) style.Oc = source;
+        }
+
+        private static void OutlineOffset(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(source)) { style.Oo = 0; return; }
+            var match = Regex.Match(source, "^(?<n>[+-]?[0-9]{1,3})(?:px)?$");
+            int offset;
+            if (match.Success && Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out offset) && offset >= -64 && offset <= 64)
+                style.Oo = offset;
+        }
+
+        private static void SetOutline(S style, int width, string outlineStyle, string color)
+        {
+            style.Ow = width;
+            style.Os = outlineStyle;
+            style.Oc = color ?? "";
+        }
+
+        private static void BorderRadius(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit")
+            {
+                for (var corner = 0; corner < 4; corner++) CopyRadius(style, inherited, corner);
+                return;
+            }
+            if (RadiusReset(source))
+            {
+                SetRadii(style, new int[4], new int[4]);
+                return;
+            }
+            var slash = source.IndexOf('/');
+            if (slash >= 0 && source.IndexOf('/', slash + 1) >= 0) return;
+            int[] horizontal;
+            int[] vertical;
+            if (!RadiusList(slash < 0 ? source : source.Substring(0, slash), out horizontal)) return;
+            if (slash < 0) vertical = (int[])horizontal.Clone();
+            else if (!RadiusList(source.Substring(slash + 1), out vertical)) return;
+            SetRadii(style, horizontal, vertical);
+        }
+
+        private static void BorderCornerRadius(S style, S inherited, string value, int corner)
+        {
+            BorderCornerRadius(style, inherited, value, corner, corner);
+        }
+
+        private static void LogicalCornerRadius(S style, S inherited, string value, bool blockStart, bool inlineStart)
+        {
+            BorderCornerRadius(style, inherited, value, LogicalCorner(style, blockStart, inlineStart),
+                LogicalCorner(inherited, blockStart, inlineStart));
+        }
+
+        private static void BorderCornerRadius(S style, S inherited, string value, int corner, int inheritedCorner)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit")
+            {
+                if (inherited == null) SetRadius(style, corner, 0, 0);
+                else SetRadius(style, corner, RadiusHorizontal(inherited, inheritedCorner), RadiusVertical(inherited, inheritedCorner));
+                return;
+            }
+            if (RadiusReset(source)) { SetRadius(style, corner, 0, 0); return; }
+            var parts = Regex.Split(source, "\\s+");
+            int horizontal;
+            int vertical;
+            if (parts.Length < 1 || parts.Length > 2 || !RadiusValue(parts[0], out horizontal)) return;
+            if (parts.Length == 1) vertical = horizontal;
+            else if (!RadiusValue(parts[1], out vertical)) return;
+            SetRadius(style, corner, horizontal, vertical);
+        }
+
+        private static int RadiusHorizontal(S style, int corner)
+        {
+            return corner == 0 ? style.R0 : corner == 1 ? style.R1 : corner == 2 ? style.R2 : style.R3;
+        }
+
+        private static int RadiusVertical(S style, int corner)
+        {
+            return corner == 0 ? style.Q0 : corner == 1 ? style.Q1 : corner == 2 ? style.Q2 : style.Q3;
+        }
+
+        internal static bool Rd(string value, bool corner, out string radius)
+        {
+            radius = (value ?? "").Trim().ToLowerInvariant();
+            if (radius.Length == 0 || radius == "inherit" || RadiusReset(radius)) return true;
+            if (corner)
+            {
+                var parts = Regex.Split(radius, "\\s+");
+                int horizontal;
+                int vertical;
+                return parts.Length >= 1 && parts.Length <= 2 && RadiusValue(parts[0], out horizontal) &&
+                    (parts.Length == 1 || RadiusValue(parts[1], out vertical));
+            }
+            var slash = radius.IndexOf('/');
+            if (slash >= 0 && radius.IndexOf('/', slash + 1) >= 0) return false;
+            int[] horizontalValues;
+            int[] verticalValues;
+            if (!RadiusList(slash < 0 ? radius : radius.Substring(0, slash), out horizontalValues)) return false;
+            return slash < 0 || RadiusList(radius.Substring(slash + 1), out verticalValues);
+        }
+
+        private static bool RadiusList(string source, out int[] values)
+        {
+            values = null;
+            var parts = Regex.Split((source ?? "").Trim(), "\\s+");
+            if (parts.Length < 1 || parts.Length > 4) return false;
+            var parsed = new int[parts.Length];
+            for (var index = 0; index < parts.Length; index++)
+                if (!RadiusValue(parts[index], out parsed[index])) return false;
+            values = new int[4];
+            values[0] = parsed[0];
+            values[1] = parts.Length > 1 ? parsed[1] : parsed[0];
+            values[2] = parts.Length > 2 ? parsed[2] : parsed[0];
+            values[3] = parts.Length > 3 ? parsed[3] : values[1];
+            return true;
+        }
+
+        private static bool RadiusValue(string value, out int radius)
+        {
+            radius = 0;
+            var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,4})(?<u>px|%)?$", RegexOptions.IgnoreCase);
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, out number)) return false;
+            if (match.Groups["u"].Value == "%") radius = -Math.Min(number, 1000);
+            else radius = Math.Min(number, 2000);
+            return true;
+        }
+
+        private static bool RadiusReset(string value)
+        {
+            return value == "initial" || value == "unset" || value == "revert" || value == "revert-layer";
+        }
+
+        private static void SetRadii(S style, int[] horizontal, int[] vertical)
+        {
+            for (var corner = 0; corner < 4; corner++) SetRadius(style, corner, horizontal[corner], vertical[corner]);
+        }
+
+        private static void SetRadius(S style, int corner, int horizontal, int vertical)
+        {
+            if (corner == 0) { style.R0 = horizontal; style.Q0 = vertical; }
+            else if (corner == 1) { style.R1 = horizontal; style.Q1 = vertical; }
+            else if (corner == 2) { style.R2 = horizontal; style.Q2 = vertical; }
+            else { style.R3 = horizontal; style.Q3 = vertical; }
+        }
+
+        private static void CopyRadius(S style, S inherited, int corner)
+        {
+            if (inherited == null) { SetRadius(style, corner, 0, 0); return; }
+            if (corner == 0) SetRadius(style, corner, inherited.R0, inherited.Q0);
+            else if (corner == 1) SetRadius(style, corner, inherited.R1, inherited.Q1);
+            else if (corner == 2) SetRadius(style, corner, inherited.R2, inherited.Q2);
+            else SetRadius(style, corner, inherited.R3, inherited.Q3);
+        }
+
+        private static void BoxShadow(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "none" || RadiusReset(lower)) { style.Sw.Clear(); return; }
+            if (source.Length == 0 || source.Length > 512) return;
+            List<string> groups;
+            if (!ShadowParts(source, ',', out groups) || groups.Count < 1 || groups.Count > 4) return;
+            var shadows = new List<Sw>();
+            foreach (var group in groups)
+            {
+                Sw shadow;
+                if (!ShadowValue(group, out shadow)) return;
+                shadows.Add(shadow);
+            }
+            style.Sw.Clear();
+            foreach (var shadow in shadows) style.Sw.Add(shadow);
+        }
+
+        private static void Background(S style, string value, Uri origin)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Length == 0 || source.Length > MaxBackgroundText) return;
+            var next = new S();
+            if (!BackgroundValue(next, source, origin)) return;
+            style.Bg = next.Bg;
+            style.Gi = next.Gi;
+            style.Bi = next.Bi;
+        }
+
+        private static bool BackgroundValue(S style, string source, Uri origin)
+        {
+            var lower = source.ToLowerInvariant();
+            if (lower == "none" || RadiusReset(lower)) { style.Bg = ""; style.Gi = null; style.Bi = null; return true; }
+            List<string> parts;
+            if (!BackgroundParts(source, out parts) || parts.Count == 0) return false;
+            var bitmap = new Bi();
+            Gi gradient = null;
+            var position = new List<string>();
+            var size = new List<string>();
+            var color = "";
+            var image = false;
+            var geometry = false;
+            var repeatSeen = false;
+            var slash = false;
+            foreach (var raw in parts)
+            {
+                var part = raw.Trim();
+                var token = part.ToLowerInvariant();
+                if (part == "/")
+                {
+                    if (slash || position.Count == 0) return false;
+                    slash = true;
+                    continue;
+                }
+                if (slash)
+                {
+                    if (size.Count == 2) return false;
+                    size.Add(part);
+                    continue;
+                }
+                if (GradientSource(token))
+                {
+                    if (image || !Gradient(part, out gradient)) return false;
+                    image = true;
+                    continue;
+                }
+                Uri url;
+                if (BitmapUri(part, origin, out url))
+                {
+                    if (image) return false;
+                    bitmap.U = url;
+                    image = true;
+                    continue;
+                }
+                if (token == "none" && !image) { image = true; continue; }
+                string repeat;
+                if (BackgroundRepeatValue(token, out repeat))
+                {
+                    if (repeatSeen) return false;
+                    bitmap.R = repeat;
+                    repeatSeen = true;
+                    geometry = true;
+                    continue;
+                }
+                if (BackgroundPositionToken(token))
+                {
+                    if (position.Count == 2) return false;
+                    position.Add(part);
+                    geometry = true;
+                    continue;
+                }
+                if (color.Length == 0 && ShadowColor(part)) { color = part; continue; }
+                return false;
+            }
+            if (slash && size.Count == 0) return false;
+            if (position.Count > 0 && !BackgroundPosition(bitmap, position)) return false;
+            if (size.Count > 0 && !BackgroundSize(bitmap, size)) return false;
+            style.Bg = color;
+            style.Gi = gradient;
+            style.Bi = bitmap.U != null || geometry ? bitmap : null;
+            return true;
+        }
+
+        private static bool BackgroundImage(S style, string value, Uri origin)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "none" || RadiusReset(lower))
+            {
+                style.Gi = null;
+                if (style.Bi != null) style.Bi.U = null;
+                return true;
+            }
+            Gi gradient;
+            if (source.Length <= MaxGradientText && Gradient(source, out gradient))
+            {
+                style.Gi = gradient;
+                if (style.Bi != null) style.Bi.U = null;
+                return true;
+            }
+            Uri url;
+            if (source.Length == 0 || source.Length > MaxBackgroundText || !BitmapUri(source, origin, out url)) return false;
+            var bitmap = BackgroundBitmap(style).Copy();
+            bitmap.U = url;
+            style.Bi = bitmap;
+            style.Gi = null;
+            return true;
+        }
+
+        private static void BackgroundRepeat(S style, string value)
+        {
+            var token = (value ?? "").Trim().ToLowerInvariant();
+            string repeat;
+            if (RadiusReset(token)) repeat = "b";
+            else if (!BackgroundRepeatValue(token, out repeat)) return;
+            var bitmap = BackgroundBitmap(style).Copy();
+            bitmap.R = repeat;
+            style.Bi = bitmap;
+        }
+
+        private static bool BackgroundRepeatValue(string value, out string repeat)
+        {
+            repeat = "";
+            if (value == "repeat") repeat = "b";
+            else if (value == "repeat-x") repeat = "x";
+            else if (value == "repeat-y") repeat = "y";
+            else if (value == "no-repeat") repeat = "n";
+            else return false;
+            return true;
+        }
+
+        private static void BackgroundPosition(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var bitmap = BackgroundBitmap(style).Copy();
+            if (RadiusReset(source.ToLowerInvariant()))
+            {
+                bitmap.X = 0;
+                bitmap.Y = 0;
+                bitmap.Xp = true;
+                bitmap.Yp = true;
+                style.Bi = bitmap;
+                return;
+            }
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || !BackgroundPosition(bitmap, parts)) return;
+            style.Bi = bitmap;
+        }
+
+        private static bool BackgroundPosition(Bi bitmap, IList<string> parts)
+        {
+            if (parts == null || parts.Count < 1 || parts.Count > 2) return false;
+            int x = 50;
+            int y = 50;
+            var xp = true;
+            var yp = true;
+            if (parts.Count == 1)
+            {
+                var token = parts[0].Trim().ToLowerInvariant();
+                if (token == "top" || token == "bottom")
+                {
+                    if (!BackgroundPositionValue(token, false, out y, out yp)) return false;
+                }
+                else if (!BackgroundPositionValue(token, true, out x, out xp)) return false;
+            }
+            else if (!(BackgroundPositionValue(parts[0].Trim().ToLowerInvariant(), true, out x, out xp) &&
+                       BackgroundPositionValue(parts[1].Trim().ToLowerInvariant(), false, out y, out yp)))
+            {
+                if (!(BackgroundPositionValue(parts[0].Trim().ToLowerInvariant(), false, out y, out yp) &&
+                      BackgroundPositionValue(parts[1].Trim().ToLowerInvariant(), true, out x, out xp))) return false;
+            }
+            bitmap.X = x;
+            bitmap.Y = y;
+            bitmap.Xp = xp;
+            bitmap.Yp = yp;
+            return true;
+        }
+
+        private static bool BackgroundPositionValue(string value, bool horizontal, out int number, out bool percent)
+        {
+            number = 0;
+            percent = true;
+            if (value == "center") { number = 50; return true; }
+            if ((horizontal && value == "left") || (!horizontal && value == "top")) return true;
+            if (horizontal && value == "right" || !horizontal && value == "bottom") { number = 100; return true; }
+            var match = Regex.Match(value ?? "", "^(?<n>[+-]?[0-9]{1,4})(?<u>%|px)?$", RegexOptions.IgnoreCase);
+            int parsed;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed)) return false;
+            percent = match.Groups["u"].Value == "%";
+            number = percent ? Math.Max(-1000, Math.Min(1000, parsed)) : Math.Max(-MaxBackgroundLength, Math.Min(MaxBackgroundLength, parsed));
+            return true;
+        }
+
+        private static bool BackgroundPositionToken(string value)
+        {
+            int number;
+            bool percent;
+            return value == "top" || value == "bottom" || BackgroundPositionValue(value, true, out number, out percent);
+        }
+
+        private static void ObjectFit(S style, string value)
+        {
+            var token = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(token)) style.Of = "f";
+            else if (token == "fill") style.Of = "f";
+            else if (token == "contain") style.Of = "c";
+            else if (token == "cover") style.Of = "v";
+            else if (token == "none") style.Of = "n";
+            else if (token == "scale-down") style.Of = "s";
+        }
+
+        private static void ObjectPosition(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            if (RadiusReset(source.ToLowerInvariant()))
+            {
+                style.Ox = 50;
+                style.Oy = 50;
+                style.Oxp = true;
+                style.Oyp = true;
+                return;
+            }
+            List<string> parts;
+            var position = new Bi();
+            if (!ShadowParts(source, '\0', out parts) || !BackgroundPosition(position, parts)) return;
+            style.Ox = position.X;
+            style.Oy = position.Y;
+            style.Oxp = position.Xp;
+            style.Oyp = position.Yp;
+        }
+
+        private static void AspectRatio(S style, string value)
+        {
+            var source = Regex.Replace((value ?? "").Trim().ToLowerInvariant(), "\\s*/\\s*", "/");
+            if (source == "auto" || RadiusReset(source))
+            {
+                style.Rw = 0D;
+                style.Rh = 0D;
+                style.Ra = true;
+                return;
+            }
+            var parts = Regex.Split(source, "\\s+");
+            if (parts.Length < 1 || parts.Length > 2) return;
+            var auto = false;
+            var ratio = "";
+            foreach (var part in parts)
+            {
+                if (part == "auto")
+                {
+                    if (auto) return;
+                    auto = true;
+                }
+                else
+                {
+                    if (ratio.Length > 0) return;
+                    ratio = part;
+                }
+            }
+            double width;
+            double height;
+            if (!AspectRatioValue(ratio, out width, out height)) return;
+            style.Rw = width;
+            style.Rh = height;
+            style.Ra = auto;
+        }
+
+        private static bool AspectRatioValue(string value, out double width, out double height)
+        {
+            width = 0D;
+            height = 0D;
+            var parts = (value ?? "").Split('/');
+            if (parts.Length < 1 || parts.Length > 2 || !AspectRatioNumber(parts[0], out width)) return false;
+            if (parts.Length == 1) height = 1D;
+            else if (!AspectRatioNumber(parts[1], out height)) return false;
+            var ratio = width / height;
+            return ratio >= 0.001D && ratio <= 1000D;
+        }
+
+        private static bool AspectRatioNumber(string value, out double number)
+        {
+            number = 0D;
+            if (!Regex.IsMatch(value ?? "", "^(?:[0-9]{1,4}(?:\\.[0-9]{0,3})?|\\.[0-9]{1,3})$")) return false;
+            return Double.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number) && number > 0D && number <= 10000D;
+        }
+
+        private static void BackgroundSize(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var bitmap = BackgroundBitmap(style).Copy();
+            if (RadiusReset(source.ToLowerInvariant()))
+            {
+                BackgroundSizeReset(bitmap);
+                style.Bi = bitmap;
+                return;
+            }
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || !BackgroundSize(bitmap, parts)) return;
+            style.Bi = bitmap;
+        }
+
+        private static bool BackgroundSize(Bi bitmap, IList<string> parts)
+        {
+            if (parts == null || parts.Count < 1 || parts.Count > 2) return false;
+            var first = parts[0].Trim().ToLowerInvariant();
+            if (parts.Count == 1 && (first == "cover" || first == "contain"))
+            {
+                BackgroundSizeReset(bitmap);
+                bitmap.K = first == "cover" ? "c" : "n";
+                return true;
+            }
+            int width;
+            int height = 0;
+            bool widthPercent;
+            bool heightPercent = false;
+            bool widthAuto;
+            bool heightAuto = true;
+            if (!BackgroundSizeValue(first, out width, out widthPercent, out widthAuto)) return false;
+            if (parts.Count == 2 && !BackgroundSizeValue(parts[1].Trim().ToLowerInvariant(), out height, out heightPercent, out heightAuto)) return false;
+            bitmap.W = width;
+            bitmap.H = height;
+            bitmap.Wp = widthPercent;
+            bitmap.Hp = heightPercent;
+            bitmap.Wa = widthAuto;
+            bitmap.Ha = heightAuto;
+            bitmap.K = "";
+            return true;
+        }
+
+        private static bool BackgroundSizeValue(string value, out int number, out bool percent, out bool auto)
+        {
+            number = 0;
+            percent = false;
+            auto = value == "auto";
+            if (auto) return true;
+            var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,4})(?<u>%|px)?$", RegexOptions.IgnoreCase);
+            int parsed;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed)) return false;
+            percent = match.Groups["u"].Value == "%";
+            number = Math.Min(percent ? 1000 : MaxBackgroundLength, parsed);
+            return true;
+        }
+
+        private static void BackgroundSizeReset(Bi bitmap)
+        {
+            bitmap.W = 0;
+            bitmap.H = 0;
+            bitmap.Wp = false;
+            bitmap.Hp = false;
+            bitmap.Wa = true;
+            bitmap.Ha = true;
+            bitmap.K = "";
+        }
+
+        private static Bi BackgroundBitmap(S style)
+        {
+            return style.Bi ?? new Bi();
+        }
+
+        private static bool BitmapUri(string value, Uri origin, out Uri url)
+        {
+            url = null;
+            var match = Regex.Match((value ?? "").Trim(), "^url\\((?<u>.*)\\)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (!match.Success) return false;
+            var source = match.Groups["u"].Value.Trim();
+            if (source.Length >= 2 && ((source[0] == '\'' && source[source.Length - 1] == '\'') || (source[0] == '"' && source[source.Length - 1] == '"')))
+                source = source.Substring(1, source.Length - 2).Trim();
+            if (source.Length == 0 || source.Length > MaxBackgroundText || source.IndexOfAny(new char[] { '\r', '\n', '\0' }) >= 0) return false;
+            if (!(Uri.TryCreate(source, UriKind.Absolute, out url) || origin != null && Uri.TryCreate(origin, source, out url))) return false;
+            if (!(url.IsFile || url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps || url.Scheme.Equals("data", StringComparison.OrdinalIgnoreCase))) return false;
+            if (url.IsFile && origin != null && !origin.IsFile) return false;
+            return true;
+        }
+
+        private static bool BackgroundParts(string source, out List<string> parts)
+        {
+            parts = new List<string>();
+            var start = 0;
+            var quote = '\0';
+            var depth = 0;
+            for (var index = 0; index <= (source ?? "").Length; index++)
+            {
+                var end = index == source.Length;
+                var value = end ? '\0' : source[index];
+                if (!end && quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (!end && (value == '\'' || value == '"')) { quote = value; continue; }
+                if (!end && value == '(') { depth++; continue; }
+                if (!end && value == ')') { if (depth == 0) return false; depth--; continue; }
+                if (!end && value == ',' && depth == 0) return false;
+                var split = end || depth == 0 && (Char.IsWhiteSpace(value) || value == '/');
+                if (!split) continue;
+                var part = source.Substring(start, index - start).Trim();
+                if (part.Length > 0) parts.Add(part);
+                if (!end && value == '/') parts.Add("/");
+                start = index + 1;
+            }
+            return quote == '\0' && depth == 0;
+        }
+
+        private static bool GradientSource(string value)
+        {
+            return value.StartsWith("linear-gradient(", StringComparison.Ordinal) || value.StartsWith("radial-gradient(", StringComparison.Ordinal);
+        }
+
+        private static bool Gradient(string source, out Gi gradient)
+        {
+            gradient = null;
+            var match = Regex.Match(source ?? "", "^(?<k>linear|radial)-gradient\\((?<v>.*)\\)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (!match.Success) return false;
+            List<string> groups;
+            if (!ShadowParts(match.Groups["v"].Value, ',', out groups) || groups.Count < 2 || groups.Count > MaxGradientStops + 1) return false;
+            var result = new Gi { K = match.Groups["k"].Value.Equals("radial", StringComparison.OrdinalIgnoreCase) ? "r" : "l" };
+            var first = 0;
+            if (result.K == "l")
+            {
+                int angle;
+                if (LinearGradientHead(groups[0], out angle)) { result.A = angle; first = 1; }
+            }
+            else
+            {
+                int x;
+                int y;
+                if (RadialGradientHead(groups[0], out x, out y)) { result.X = x; result.Y = y; first = 1; }
+            }
+            if (groups.Count - first < 2 || groups.Count - first > MaxGradientStops) return false;
+            var colors = new List<string>();
+            var positions = new List<int>();
+            for (var index = first; index < groups.Count; index++)
+            {
+                string color;
+                int position;
+                if (!GradientStop(groups[index], out color, out position)) return false;
+                colors.Add(color);
+                positions.Add(position);
+            }
+            NormalizeGradientStops(positions);
+            for (var index = 0; index < colors.Count; index++) result.Ss.Add(new Cs(colors[index], positions[index]));
+            gradient = result;
+            return true;
+        }
+
+        private static bool LinearGradientHead(string value, out int angle)
+        {
+            angle = 180;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            var degrees = Regex.Match(source, "^(?<n>[+-]?[0-9]{1,4})(?:deg)$");
+            int number;
+            if (degrees.Success && Int32.TryParse(degrees.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+            {
+                angle = ((number % 360) + 360) % 360;
+                return true;
+            }
+            if (source == "to top") angle = 0;
+            else if (source == "to top right" || source == "to right top") angle = 45;
+            else if (source == "to right") angle = 90;
+            else if (source == "to bottom right" || source == "to right bottom") angle = 135;
+            else if (source == "to bottom") angle = 180;
+            else if (source == "to bottom left" || source == "to left bottom") angle = 225;
+            else if (source == "to left") angle = 270;
+            else if (source == "to top left" || source == "to left top") angle = 315;
+            else return false;
+            return true;
+        }
+
+        private static bool RadialGradientHead(string value, out int x, out int y)
+        {
+            x = 50;
+            y = 50;
+            var source = Regex.Replace((value ?? "").Trim().ToLowerInvariant(), "\\s+", " ");
+            if (!(source == "circle" || source == "ellipse" || source.StartsWith("circle at ", StringComparison.Ordinal) ||
+                source.StartsWith("ellipse at ", StringComparison.Ordinal) || source.StartsWith("at ", StringComparison.Ordinal))) return false;
+            if (source == "circle" || source == "ellipse") return true;
+            var at = source.IndexOf(" at ", StringComparison.Ordinal);
+            var position = at >= 0 ? source.Substring(at + 4) : source.Substring(3);
+            var parts = position.Split(' ');
+            if (parts.Length < 1 || parts.Length > 2) return false;
+            if (parts.Length == 1)
+            {
+                if (GradientCoordinate(parts[0], true, out x)) return true;
+                return GradientCoordinate(parts[0], false, out y);
+            }
+            if (GradientCoordinate(parts[0], true, out x) && GradientCoordinate(parts[1], false, out y)) return true;
+            return GradientCoordinate(parts[0], false, out y) && GradientCoordinate(parts[1], true, out x);
+        }
+
+        private static bool GradientCoordinate(string value, bool horizontal, out int coordinate)
+        {
+            coordinate = 50;
+            if (value == "center") return true;
+            if (horizontal && value == "left" || !horizontal && value == "top") { coordinate = 0; return true; }
+            if (horizontal && value == "right" || !horizontal && value == "bottom") { coordinate = 100; return true; }
+            return GradientPercent(value, out coordinate);
+        }
+
+        private static bool GradientStop(string value, out string color, out int position)
+        {
+            color = "";
+            position = -1;
+            List<string> parts;
+            if (!ShadowParts((value ?? "").Trim(), '\0', out parts) || parts.Count < 1 || parts.Count > 2 || !ShadowColor(parts[0])) return false;
+            if (parts.Count == 2 && !GradientPercent(parts[1], out position)) return false;
+            color = parts[0];
+            return true;
+        }
+
+        private static bool GradientPercent(string value, out int position)
+        {
+            position = 0;
+            var match = Regex.Match(value ?? "", "^(?<n>[+-]?[0-9]{1,4})%$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number)) return false;
+            position = Math.Max(0, Math.Min(100, number));
+            return true;
+        }
+
+        private static void NormalizeGradientStops(List<int> positions)
+        {
+            if (positions.Count == 0) return;
+            if (positions[0] < 0) positions[0] = 0;
+            if (positions[positions.Count - 1] < 0) positions[positions.Count - 1] = 100;
+            var last = positions[0];
+            for (var index = 1; index < positions.Count; index++)
+            {
+                if (positions[index] >= 0) { positions[index] = Math.Max(last, positions[index]); last = positions[index]; continue; }
+                var end = index + 1;
+                while (end < positions.Count && positions[end] < 0) end++;
+                var target = end < positions.Count ? Math.Max(last, positions[end]) : 100;
+                var count = end - index + 1;
+                for (var fill = index; fill < end; fill++) positions[fill] = last + (target - last) * (fill - index + 1) / count;
+                index = end - 1;
+            }
+        }
+
+        private static bool ShadowValue(string source, out Sw shadow)
+        {
+            shadow = null;
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || parts.Count < 2 || parts.Count > 6) return false;
+            var lengths = new List<int>();
+            var inset = false;
+            var color = "";
+            foreach (var raw in parts)
+            {
+                var part = raw.Trim();
+                if (part.Equals("inset", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (inset) return false;
+                    inset = true;
+                    continue;
+                }
+                int length;
+                if (ShadowLength(part, out length))
+                {
+                    if (lengths.Count == 4) return false;
+                    lengths.Add(length);
+                    continue;
+                }
+                if (color.Length > 0 || !ShadowColor(part)) return false;
+                color = part;
+            }
+            if (lengths.Count < 2 || lengths.Count > 4 || (lengths.Count > 2 && lengths[2] < 0)) return false;
+            shadow = new Sw
+            {
+                X = ShadowBound(lengths[0], 512),
+                Y = ShadowBound(lengths[1], 512),
+                B = lengths.Count > 2 ? Math.Min(lengths[2], 128) : 0,
+                R = lengths.Count > 3 ? ShadowBound(lengths[3], 512) : 0,
+                C = color,
+                I = inset
+            };
+            return true;
+        }
+
+        private static bool TextShadowValue(string source, out Sw shadow)
+        {
+            shadow = null;
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || parts.Count < 2 || parts.Count > 4) return false;
+            var lengths = new List<int>();
+            var color = "";
+            foreach (var raw in parts)
+            {
+                var part = raw.Trim();
+                int length;
+                if (ShadowLength(part, out length))
+                {
+                    if (lengths.Count == 3) return false;
+                    lengths.Add(length);
+                    continue;
+                }
+                if (color.Length > 0 || !ShadowColor(part) || part.Equals("inset", StringComparison.OrdinalIgnoreCase)) return false;
+                color = part;
+            }
+            if (lengths.Count < 2 || lengths.Count > 3 || Math.Abs((long)lengths[0]) > 128 ||
+                Math.Abs((long)lengths[1]) > 128 || (lengths.Count > 2 && (lengths[2] < 0 || lengths[2] > 32))) return false;
+            shadow = new Sw { X = lengths[0], Y = lengths[1], B = lengths.Count > 2 ? lengths[2] : 0, C = color };
+            return true;
+        }
+
+        private static bool ShadowLength(string value, out int length)
+        {
+            length = 0;
+            var match = Regex.Match(value ?? "", "^(?<n>[+-]?[0-9]{1,4})(?:px)?$", RegexOptions.IgnoreCase);
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out length);
+        }
+
+        private static int ShadowBound(int value, int limit)
+        {
+            return Math.Max(-limit, Math.Min(limit, value));
+        }
+
+        private static bool ShadowColor(string value)
+        {
+            if (String.IsNullOrWhiteSpace(value) || value.Length > MaxColorText) return false;
+            var source = value.Trim();
+            return ShadowColorMix(source) || ShadowBaseColor(source);
+        }
+
+        private static bool ShadowBaseColor(string source)
+        {
+            if (String.IsNullOrWhiteSpace(source) || source.Length > 64) return false;
+            if (Regex.IsMatch(source, "^#[0-9a-f]{3}(?:[0-9a-f])?$|^#[0-9a-f]{6}(?:[0-9a-f]{2})?$", RegexOptions.IgnoreCase)) return true;
+            if (Regex.IsMatch(source, "^[a-z]{1,32}$", RegexOptions.IgnoreCase)) return true;
+            return ShadowFunctionColor(source);
+        }
+
+        private static bool ShadowColorMix(string source)
+        {
+            if (!source.StartsWith("color-mix(", StringComparison.OrdinalIgnoreCase) ||
+                !source.EndsWith(")", StringComparison.Ordinal) || source.Length > MaxColorText) return false;
+            List<string> groups;
+            if (!ShadowParts(source.Substring(10, source.Length - 11), ',', out groups) || groups.Count != 3 ||
+                !Regex.IsMatch(groups[0], "^in\\s+srgb$", RegexOptions.IgnoreCase)) return false;
+            string first;
+            string second;
+            double firstWeight;
+            double secondWeight;
+            bool hasFirst;
+            bool hasSecond;
+            if (!ShadowColorMixStop(groups[1], out first, out firstWeight, out hasFirst) ||
+                !ShadowColorMixStop(groups[2], out second, out secondWeight, out hasSecond)) return false;
+            if (!hasFirst && !hasSecond) return true;
+            if (!hasFirst) firstWeight = 100D - secondWeight;
+            if (!hasSecond) secondWeight = 100D - firstWeight;
+            return firstWeight >= 0D && secondWeight >= 0D && firstWeight + secondWeight > 0D;
+        }
+
+        private static bool ShadowColorMixStop(string source, out string color, out double weight, out bool hasWeight)
+        {
+            color = "";
+            weight = 0D;
+            hasWeight = false;
+            List<string> parts;
+            if (!ShadowParts((source ?? "").Trim(), '\0', out parts) || parts.Count < 1 || parts.Count > 2 ||
+                !ShadowBaseColor(parts[0])) return false;
+            color = parts[0];
+            if (parts.Count == 1) return true;
+            hasWeight = ShadowColorMixPercent(parts[1], out weight);
+            return hasWeight;
+        }
+
+        private static bool ShadowColorMixPercent(string source, out double value)
+        {
+            value = 0D;
+            if (!ShadowPercent(source) || !Double.TryParse(source.Substring(0, source.Length - 1),
+                NumberStyles.Float, CultureInfo.InvariantCulture, out value)) return false;
+            return value >= 0D && value <= 100D;
+        }
+
+        private static bool ShadowFunctionColor(string source)
+        {
+            var match = Regex.Match(source ?? "", "^rgba?\\((?<v>[^()]{1,48})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return ShadowRgbColor(match.Groups["v"].Value);
+            match = Regex.Match(source ?? "", "^hsla?\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return ShadowHslColor(match.Groups["v"].Value);
+            match = Regex.Match(source ?? "", "^hwb\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return ShadowHwbColor(match.Groups["v"].Value);
+            match = Regex.Match(source ?? "", "^lab\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return ShadowLabColor(match.Groups["v"].Value, false);
+            match = Regex.Match(source ?? "", "^lch\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return ShadowLabColor(match.Groups["v"].Value, true);
+            match = Regex.Match(source ?? "", "^color\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return ShadowPredefinedColor(match.Groups["v"].Value);
+            match = Regex.Match(source ?? "", "^oklab\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return ShadowOklabColor(match.Groups["v"].Value, false);
+            match = Regex.Match(source ?? "", "^oklch\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            return match.Success && ShadowOklabColor(match.Groups["v"].Value, true);
+        }
+
+        private static bool ShadowRgbColor(string value)
+        {
+            var body = (value ?? "").Trim();
+            string[] channels;
+            string alpha = null;
+            if (body.IndexOf(',') >= 0)
+            {
+                var values = body.Split(',');
+                if (values.Length < 3 || values.Length > 4) return false;
+                channels = new string[] { values[0].Trim(), values[1].Trim(), values[2].Trim() };
+                if (values.Length == 4) alpha = values[3].Trim();
+            }
+            else
+            {
+                var slash = body.IndexOf('/');
+                if (slash >= 0)
+                {
+                    if (body.IndexOf('/', slash + 1) >= 0) return false;
+                    alpha = body.Substring(slash + 1).Trim();
+                    body = body.Substring(0, slash).Trim();
+                }
+                channels = Regex.Split(body, "\\s+");
+                if (channels.Length != 3) return false;
+            }
+            return ShadowColorNumber(channels[0]) && ShadowColorNumber(channels[1]) && ShadowColorNumber(channels[2]) &&
+                (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowHslColor(string value)
+        {
+            var body = (value ?? "").Trim();
+            string[] channels;
+            string alpha = null;
+            if (body.IndexOf(',') >= 0)
+            {
+                var values = body.Split(',');
+                if (values.Length < 3 || values.Length > 4 || body.IndexOf('/') >= 0) return false;
+                channels = new string[] { values[0].Trim(), values[1].Trim(), values[2].Trim() };
+                if (values.Length == 4) alpha = values[3].Trim();
+            }
+            else
+            {
+                var slash = body.IndexOf('/');
+                if (slash >= 0)
+                {
+                    if (body.IndexOf('/', slash + 1) >= 0) return false;
+                    alpha = body.Substring(slash + 1).Trim();
+                    body = body.Substring(0, slash).Trim();
+                }
+                channels = Regex.Split(body, "\\s+");
+                if (channels.Length != 3) return false;
+            }
+            return ShadowHue(channels[0]) && ShadowPercent(channels[1]) && ShadowPercent(channels[2]) &&
+                (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowHwbColor(string value)
+        {
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            return channels.Length == 3 && ShadowHue(channels[0]) && ShadowPercent(channels[1]) &&
+                ShadowPercent(channels[2]) && (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowOklabColor(string value, bool polar)
+        {
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            return channels.Length == 3 && ShadowColorNumber(channels[0]) && ShadowColorNumber(channels[1]) &&
+                (polar ? ShadowHue(channels[2]) : ShadowColorNumber(channels[2])) &&
+                (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowLabColor(string value, bool polar)
+        {
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            return channels.Length == 3 && ShadowColorNumber(channels[0]) && ShadowColorNumber(channels[1]) &&
+                (polar ? ShadowHue(channels[2]) : ShadowColorNumber(channels[2])) &&
+                (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowPredefinedColor(string value)
+        {
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            if (channels.Length != 4 || !Regex.IsMatch(channels[0],
+                "^(?:srgb|srgb-linear|display-p3|display-p3-linear|a98-rgb|prophoto-rgb|rec2020|xyz|xyz-d50|xyz-d65)$",
+                RegexOptions.IgnoreCase))
+                return false;
+            return ShadowColorNumber(channels[1]) && ShadowColorNumber(channels[2]) && ShadowColorNumber(channels[3]) &&
+                (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowHue(string source)
+        {
+            var match = Regex.Match(source ?? "", "^(?<n>[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[+-]?[0-9]+)?)(?:deg|grad|rad|turn)?$", RegexOptions.IgnoreCase);
+            double number;
+            return match.Success && Double.TryParse(match.Groups["n"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out number) &&
+                !Double.IsNaN(number) && !Double.IsInfinity(number);
+        }
+
+        private static bool ShadowPercent(string source)
+        {
+            if (String.IsNullOrWhiteSpace(source) || !source.EndsWith("%", StringComparison.Ordinal)) return false;
+            double number;
+            return Double.TryParse(source.Substring(0, source.Length - 1), NumberStyles.Float, CultureInfo.InvariantCulture, out number) &&
+                !Double.IsNaN(number) && !Double.IsInfinity(number);
+        }
+
+        private static bool ShadowColorNumber(string source)
+        {
+            if (String.IsNullOrWhiteSpace(source)) return false;
+            if (source.EndsWith("%", StringComparison.Ordinal)) source = source.Substring(0, source.Length - 1);
+            double number;
+            return Double.TryParse(source, NumberStyles.Float, CultureInfo.InvariantCulture, out number) && !Double.IsNaN(number) && !Double.IsInfinity(number);
+        }
+
+        private static bool ShadowParts(string source, char separator, out List<string> parts)
+        {
+            parts = new List<string>();
+            var start = 0;
+            var quote = '\0';
+            var parentheses = 0;
+            for (var index = 0; index <= source.Length; index++)
+            {
+                var end = index == source.Length;
+                var value = end ? separator : source[index];
+                if (!end && quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (!end && (value == '\'' || value == '"')) { quote = value; continue; }
+                if (!end && value == '(') { parentheses++; continue; }
+                if (!end && value == ')') { if (parentheses == 0) return false; parentheses--; continue; }
+                var split = end || (parentheses == 0 && (separator == '\0' ? Char.IsWhiteSpace(value) : value == separator));
+                if (!split) continue;
+                var part = source.Substring(start, index - start).Trim();
+                if (part.Length > 0) parts.Add(part);
+                else if (separator != '\0') return false;
+                start = index + 1;
+            }
+            return quote == '\0' && parentheses == 0;
+        }
+
+        // Ordered anonymous flow keeps mixed inline/block children in DOM order.
+        private sealed class Fl
+        {
+            internal P Page;
+            internal N Owner;
+            internal S Style;
+            internal ISet<N> Split;
+            internal B Block;
+        }
+
+        private static bool FlowBoundary(string kind)
+        {
+            return IsBlockTag(kind) || kind == "img" || kind == "input" || kind == "textarea" || kind == "button" || kind == "select";
+        }
+
+        private static bool FlowParts(N node, ISet<N> split)
+        {
+            if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return false;
+            var found = false;
+            foreach (var child in node.C)
+                if (FlowBoundary(child.K) || FlowParts(child, split)) found = true;
+            if (found) split.Add(node);
+            return found;
+        }
+
+        private static B FlowBlock(Fl flow)
+        {
+            return flow.Block ?? (flow.Block = new B { K = "body", X = "", S = flow.Style.Inherit(), El = flow.Owner, An = true });
+        }
+
+        private static void FlushFlow(Fl flow)
+        {
+            if (flow.Block == null) return;
+            NormalizeInlines(flow.Block);
+            flow.Block.X = InlineText(flow.Block);
+            if (flow.Block.X.Length > 0 || flow.Block.Is.Count > 0) flow.Page.Bs.Add(flow.Block);
+            flow.Block = null;
+        }
+
+        private void OrderedBlocks(P page, N node, Uri baseUrl, List<R> rules, S style, ISet<N> split, S inherited)
+        {
+            if (LayoutContext(style) || VisualContext(style) || Flex(inherited) || Grid(inherited))
+                page.Bs.Add(new B { K = node.K, X = "", S = style, El = node });
+            var flow = new Fl { Page = page, Owner = node, Style = style, Split = split };
+            AddGeneratedRun(FlowBlock(flow), node, GeneratedRunStyle(node, style, rules, 'b'), null, 'b');
+            foreach (var child in node.C) OrderedInline(flow, child, baseUrl, rules, style, null, node.K, null);
+            AddGeneratedRun(FlowBlock(flow), node, GeneratedRunStyle(node, style, rules, 'a'), null, 'a');
+            FlushFlow(flow);
+        }
+
+        private void OrderedInline(Fl flow, N node, Uri baseUrl, List<R> rules, S inherited, Uri activeLink, string kind, Dv value)
+        {
+            if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
+            if (!FlowBoundary(node.K) && !flow.Split.Contains(node))
+            {
+                AddInline(flow.Page, FlowBlock(flow), node, baseUrl, rules, node.K == "#text" ? inherited.Inherit() : inherited, activeLink, kind, value);
+                return;
+            }
+            var style = Style(node, inherited, rules);
+            if (style.D == "none") return;
+            if (node.K == "input" && node.Av("type").Equals("hidden", StringComparison.OrdinalIgnoreCase)) return;
+            if (FlowBoundary(node.K))
+            {
+                FlushFlow(flow);
+                Blocks(flow.Page, node, baseUrl, rules, inherited);
+                return;
+            }
+            if (node.K == "a")
+            {
+                Uri target;
+                var href = node.Av("href");
+                if (href.Length > 0 && TryUri(baseUrl, href, out target))
+                {
+                    activeLink = target;
+                    flow.Page.Ls.Add(new Ln { U = target, T = Clean(NodeText(node)) });
+                }
+            }
+            if (ValueTag(node.K)) value = ValueModel(flow.Page, node, TextValue(RawText(node), style), baseUrl);
+            AddGeneratedRun(FlowBlock(flow), node, GeneratedRunStyle(node, style, rules, 'b'), activeLink, 'b', value);
+            foreach (var child in node.C) OrderedInline(flow, child, baseUrl, rules, style, activeLink, node.K, value);
+            AddGeneratedRun(FlowBlock(flow), node, GeneratedRunStyle(node, style, rules, 'a'), activeLink, 'a', value);
+        }
+
+        private void Blocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
+        {
+            if (node == null) return;
+            var kind = node.K;
+            if (kind == "#text")
+            {
+                var loose = TextValue(node.X, inherited);
+                if (loose.Length > 0) page.Bs.Add(new B { K = "p", X = loose, S = inherited, El = node.Up });
+                return;
+            }
+            if (kind == "head" || kind == "script" || kind == "style" || kind == "noscript" || kind == "template") return;
+            var style = Style(node, inherited, rules);
+            if (kind == "pre" && style.Ws.Length == 0)
+            {
+                style.Ws = "p";
+                if (style.Wm.Length == 0) style.Wm = "n";
+            }
+            if (style.D == "none") return;
+            if (kind == "table")
+            {
+                AddTable(page, node, baseUrl, rules, style);
+                return;
+            }
+            if (kind == "picture")
+            {
+                AddPicture(page, node, baseUrl, rules, style);
+                return;
+            }
+            if (kind == "svg")
+            {
+                AddSvg(page, node, baseUrl, rules, style);
+                return;
+            }
+            if (kind == "hr")
+            {
+                page.Bs.Add(new B { K = kind, X = "", S = style, El = node });
+                return;
+            }
+            if (GaugeTag(kind))
+            {
+                page.Bs.Add(GaugeBlock(node, style));
+                return;
+            }
+            if (ValueTag(kind))
+            {
+                AddValueBlock(page, node, baseUrl, rules, style);
+                return;
+            }
+            if (kind == "a")
+            {
+                Uri link;
+                var href = node.Av("href");
+                var text = TextValue(RawText(node), style);
+                if (href.Length > 0 && TryUri(baseUrl, href, out link))
+                {
+                    page.Ls.Add(new Ln { U = link, T = Clean(text) });
+                    var block = new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style, El = node };
+                    AddBlockInlines(page, block, node, baseUrl, rules, style, link, kind);
+                    page.Bs.Add(block);
+                }
+                return;
+            }
+            else if (kind == "img")
+            {
+                ImageDimensions(node, style);
+                var image = ImageUri(node, baseUrl, style.W);
+                if (image != null) page.Bs.Add(ImageBlock(page, node, image, style));
+            }
+            else if (kind == "input" || kind == "textarea" || kind == "button" || kind == "select")
+            {
+                AddField(page, node, baseUrl, style);
+                return;
+            }
+            else if (IsTextBlock(kind) || IsContainerBlock(kind) || Flex(style) || Grid(style))
+            {
+                if (IsContainerBlock(kind) && !Flex(style) && !Grid(style))
+                {
+                    var split = new HashSet<N>();
+                    if (FlowParts(node, split)) { OrderedBlocks(page, node, baseUrl, rules, style, split, inherited); return; }
+                }
+                var text = TextValue(Flex(style) || Grid(style) ? DirectText(node) : BlockText(node, PreservesLines(style)), style);
+                var markerStyle = kind == "li" ? node.Gm ?? MarkerStyle(node, style, rules) : null;
+                var block = new B { K = kind, X = text, Mk = ListMarker(node, style, markerStyle), Ms = markerStyle, S = style, El = node };
+                if (!Flex(style) && !Grid(style)) AddBlockInlines(page, block, node, baseUrl, rules, style, null, kind);
+                if (block.X.Length > 0 || block.Is.Count > 0 || HasMarkerContent(block) || LayoutContext(style) || (IsContainerBlock(kind) && VisualContext(style))) page.Bs.Add(block);
+                AddNestedBlocks(page, node, baseUrl, rules, style);
+                return;
+            }
+
+            foreach (var child in node.C) Blocks(page, child, baseUrl, rules, style);
+        }
+
+        private void AddPicture(P page, N picture, Uri baseUrl, List<R> rules, S inherited)
+        {
+            N image = null;
+            foreach (var child in picture.C) if (child.K == "img") { image = child; break; }
+            if (image == null) return;
+
+            var style = Style(image, inherited, rules);
+            if (style.D == "none") return;
+            ImageDimensions(image, style);
+            Uri source = null;
+            foreach (var child in picture.C)
+            {
+                if (child.K != "source" || !ImageMedia(child.Av("media")) || !ImageType(child.Av("type"))) continue;
+                source = ImageUri(child, baseUrl, style.W);
+                if (source != null) break;
+            }
+            if (source == null) source = ImageUri(image, baseUrl, style.W);
+            if (source != null) page.Bs.Add(ImageBlock(page, image, source, style));
+        }
+
+        private void AddSvg(P page, N svg, Uri baseUrl, List<R> rules, S style)
+        {
+            var model = SvgModel(page, svg, baseUrl, rules, style);
+            if (model == null || model.Ss.Count == 0) return;
+            page.Bs.Add(new B { K = "svg", X = SvgLabel(svg), S = style, Vg = model, El = svg });
+        }
+
+        private Vg SvgModel(P page, N svg, Uri baseUrl, List<R> rules, S style)
+        {
+            var model = new Vg();
+            var view = SvgNumbers(svg.Av("viewbox"), 4);
+            if (view != null && view.Length == 4 && view[2] >= MinSvgView && view[3] >= MinSvgView)
+            {
+                model.X = view[0];
+                model.Y = view[1];
+                model.Vw = view[2];
+                model.Vh = view[3];
+                model.Vb = true;
+                SvgAspect(svg.Av("preserveaspectratio"), model);
+            }
+
+            double width;
+            double height;
+            var hasWidth = SvgLength(svg.Av("width"), out width) && width > 0;
+            var hasHeight = SvgLength(svg.Av("height"), out height) && height > 0;
+            if (!hasWidth) width = model.Vb ? Math.Min(MaxSvgSize, model.Vw) : 300D;
+            if (!hasHeight) height = model.Vb ? Math.Min(MaxSvgSize, model.Vh) : 150D;
+            if (hasWidth && !hasHeight && model.Vb) height = Math.Min(MaxSvgSize, width * model.Vh / model.Vw);
+            else if (hasHeight && !hasWidth && model.Vb) width = Math.Min(MaxSvgSize, height * model.Vw / model.Vh);
+            model.W = Math.Max(1D, Math.Min(MaxSvgSize, width));
+            model.H = Math.Max(1D, Math.Min(MaxSvgSize, height));
+            if (!model.Vb)
+            {
+                model.Vw = model.W;
+                model.Vh = model.H;
+            }
+            if (hasWidth && style.W == 0) style.W = Math.Max(1, (int)Math.Round(model.W));
+            if (hasHeight && style.H == 0) style.H = Math.Max(1, (int)Math.Round(model.H));
+
+            var sources = SvgSources(svg);
+            SvgGradients(svg, rules, style, model);
+            SvgClips(rules, style, model, sources);
+            var initial = new Sv { C = style.F, Z = style.Fs > 0 ? style.Fs : 16D };
+            var paint = SvgPaint(svg, initial, style, rules, true);
+            foreach (var child in svg.C)
+            {
+                if (model.Ss.Count == MaxSvgShapes) break;
+                SvgWalk(page, child, baseUrl, rules, style, paint, model, sources, new HashSet<string>(StringComparer.Ordinal), 1, 0, null, null);
+            }
+            return model;
+        }
+
+        private void SvgWalk(P page, N node, Uri baseUrl, List<R> rules, S inherited, Sv parent, Vg model, Sx sources, ISet<string> usingIds, int depth, int useDepth, Uri activeLink, N linkElement)
+        {
+            if (node == null || node.K == "#text" || depth > MaxSvgDepth || model.Ss.Count == MaxSvgShapes) return;
+            if (node.K == "script" || node.K == "style" || node.K == "defs" || node.A.ContainsKey("hidden")) return;
+            var css = Style(node, inherited, rules);
+            if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return;
+            var paint = SvgPaint(node, parent, css, rules, false);
+            if (node.K == "use")
+            {
+                SvgUse(page, node, baseUrl, rules, css, paint, model, sources, usingIds, depth, useDepth, activeLink, linkElement);
+                return;
+            }
+            if (node.K == "symbol") return;
+            var link = activeLink;
+            var linkNode = linkElement;
+            if (node.K == "a")
+            {
+                Uri target;
+                if (TryUri(baseUrl, node.Av("href"), out target))
+                {
+                    link = target;
+                    linkNode = node;
+                    page.Ls.Add(new Ln { U = link, T = Clean(NodeText(node)) });
+                }
+            }
+
+            var shape = SvgShape(node, paint, link, linkNode, model);
+            if (shape != null) model.Ss.Add(shape);
+            if (node.K != "g" && node.K != "a") return;
+            foreach (var child in node.C)
+            {
+                if (model.Ss.Count == MaxSvgShapes) break;
+                SvgWalk(page, child, baseUrl, rules, css, paint, model, sources, usingIds, depth + 1, useDepth, link, linkNode);
+            }
+        }
+
+        private void SvgUse(P page, N use, Uri baseUrl, List<R> rules, S css, Sv paint, Vg model, Sx sources, ISet<string> usingIds, int depth, int useDepth, Uri activeLink, N linkElement)
+        {
+            var id = SvgUseId(use);
+            N target;
+            if (id.Length == 0 || useDepth == MaxSvgUseLinks || usingIds.Contains(id) || !sources.Ns.TryGetValue(id, out target) || !SvgReusable(target.K)) return;
+            double x;
+            double y;
+            if (!SvgNumber(use.Av("x"), 0D, out x) || !SvgNumber(use.Av("y"), 0D, out y)) return;
+            paint = paint.Copy();
+            paint.M = SvgMatrixMultiply(paint.M, new[] { 1D, 0D, 0D, 1D, x, y });
+            if (!SvgMatrixSafe(paint.M)) return;
+            usingIds.Add(id);
+            if (target.K == "symbol")
+            {
+                var symbolCss = Style(target, css, rules);
+                if (symbolCss.D != "none" && symbolCss.Vi != "h" && symbolCss.Vi != "c" && !AriaTrue(target, "aria-hidden"))
+                {
+                    var symbolPaint = SvgPaint(target, paint, symbolCss, rules, false);
+                    foreach (var child in target.C)
+                    {
+                        if (model.Ss.Count == MaxSvgShapes) break;
+                        SvgWalk(page, child, baseUrl, rules, symbolCss, symbolPaint, model, sources, usingIds, depth + 1, useDepth + 1, activeLink, linkElement);
+                    }
+                }
+            }
+            else SvgWalk(page, target, baseUrl, rules, css, paint, model, sources, usingIds, depth + 1, useDepth + 1, activeLink, linkElement);
+            usingIds.Remove(id);
+        }
+
+        private static Vs SvgShape(N node, Sv paint, Uri link, N linkElement, Vg model)
+        {
+            var kind = node.K;
+            if (kind != "rect" && kind != "circle" && kind != "ellipse" && kind != "line" && kind != "polyline" && kind != "polygon" && kind != "text" && kind != "path") return null;
+            var shape = new Vs
+            {
+                K = kind,
+                F = paint.F,
+                S = paint.S,
+                C = paint.C,
+                Fr = paint.R,
+                Lc = paint.Lc,
+                Lj = paint.Lj,
+                W = paint.W,
+                O = paint.O,
+                Fo = paint.Fo,
+                So = paint.So,
+                Z = paint.Z,
+                Ml = paint.Ml,
+                Do = paint.Do,
+                A = paint.A,
+                U = link,
+                El = linkElement ?? node
+            };
+            foreach (var dash in paint.Da) shape.Da.Add(dash);
+            for (var index = 0; index < 6; index++)
+            {
+                shape.M[index] = paint.M[index];
+                shape.Cm[index] = paint.Xm[index];
+            }
+            shape.Cl = paint.X.Length > 0;
+            shape.Cp = SvgClipReference(paint.X, model);
+            shape.Fd = SvgGradientReference(paint.F, model);
+            shape.Sd = SvgGradientReference(paint.S, model);
+            if (SvgPaintServer(paint.F) && shape.Fd == null) shape.F = "none";
+            if (SvgPaintServer(paint.S) && shape.Sd == null) shape.S = "none";
+            double value;
+            if (kind == "rect")
+            {
+                if (!SvgNumber(node.Av("x"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("y"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("width"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("height"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("rx"), 0, out value)) return null; shape.P.Add(Math.Max(0, value));
+                if (!SvgNumber(node.Av("ry"), 0, out value)) return null; shape.P.Add(Math.Max(0, value));
+            }
+            else if (kind == "circle")
+            {
+                if (!SvgNumber(node.Av("cx"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("cy"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("r"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+            }
+            else if (kind == "ellipse")
+            {
+                if (!SvgNumber(node.Av("cx"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("cy"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("rx"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("ry"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+            }
+            else if (kind == "line")
+            {
+                foreach (var name in new[] { "x1", "y1", "x2", "y2" })
+                {
+                    if (!SvgNumber(node.Av(name), 0, out value)) return null;
+                    shape.P.Add(value);
+                }
+            }
+            else if (kind == "polyline" || kind == "polygon")
+            {
+                var points = SvgNumbers(node.Av("points"), MaxSvgPoints * 2);
+                if (points == null || points.Length % 2 != 0 || points.Length < (kind == "polygon" ? 6 : 4)) return null;
+                foreach (var point in points) shape.P.Add(point);
+            }
+            else if (kind == "text")
+            {
+                if (!SvgNumber(node.Av("x"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("y"), 0, out value)) return null; shape.P.Add(value);
+                shape.T = BoundValue(Clean(NodeText(node)), MaxSvgText);
+                if (shape.T.Length == 0) return null;
+            }
+            else if (!SvgPath(node.Av("d"), shape.D)) return null;
+            return shape;
+        }
+
+        private static Sx SvgSources(N svg)
+        {
+            var result = new Sx();
+            SvgSourceNodes(svg, 0, result);
+            return result;
+        }
+
+        private static void SvgSourceNodes(N node, int depth, Sx result)
+        {
+            if (node == null || depth > MaxSvgDepth || result.Os.Count == MaxSvgSources) return;
+            var id = node.Av("id");
+            if (SvgGradientId(id) && !result.Ns.ContainsKey(id))
+            {
+                result.Ns[id] = node;
+                result.Os.Add(node);
+            }
+            foreach (var child in node.C)
+            {
+                if (result.Os.Count == MaxSvgSources) break;
+                SvgSourceNodes(child, depth + 1, result);
+            }
+        }
+
+        private static string SvgUseId(N node)
+        {
+            var href = node.Av("href");
+            if (href.Length == 0) href = node.Av("xlink:href");
+            var match = Regex.Match(href ?? "", "^\\s*#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})\\s*$");
+            return match.Success ? match.Groups["i"].Value : "";
+        }
+
+        private static bool SvgReusable(string kind)
+        {
+            return kind == "rect" || kind == "circle" || kind == "ellipse" || kind == "line" || kind == "polyline" || kind == "polygon" ||
+                kind == "text" || kind == "path" || kind == "g" || kind == "symbol" || kind == "use" || kind == "a";
+        }
+
+        private void SvgClips(List<R> rules, S inherited, Vg model, Sx sources)
+        {
+            foreach (var node in sources.Os)
+            {
+                if (node.K != "clippath" || model.Cs.Count == MaxSvgClips) continue;
+                var clip = SvgClip(node, rules, inherited, model, sources);
+                if (clip != null && SvgClipById(model, clip.I) == null) model.Cs.Add(clip);
+            }
+        }
+
+        private Vc SvgClip(N node, List<R> rules, S inherited, Vg model, Sx sources)
+        {
+            var units = node.Av("clippathunits").Trim().ToLowerInvariant();
+            if (units.Length > 0 && units != "userspaceonuse" && units != "objectboundingbox") return null;
+            var css = Style(node, inherited, rules);
+            if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return null;
+            var initial = new Sv { C = inherited.F, Z = inherited.Fs > 0 ? inherited.Fs : 16D };
+            var paint = SvgPaint(node, initial, css, rules, false);
+            paint.X = "";
+            paint.Xm = SvgIdentity();
+            var clip = new Vc { I = node.Av("id"), U = units == "objectboundingbox" ? "b" : "u" };
+            for (var index = 0; index < 6; index++) clip.M[index] = paint.M[index];
+            foreach (var child in node.C)
+            {
+                if (clip.Ss.Count == MaxSvgClipShapes) break;
+                SvgClipWalk(child, rules, css, paint, model, sources, new HashSet<string>(StringComparer.Ordinal), clip, 1, 0);
+            }
+            return clip.Ss.Count > 0 ? clip : null;
+        }
+
+        private void SvgClipWalk(N node, List<R> rules, S inherited, Sv parent, Vg model, Sx sources, ISet<string> usingIds, Vc clip, int depth, int useDepth)
+        {
+            if (node == null || node.K == "#text" || depth > MaxSvgDepth || clip.Ss.Count == MaxSvgClipShapes) return;
+            if (node.K == "script" || node.K == "style" || node.K == "defs" || node.A.ContainsKey("hidden")) return;
+            var css = Style(node, inherited, rules);
+            if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return;
+            var paint = SvgPaint(node, parent, css, rules, false);
+            paint.X = "";
+            paint.Xm = SvgIdentity();
+            if (node.K == "use")
+            {
+                SvgClipUse(node, rules, css, paint, model, sources, usingIds, clip, depth, useDepth);
+                return;
+            }
+            if (node.K == "symbol") return;
+            var shape = SvgShape(node, paint, null, null, model);
+            if (shape != null)
+            {
+                shape.Fr = paint.Cr;
+                shape.Cl = false;
+                shape.Cp = null;
+                clip.Ss.Add(shape);
+            }
+            if (node.K != "g" && node.K != "a") return;
+            foreach (var child in node.C)
+            {
+                if (clip.Ss.Count == MaxSvgClipShapes) break;
+                SvgClipWalk(child, rules, css, paint, model, sources, usingIds, clip, depth + 1, useDepth);
+            }
+        }
+
+        private void SvgClipUse(N use, List<R> rules, S css, Sv paint, Vg model, Sx sources, ISet<string> usingIds, Vc clip, int depth, int useDepth)
+        {
+            var id = SvgUseId(use);
+            N target;
+            if (id.Length == 0 || useDepth == MaxSvgUseLinks || usingIds.Contains(id) || !sources.Ns.TryGetValue(id, out target) || !SvgReusable(target.K)) return;
+            double x;
+            double y;
+            if (!SvgNumber(use.Av("x"), 0D, out x) || !SvgNumber(use.Av("y"), 0D, out y)) return;
+            paint = paint.Copy();
+            paint.M = SvgMatrixMultiply(paint.M, new[] { 1D, 0D, 0D, 1D, x, y });
+            if (!SvgMatrixSafe(paint.M)) return;
+            usingIds.Add(id);
+            if (target.K == "symbol")
+            {
+                var symbolCss = Style(target, css, rules);
+                if (symbolCss.D != "none" && symbolCss.Vi != "h" && symbolCss.Vi != "c" && !AriaTrue(target, "aria-hidden"))
+                {
+                    var symbolPaint = SvgPaint(target, paint, symbolCss, rules, false);
+                    foreach (var child in target.C)
+                    {
+                        if (clip.Ss.Count == MaxSvgClipShapes) break;
+                        SvgClipWalk(child, rules, symbolCss, symbolPaint, model, sources, usingIds, clip, depth + 1, useDepth + 1);
+                    }
+                }
+            }
+            else SvgClipWalk(target, rules, css, paint, model, sources, usingIds, clip, depth + 1, useDepth + 1);
+            usingIds.Remove(id);
+        }
+
+        private static Vc SvgClipReference(string id, Vg model)
+        {
+            return id.Length > 0 ? SvgClipById(model, id) : null;
+        }
+
+        private static Vc SvgClipById(Vg model, string id)
+        {
+            foreach (var clip in model.Cs) if (clip.I == id) return clip;
+            return null;
+        }
+
+        private void SvgGradients(N svg, List<R> rules, S inherited, Vg model)
+        {
+            var nodes = new List<N>();
+            SvgGradientNodes(svg, false, 0, nodes);
+            var sources = new Dictionary<string, N>(StringComparer.Ordinal);
+            foreach (var node in nodes)
+            {
+                var id = node.Av("id");
+                if (!SvgGradientId(id) || sources.ContainsKey(id) || sources.Count == MaxSvgGradients) continue;
+                sources[id] = node;
+            }
+            var built = new Dictionary<string, Vd>(StringComparer.Ordinal);
+            foreach (var node in nodes)
+            {
+                var id = node.Av("id");
+                if (!sources.ContainsKey(id) || model.Ds.Count == MaxSvgGradients) continue;
+                var gradient = SvgGradient(node, sources, built, new HashSet<string>(StringComparer.Ordinal), rules, inherited, model, 0);
+                if (gradient != null && SvgGradientById(model, id) == null) model.Ds.Add(gradient);
+            }
+        }
+
+        private static void SvgGradientNodes(N node, bool definitions, int depth, IList<N> result)
+        {
+            if (node == null || depth > MaxSvgDepth || result.Count >= MaxSvgGradients * 2) return;
+            definitions = definitions || node.K == "defs";
+            if (definitions && (node.K == "lineargradient" || node.K == "radialgradient")) result.Add(node);
+            foreach (var child in node.C)
+            {
+                if (result.Count >= MaxSvgGradients * 2) break;
+                SvgGradientNodes(child, definitions, depth + 1, result);
+            }
+        }
+
+        private Vd SvgGradient(N node, IDictionary<string, N> sources, IDictionary<string, Vd> built, ISet<string> resolving, List<R> rules, S inherited, Vg model, int depth)
+        {
+            var id = node.Av("id");
+            Vd cached;
+            if (built.TryGetValue(id, out cached)) return cached;
+            if (depth > MaxSvgGradientLinks || resolving.Contains(id)) return null;
+            resolving.Add(id);
+            var kind = node.K == "lineargradient" ? "l" : node.K == "radialgradient" ? "r" : "";
+            if (kind.Length == 0) { resolving.Remove(id); return null; }
+
+            Vd gradient = null;
+            var hrefId = SvgGradientHref(node);
+            N hrefNode;
+            if (hrefId.Length > 0 && sources.TryGetValue(hrefId, out hrefNode))
+            {
+                var inheritedGradient = SvgGradient(hrefNode, sources, built, resolving, rules, inherited, model, depth + 1);
+                if (inheritedGradient == null) { resolving.Remove(id); return null; }
+                if (inheritedGradient.K == kind) gradient = SvgGradientCopy(inheritedGradient);
+            }
+            var inheritedCoordinates = gradient != null;
+            if (gradient == null) gradient = SvgGradientDefault(kind);
+            gradient.I = id;
+            gradient.K = kind;
+
+            var inheritedUnits = gradient.U;
+            var units = node.Av("gradientunits").Trim().ToLowerInvariant();
+            if (units.Length > 0)
+            {
+                if (units == "objectboundingbox") gradient.U = "b";
+                else if (units == "userspaceonuse") gradient.U = "u";
+                else { resolving.Remove(id); return null; }
+                if (inheritedCoordinates && inheritedUnits != gradient.U && !SvgGradientCoordinatesComplete(node, kind)) { resolving.Remove(id); return null; }
+            }
+            var spread = node.Av("spreadmethod").Trim().ToLowerInvariant();
+            if (spread.Length > 0 && spread != "pad") { resolving.Remove(id); return null; }
+            var transform = node.Av("gradienttransform");
+            if (!String.IsNullOrWhiteSpace(transform))
+            {
+                double[] matrix;
+                if (!SvgTransform(transform, out matrix)) { resolving.Remove(id); return null; }
+                for (var index = 0; index < 6; index++) gradient.M[index] = matrix[index];
+            }
+            if (!SvgGradientCoordinates(node, gradient, model, inheritedCoordinates)) { resolving.Remove(id); return null; }
+
+            bool authoredStops;
+            List<Vt> stops;
+            if (!SvgGradientStops(node, rules, inherited, out authoredStops, out stops)) { resolving.Remove(id); return null; }
+            if (authoredStops)
+            {
+                gradient.Ss.Clear();
+                foreach (var stop in stops) gradient.Ss.Add(stop);
+            }
+            if (gradient.Ss.Count == 0) { resolving.Remove(id); return null; }
+            built[id] = gradient;
+            resolving.Remove(id);
+            return gradient;
+        }
+
+        private static Vd SvgGradientDefault(string kind)
+        {
+            var gradient = new Vd { K = kind };
+            if (kind == "l")
+            {
+                foreach (var value in new[] { 0D, 0D, 1D, 0D }) gradient.P.Add(value);
+            }
+            else
+            {
+                foreach (var value in new[] { .5D, .5D, .5D, .5D, .5D }) gradient.P.Add(value);
+            }
+            return gradient;
+        }
+
+        private static Vd SvgGradientCopy(Vd source)
+        {
+            var copy = new Vd { I = source.I, K = source.K, U = source.U };
+            foreach (var value in source.P) copy.P.Add(value);
+            for (var index = 0; index < 6; index++) copy.M[index] = source.M[index];
+            foreach (var stop in source.Ss) copy.Ss.Add(new Vt(stop.O, stop.C, stop.A));
+            return copy;
+        }
+
+        private static bool SvgGradientCoordinates(N node, Vd gradient, Vg model, bool inherited)
+        {
+            if (gradient.K == "l")
+            {
+                return SvgGradientCoordinate(node, "x1", 'x', gradient, model, 0) &&
+                    SvgGradientCoordinate(node, "y1", 'y', gradient, model, 1) &&
+                    SvgGradientCoordinate(node, "x2", 'x', gradient, model, 2) &&
+                    SvgGradientCoordinate(node, "y2", 'y', gradient, model, 3);
+            }
+            var defaultFocusX = !inherited && node.Av("fx").Length == 0 && node.Av("cx").Length > 0;
+            var defaultFocusY = !inherited && node.Av("fy").Length == 0 && node.Av("cy").Length > 0;
+            if (!SvgGradientCoordinate(node, "cx", 'x', gradient, model, 0) ||
+                !SvgGradientCoordinate(node, "cy", 'y', gradient, model, 1) ||
+                !SvgGradientCoordinate(node, "r", 'r', gradient, model, 2)) return false;
+            if (defaultFocusX) gradient.P[3] = gradient.P[0];
+            if (defaultFocusY) gradient.P[4] = gradient.P[1];
+            return SvgGradientCoordinate(node, "fx", 'x', gradient, model, 3) &&
+                SvgGradientCoordinate(node, "fy", 'y', gradient, model, 4) && gradient.P[2] > 0D;
+        }
+
+        private static bool SvgGradientCoordinatesComplete(N node, string kind)
+        {
+            if (kind == "l") return node.Av("x1").Length > 0 && node.Av("y1").Length > 0 && node.Av("x2").Length > 0 && node.Av("y2").Length > 0;
+            return node.Av("cx").Length > 0 && node.Av("cy").Length > 0 && node.Av("r").Length > 0 && node.Av("fx").Length > 0 && node.Av("fy").Length > 0;
+        }
+
+        private static bool SvgGradientCoordinate(N node, string name, char axis, Vd gradient, Vg model, int index)
+        {
+            var input = node.Av(name);
+            if (String.IsNullOrWhiteSpace(input)) return true;
+            var match = Regex.Match(input, "^\\s*(?<n>[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?)(?<p>%?)\\s*$", RegexOptions.IgnoreCase);
+            double value;
+            if (!match.Success || !SvgFinite(match.Groups["n"].Value, out value)) return false;
+            var percent = match.Groups["p"].Value.Length > 0;
+            if (percent) value /= 100D;
+            if (gradient.U == "b")
+            {
+                if (Math.Abs(value) > 100D) return false;
+            }
+            else if (percent)
+            {
+                if (axis == 'x') value = model.X + model.Vw * value;
+                else if (axis == 'y') value = model.Y + model.Vh * value;
+                else value = Math.Sqrt(model.Vw * model.Vw + model.Vh * model.Vh) / Math.Sqrt(2D) * value;
+            }
+            else if (Math.Abs(value) > MaxSvgCoordinate) return false;
+            gradient.P[index] = value;
+            return axis != 'r' || value > 0D;
+        }
+
+        private bool SvgGradientStops(N node, List<R> rules, S inherited, out bool authored, out List<Vt> result)
+        {
+            authored = false;
+            result = new List<Vt>();
+            var count = 0;
+            foreach (var child in node.C) if (child.K == "stop") count++;
+            if (count == 0) return true;
+            authored = true;
+            if (count > MaxSvgStops) return false;
+            var gradientStyle = Style(node, inherited, rules);
+            var previous = 0D;
+            foreach (var stop in node.C)
+            {
+                if (stop.K != "stop") continue;
+                double offset;
+                if (!SvgStopOffset(stop.Av("offset"), out offset)) return false;
+                offset = Math.Max(previous, offset);
+                previous = offset;
+                var stopStyle = Style(stop, gradientStyle, rules);
+                var color = stop.Av("stop-color").Trim();
+                if (color.Length == 0) color = "#000000";
+                var alpha = 1D;
+                double authoredAlpha;
+                if (stop.Av("stop-opacity").Length > 0 && SvgAlpha(stop.Av("stop-opacity"), out authoredAlpha)) alpha = authoredAlpha;
+                var matched = new List<R>();
+                foreach (var rule in rules)
+                    if (ContainerOn(gradientStyle, rule.Kqs) && MatchCss(stop, rule)) matched.Add(rule);
+                var important = ImportantRules(matched);
+                foreach (var rule in matched) SvgStopDeclarations(rule.Ds, false, stopStyle, ref color, ref alpha);
+                SvgStopDeclarations(CssDeclarations(stop.Av("style")), false, stopStyle, ref color, ref alpha);
+                foreach (var rule in important) SvgStopDeclarations(rule.Ds, true, stopStyle, ref color, ref alpha);
+                SvgStopDeclarations(CssDeclarations(stop.Av("style")), true, stopStyle, ref color, ref alpha);
+                if (color.Equals("currentcolor", StringComparison.OrdinalIgnoreCase)) color = stopStyle.F;
+                if (color.Length == 0 || color.Length > 64 || color.IndexOf("url(", StringComparison.OrdinalIgnoreCase) >= 0) return false;
+                result.Add(new Vt(offset, color, alpha));
+            }
+            return result.Count > 0;
+        }
+
+        private static void SvgStopDeclarations(Pd[] declarations, bool important, S style, ref string color, ref double alpha)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important) continue;
+                string value;
+                if (!VarValue(style, declaration.V, out value)) continue;
+                if (declaration.N == "stop-color") color = value.Trim();
+                else if (declaration.N == "stop-opacity")
+                {
+                    double number;
+                    if (SvgAlpha(value, out number)) alpha = number;
+                }
+            }
+        }
+
+        private static bool SvgStopOffset(string input, out double value)
+        {
+            value = 0D;
+            var text = (input ?? "").Trim();
+            if (text.Length == 0) return true;
+            var percent = text.EndsWith("%", StringComparison.Ordinal);
+            if (percent) text = text.Substring(0, text.Length - 1).Trim();
+            if (!SvgFinite(text, out value)) return false;
+            if (percent) value /= 100D;
+            value = Math.Max(0D, Math.Min(1D, value));
+            return true;
+        }
+
+        private static string SvgGradientHref(N node)
+        {
+            var href = node.Av("href");
+            if (href.Length == 0) href = node.Av("xlink:href");
+            var match = Regex.Match(href ?? "", "^\\s*#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})\\s*$");
+            return match.Success ? match.Groups["i"].Value : "";
+        }
+
+        private static bool SvgGradientId(string value)
+        {
+            return !String.IsNullOrEmpty(value) && value.Length <= MaxSvgGradientId && Regex.IsMatch(value, "^[A-Za-z_][A-Za-z0-9_.:-]*$");
+        }
+
+        private static bool SvgPaintServer(string value)
+        {
+            return Regex.IsMatch((value ?? "").Trim(), "^url\\(\\s*['\"]?#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})['\"]?\\s*\\)$", RegexOptions.IgnoreCase);
+        }
+
+        private static Vd SvgGradientReference(string value, Vg model)
+        {
+            var match = Regex.Match((value ?? "").Trim(), "^url\\(\\s*['\"]?#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})['\"]?\\s*\\)$", RegexOptions.IgnoreCase);
+            return match.Success ? SvgGradientById(model, match.Groups["i"].Value) : null;
+        }
+
+        private static Vd SvgGradientById(Vg model, string id)
+        {
+            foreach (var gradient in model.Ds) if (gradient.I == id) return gradient;
+            return null;
+        }
+
+        private Sv SvgPaint(N node, Sv inherited, S css, List<R> rules, bool root)
+        {
+            var paint = inherited.Copy();
+            double[] transform = null;
+            var clipChanged = false;
+            SvgTransform(node.Av("transform"), out transform);
+            paint.C = css != null && css.F.Length > 0 ? css.F : paint.C;
+            if (css != null && css.Fs > 0) paint.Z = css.Fs;
+            SvgPaintSet(paint, "fill", node.Av("fill"));
+            SvgPaintSet(paint, "stroke", node.Av("stroke"));
+            SvgPaintSet(paint, "stroke-width", node.Av("stroke-width"));
+            SvgPaintSet(paint, "opacity", node.Av("opacity"));
+            SvgPaintSet(paint, "fill-opacity", node.Av("fill-opacity"));
+            SvgPaintSet(paint, "stroke-opacity", node.Av("stroke-opacity"));
+            SvgPaintSet(paint, "font-size", node.Av("font-size"));
+            SvgPaintSet(paint, "text-anchor", node.Av("text-anchor"));
+            SvgPaintSet(paint, "fill-rule", node.Av("fill-rule"));
+            SvgPaintSet(paint, "clip-rule", node.Av("clip-rule"));
+            SvgPaintSet(paint, "stroke-linecap", node.Av("stroke-linecap"));
+            SvgPaintSet(paint, "stroke-linejoin", node.Av("stroke-linejoin"));
+            SvgPaintSet(paint, "stroke-miterlimit", node.Av("stroke-miterlimit"));
+            SvgPaintSet(paint, "stroke-dasharray", node.Av("stroke-dasharray"));
+            SvgPaintSet(paint, "stroke-dashoffset", node.Av("stroke-dashoffset"));
+            SvgClipSet(paint, node.Av("clip-path"), ref clipChanged);
+            var matched = new List<R>();
+            var chain = css == null || css.Sq == null ? null : css.Sq.Up;
+            foreach (var rule in rules)
+                if (ContainerOn(chain, rule.Kqs) && MatchCss(node, rule)) matched.Add(rule);
+            var important = ImportantRules(matched);
+            foreach (var rule in matched) SvgPaintDeclarations(rule.Ds, false, css, paint, ref transform, ref clipChanged, root);
+            var inline = CssDeclarations(node.Av("style"));
+            SvgPaintDeclarations(inline, false, css, paint, ref transform, ref clipChanged, root);
+            foreach (var rule in important) SvgPaintDeclarations(rule.Ds, true, css, paint, ref transform, ref clipChanged, root);
+            SvgPaintDeclarations(inline, true, css, paint, ref transform, ref clipChanged, root);
+            if (transform != null) paint.M = SvgMatrixMultiply(inherited.M, transform);
+            if (clipChanged) paint.Xm = (double[])paint.M.Clone();
+            return paint;
+        }
+
+        private static void SvgPaintDeclarations(Pd[] declarations, bool important, S style, Sv paint, ref double[] transform, ref bool clipChanged, bool root)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important) continue;
+                string value;
+                if (!VarValue(style, declaration.V, out value)) continue;
+                if (declaration.N == "clip-path") SvgClipSet(paint, value, ref clipChanged);
+                else if (declaration.N == "transform")
+                {
+                    double[] parsed;
+                    if (!root && SvgTransform(value, out parsed)) transform = parsed;
+                }
+                else if (!root || declaration.N != "opacity") SvgPaintSet(paint, declaration.N, value);
+            }
+        }
+
+        private static void SvgClipSet(Sv paint, string input, ref bool changed)
+        {
+            var value = (input ?? "").Trim();
+            if (value.Equals("none", StringComparison.OrdinalIgnoreCase))
+            {
+                paint.X = "";
+                changed = true;
+                return;
+            }
+            var match = Regex.Match(value, "^url\\(\\s*['\"]?#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})['\"]?\\s*\\)$", RegexOptions.IgnoreCase);
+            if (!match.Success) return;
+            paint.X = match.Groups["i"].Value;
+            changed = true;
+        }
+
+        private static void SvgPaintSet(Sv paint, string name, string input)
+        {
+            var value = (input ?? "").Trim();
+            if (value.Length == 0) return;
+            if (name == "fill" || name == "stroke")
+            {
+                if (value.Length > 128 || value.IndexOf("url(", StringComparison.OrdinalIgnoreCase) >= 0 && !SvgPaintServer(value)) return;
+                if (name == "fill") paint.F = value;
+                else paint.S = value;
+                return;
+            }
+            double number;
+            if (name == "stroke-width" && SvgLength(value, out number)) paint.W = Math.Max(0, Math.Min(256D, number));
+            else if (name == "opacity" && SvgAlpha(value, out number)) paint.O *= number;
+            else if (name == "fill-opacity" && SvgAlpha(value, out number)) paint.Fo = number;
+            else if (name == "stroke-opacity" && SvgAlpha(value, out number)) paint.So = number;
+            else if (name == "font-size" && SvgLength(value, out number) && number > 0) paint.Z = Math.Min(200D, number);
+            else if (name == "fill-rule") SvgRule(value, ref paint.R);
+            else if (name == "clip-rule") SvgRule(value, ref paint.Cr);
+            else if (name == "stroke-linecap")
+            {
+                var cap = value.ToLowerInvariant();
+                if (cap == "butt") paint.Lc = "b";
+                else if (cap == "round") paint.Lc = "r";
+                else if (cap == "square") paint.Lc = "s";
+            }
+            else if (name == "stroke-linejoin")
+            {
+                var join = value.ToLowerInvariant();
+                if (join == "miter") paint.Lj = "m";
+                else if (join == "round") paint.Lj = "r";
+                else if (join == "bevel") paint.Lj = "b";
+            }
+            else if (name == "stroke-miterlimit" && SvgNumber(value, 4D, out number) && number >= 1D) paint.Ml = Math.Min(MaxSvgMiterLimit, number);
+            else if (name == "stroke-dashoffset" && SvgLength(value, out number)) paint.Do = number;
+            else if (name == "stroke-dasharray")
+            {
+                double[] dashes;
+                if (SvgDashes(value, out dashes)) paint.Da = dashes;
+            }
+            else if (name == "text-anchor")
+            {
+                var anchor = value.ToLowerInvariant();
+                if (anchor == "start") paint.A = "s";
+                else if (anchor == "middle") paint.A = "m";
+                else if (anchor == "end") paint.A = "e";
+            }
+        }
+
+        private static void SvgRule(string value, ref string target)
+        {
+            var rule = value.ToLowerInvariant();
+            if (rule == "nonzero") target = "n";
+            else if (rule == "evenodd") target = "e";
+        }
+
+        private static bool SvgDashes(string input, out double[] result)
+        {
+            result = null;
+            var source = (input ?? "").Trim();
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase)) { result = new double[0]; return true; }
+            if (source.Length == 0 || source.Length > MaxSvgDashText) return false;
+            var matches = Regex.Matches(source, "(?<n>[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?)(?:px)?", RegexOptions.IgnoreCase);
+            if (matches.Count == 0 || matches.Count > MaxSvgDashes || matches.Count % 2 == 1 && matches.Count * 2 > MaxSvgDashes) return false;
+            var values = new List<double>();
+            var end = 0;
+            var total = 0D;
+            foreach (Match match in matches)
+            {
+                double value;
+                if (!SvgSeparators(source, end, match.Index) || !SvgFinite(match.Groups["n"].Value, out value) || value < 0D || value > MaxSvgSize) return false;
+                values.Add(value);
+                total += value;
+                end = match.Index + match.Length;
+            }
+            if (!SvgSeparators(source, end, source.Length) || total <= 0D) return false;
+            if (values.Count % 2 == 1) values.AddRange(values.ToArray());
+            result = values.ToArray();
+            return true;
+        }
+
+        private static string SvgLabel(N svg)
+        {
+            var label = Clean(svg.Av("aria-label"));
+            if (label.Length == 0)
+            {
+                var title = FirstChild(svg, "title");
+                if (title != null) label = Clean(NodeText(title));
+            }
+            return BoundValue(label, MaxSvgText);
+        }
+
+        private static bool SvgLength(string input, out double value)
+        {
+            value = 0;
+            var match = Regex.Match(input ?? "", "^\\s*(?<n>[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?)(?:px)?\\s*$", RegexOptions.IgnoreCase);
+            return match.Success && SvgFinite(match.Groups["n"].Value, out value) && value >= -MaxSvgSize && value <= MaxSvgSize;
+        }
+
+        private static bool SvgNumber(string input, double fallback, out double value)
+        {
+            value = fallback;
+            if (String.IsNullOrWhiteSpace(input)) { value = fallback; return true; }
+            var match = Regex.Match(input, "^\\s*(?<n>[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?)\\s*$", RegexOptions.IgnoreCase);
+            return match.Success && SvgFinite(match.Groups["n"].Value, out value) && Math.Abs(value) <= MaxSvgCoordinate;
+        }
+
+        private static bool SvgAlpha(string input, out double value)
+        {
+            value = 1;
+            var text = (input ?? "").Trim();
+            var percent = text.EndsWith("%", StringComparison.Ordinal);
+            if (percent) text = text.Substring(0, text.Length - 1).Trim();
+            if (!SvgFinite(text, out value)) return false;
+            if (percent) value /= 100D;
+            value = Math.Max(0D, Math.Min(1D, value));
+            return true;
+        }
+
+        private static double[] SvgNumbers(string input, int maximum)
+        {
+            var source = input ?? "";
+            if (source.Length == 0 || source.Length > MaxHtmlAttributeValue) return null;
+            var matches = Regex.Matches(source, "[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?", RegexOptions.IgnoreCase);
+            if (matches.Count == 0 || matches.Count > maximum) return null;
+            var result = new double[matches.Count];
+            var end = 0;
+            for (var index = 0; index < matches.Count; index++)
+            {
+                var match = matches[index];
+                if (!SvgSeparators(source, end, match.Index) || !SvgFinite(match.Value, out result[index]) || Math.Abs(result[index]) > MaxSvgCoordinate) return null;
+                end = match.Index + match.Length;
+            }
+            return SvgSeparators(source, end, source.Length) ? result : null;
+        }
+
+        private static void SvgAspect(string input, Vg model)
+        {
+            var value = Regex.Replace((input ?? "").Trim(), "\\s+", " ").ToLowerInvariant();
+            if (value.Length == 0) return;
+            var parts = value.Split(' ');
+            if (parts.Length > 2 || parts[0] == "defer") return;
+            if (parts[0] == "none")
+            {
+                if (parts.Length == 1) model.A = "n";
+                return;
+            }
+            var match = Regex.Match(parts[0], "^x(?<x>min|mid|max)y(?<y>min|mid|max)$", RegexOptions.IgnoreCase);
+            if (!match.Success) return;
+            if (parts.Length == 2 && parts[1] != "meet" && parts[1] != "slice") return;
+            model.A = SvgAspectPart(match.Groups["x"].Value) + SvgAspectPart(match.Groups["y"].Value);
+            model.M = parts.Length == 2 && parts[1] == "slice" ? "s" : "m";
+        }
+
+        private static string SvgAspectPart(string value)
+        {
+            return value == "min" ? "n" : value == "max" ? "x" : "m";
+        }
+
+        private static bool SvgTransform(string input, out double[] matrix)
+        {
+            matrix = null;
+            var source = (input ?? "").Trim();
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase)) { matrix = SvgIdentity(); return true; }
+            if (source.Length == 0 || source.Length > MaxSvgTransformText) return false;
+            var matches = Regex.Matches(source, "(?<n>matrix|translate|scale|rotate|skewx|skewy)\\s*\\((?<v>[^()]*)\\)", RegexOptions.IgnoreCase);
+            if (matches.Count == 0 || matches.Count > MaxSvgTransforms) return false;
+            var result = SvgIdentity();
+            var end = 0;
+            foreach (Match match in matches)
+            {
+                if (!SvgSeparators(source, end, match.Index)) return false;
+                var values = SvgNumbers(match.Groups["v"].Value, 6);
+                if (values == null) return false;
+                var name = match.Groups["n"].Value.ToLowerInvariant();
+                double[] next;
+                if (name == "matrix" && values.Length == 6) next = values;
+                else if (name == "translate" && (values.Length == 1 || values.Length == 2)) next = new[] { 1D, 0D, 0D, 1D, values[0], values.Length == 2 ? values[1] : 0D };
+                else if (name == "scale" && (values.Length == 1 || values.Length == 2)) next = new[] { values[0], 0D, 0D, values.Length == 2 ? values[1] : values[0], 0D, 0D };
+                else if (name == "rotate" && (values.Length == 1 || values.Length == 3)) next = SvgRotate(values);
+                else if ((name == "skewx" || name == "skewy") && values.Length == 1)
+                {
+                    var tangent = Math.Tan(values[0] * Math.PI / 180D);
+                    if (Double.IsNaN(tangent) || Double.IsInfinity(tangent) || Math.Abs(tangent) > MaxSvgMatrixScale) return false;
+                    next = name == "skewx" ? new[] { 1D, 0D, tangent, 1D, 0D, 0D } : new[] { 1D, tangent, 0D, 1D, 0D, 0D };
+                }
+                else return false;
+                result = SvgMatrixMultiply(result, next);
+                if (!SvgMatrixSafe(result)) return false;
+                end = match.Index + match.Length;
+            }
+            if (!SvgSeparators(source, end, source.Length)) return false;
+            matrix = result;
+            return true;
+        }
+
+        private static double[] SvgRotate(double[] values)
+        {
+            var angle = values[0] % 360D * Math.PI / 180D;
+            var cosine = Math.Cos(angle);
+            var sine = Math.Sin(angle);
+            var x = values.Length == 3 ? values[1] : 0D;
+            var y = values.Length == 3 ? values[2] : 0D;
+            return new[] { cosine, sine, -sine, cosine, x - cosine * x + sine * y, y - sine * x - cosine * y };
+        }
+
+        private static double[] SvgIdentity()
+        {
+            return new[] { 1D, 0D, 0D, 1D, 0D, 0D };
+        }
+
+        private static double[] SvgMatrixMultiply(double[] left, double[] right)
+        {
+            return new[]
+            {
+                left[0] * right[0] + left[2] * right[1],
+                left[1] * right[0] + left[3] * right[1],
+                left[0] * right[2] + left[2] * right[3],
+                left[1] * right[2] + left[3] * right[3],
+                left[0] * right[4] + left[2] * right[5] + left[4],
+                left[1] * right[4] + left[3] * right[5] + left[5]
+            };
+        }
+
+        private static bool SvgMatrixSafe(double[] matrix)
+        {
+            if (matrix == null || matrix.Length != 6) return false;
+            for (var index = 0; index < matrix.Length; index++)
+                if (Double.IsNaN(matrix[index]) || Double.IsInfinity(matrix[index]) || Math.Abs(matrix[index]) > (index < 4 ? MaxSvgMatrixScale : MaxSvgMatrixTranslate)) return false;
+            return true;
+        }
+
+        private static bool SvgPath(string input, IList<Vp> result)
+        {
+            var source = input ?? "";
+            if (source.Length == 0 || source.Length > 4096) return false;
+            var matches = Regex.Matches(source, "[MmLlHhVvCcSsQqTtAaZz]|[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?", RegexOptions.IgnoreCase);
+            if (matches.Count == 0 || matches.Count > MaxSvgPoints * 8) return false;
+            var tokens = new List<string>();
+            var end = 0;
+            foreach (Match match in matches)
+            {
+                if (!SvgSeparators(source, end, match.Index)) return false;
+                tokens.Add(match.Value);
+                end = match.Index + match.Length;
+            }
+            if (!SvgSeparators(source, end, source.Length)) return false;
+
+            var at = 0;
+            var command = '\0';
+            var x = 0D;
+            var y = 0D;
+            var startX = 0D;
+            var startY = 0D;
+            var controlX = 0D;
+            var controlY = 0D;
+            var previous = '\0';
+            while (at < tokens.Count)
+            {
+                if (tokens[at].Length == 1 && Char.IsLetter(tokens[at][0]))
+                {
+                    command = tokens[at++][0];
+                    if (command == 'z' || command == 'Z')
+                    {
+                        if (result.Count == 0) return false;
+                        result.Add(new Vp('Z', startX, startY));
+                        x = startX;
+                        y = startY;
+                        previous = 'z';
+                        command = '\0';
+                        continue;
+                    }
+                }
+                if (command == '\0') return false;
+                var lower = Char.ToLowerInvariant(command);
+                var relative = Char.IsLower(command);
+                if (result.Count == 0 && lower != 'm') return false;
+                double a;
+                double b;
+                double c;
+                double d;
+                double e;
+                double f;
+                if (lower == 'm' || lower == 'l')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a) || !SvgPathNumber(tokens, ref at, out b)) return false;
+                    if (relative) { a += x; b += y; }
+                    if (!SvgPathPoint(a, b) || result.Count == MaxSvgPoints) return false;
+                    var move = lower == 'm';
+                    if (move) { startX = a; startY = b; }
+                    result.Add(new Vp(move ? 'M' : 'L', a, b));
+                    x = a;
+                    y = b;
+                    previous = move ? 'm' : 'l';
+                    if (move) command = relative ? 'l' : 'L';
+                }
+                else if (lower == 'h')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a)) return false;
+                    x = relative ? x + a : a;
+                    if (!SvgPathPoint(x, y) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('L', x, y));
+                    previous = 'h';
+                }
+                else if (lower == 'v')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a)) return false;
+                    y = relative ? y + a : a;
+                    if (!SvgPathPoint(x, y) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('L', x, y));
+                    previous = 'v';
+                }
+                else if (lower == 'c')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a) || !SvgPathNumber(tokens, ref at, out b) ||
+                        !SvgPathNumber(tokens, ref at, out c) || !SvgPathNumber(tokens, ref at, out d) ||
+                        !SvgPathNumber(tokens, ref at, out e) || !SvgPathNumber(tokens, ref at, out f)) return false;
+                    if (relative) { a += x; b += y; c += x; d += y; e += x; f += y; }
+                    if (!SvgPathPoint(a, b) || !SvgPathPoint(c, d) || !SvgPathPoint(e, f) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('C', e, f, a, b, c, d));
+                    x = e;
+                    y = f;
+                    controlX = c;
+                    controlY = d;
+                    previous = 'c';
+                }
+                else if (lower == 's')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out c) || !SvgPathNumber(tokens, ref at, out d) ||
+                        !SvgPathNumber(tokens, ref at, out e) || !SvgPathNumber(tokens, ref at, out f)) return false;
+                    a = previous == 'c' || previous == 's' ? x * 2D - controlX : x;
+                    b = previous == 'c' || previous == 's' ? y * 2D - controlY : y;
+                    if (relative) { c += x; d += y; e += x; f += y; }
+                    if (!SvgPathPoint(a, b) || !SvgPathPoint(c, d) || !SvgPathPoint(e, f) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('C', e, f, a, b, c, d));
+                    x = e;
+                    y = f;
+                    controlX = c;
+                    controlY = d;
+                    previous = 's';
+                }
+                else if (lower == 'q')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a) || !SvgPathNumber(tokens, ref at, out b) ||
+                        !SvgPathNumber(tokens, ref at, out c) || !SvgPathNumber(tokens, ref at, out d)) return false;
+                    if (relative) { a += x; b += y; c += x; d += y; }
+                    if (!SvgPathPoint(a, b) || !SvgPathPoint(c, d) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('Q', c, d, a, b, 0D, 0D));
+                    x = c;
+                    y = d;
+                    controlX = a;
+                    controlY = b;
+                    previous = 'q';
+                }
+                else if (lower == 't')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out c) || !SvgPathNumber(tokens, ref at, out d)) return false;
+                    a = previous == 'q' || previous == 't' ? x * 2D - controlX : x;
+                    b = previous == 'q' || previous == 't' ? y * 2D - controlY : y;
+                    if (relative) { c += x; d += y; }
+                    if (!SvgPathPoint(a, b) || !SvgPathPoint(c, d) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('Q', c, d, a, b, 0D, 0D));
+                    x = c;
+                    y = d;
+                    controlX = a;
+                    controlY = b;
+                    previous = 't';
+                }
+                else if (lower == 'a')
+                {
+                    bool large;
+                    bool sweep;
+                    if (!SvgPathNumber(tokens, ref at, out a) || !SvgPathNumber(tokens, ref at, out b) ||
+                        !SvgPathNumber(tokens, ref at, out c) || !SvgPathFlag(tokens, ref at, out large) ||
+                        !SvgPathFlag(tokens, ref at, out sweep) || !SvgPathNumber(tokens, ref at, out d) ||
+                        !SvgPathNumber(tokens, ref at, out e)) return false;
+                    if (relative) { d += x; e += y; }
+                    if (!SvgArc(result, x, y, a, b, c, large, sweep, d, e)) return false;
+                    x = d;
+                    y = e;
+                    previous = 'a';
+                }
+                else return false;
+            }
+            return at == tokens.Count && result.Count > 0;
+        }
+
+        private static bool SvgArc(IList<Vp> result, double x1, double y1, double radiusX, double radiusY, double rotation, bool large, bool sweep, double x2, double y2)
+        {
+            if (!SvgPathPoint(x2, y2) || !SvgPathPoint(radiusX, radiusY) || Math.Abs(rotation) > MaxSvgCoordinate) return false;
+            if (Math.Abs(x1 - x2) < Double.Epsilon && Math.Abs(y1 - y2) < Double.Epsilon) return true;
+            var rx = Math.Abs(radiusX);
+            var ry = Math.Abs(radiusY);
+            if (rx < Double.Epsilon || ry < Double.Epsilon)
+            {
+                if (result.Count == MaxSvgPoints) return false;
+                result.Add(new Vp('L', x2, y2));
+                return true;
+            }
+
+            var phi = rotation % 360D * Math.PI / 180D;
+            var cosine = Math.Cos(phi);
+            var sine = Math.Sin(phi);
+            var halfX = (x1 - x2) / 2D;
+            var halfY = (y1 - y2) / 2D;
+            var x1p = cosine * halfX + sine * halfY;
+            var y1p = -sine * halfX + cosine * halfY;
+            var rx2 = rx * rx;
+            var ry2 = ry * ry;
+            var x1p2 = x1p * x1p;
+            var y1p2 = y1p * y1p;
+            var radii = x1p2 / rx2 + y1p2 / ry2;
+            if (radii > 1D)
+            {
+                var scale = Math.Sqrt(radii);
+                rx *= scale;
+                ry *= scale;
+                rx2 = rx * rx;
+                ry2 = ry * ry;
+            }
+
+            var denominator = rx2 * y1p2 + ry2 * x1p2;
+            if (denominator <= Double.Epsilon) return false;
+            var ratio = Math.Max(0D, (rx2 * ry2 - denominator) / denominator);
+            var coefficient = (large == sweep ? -1D : 1D) * Math.Sqrt(ratio);
+            var cxp = coefficient * rx * y1p / ry;
+            var cyp = coefficient * -ry * x1p / rx;
+            var cx = cosine * cxp - sine * cyp + (x1 + x2) / 2D;
+            var cy = sine * cxp + cosine * cyp + (y1 + y2) / 2D;
+            var theta = Math.Atan2((y1p - cyp) / ry, (x1p - cxp) / rx);
+            var endTheta = Math.Atan2((-y1p - cyp) / ry, (-x1p - cxp) / rx);
+            var delta = endTheta - theta;
+            if (!sweep && delta > 0D) delta -= Math.PI * 2D;
+            else if (sweep && delta < 0D) delta += Math.PI * 2D;
+            var segments = Math.Max(1, (int)Math.Ceiling(Math.Abs(delta) / (Math.PI / 2D)));
+            if (segments > 4 || result.Count + segments > MaxSvgPoints) return false;
+            var step = delta / segments;
+            for (var index = 0; index < segments; index++)
+            {
+                var from = theta + step * index;
+                var to = from + step;
+                var alpha = 4D / 3D * Math.Tan(step / 4D);
+                var fromX = cx + rx * cosine * Math.Cos(from) - ry * sine * Math.Sin(from);
+                var fromY = cy + rx * sine * Math.Cos(from) + ry * cosine * Math.Sin(from);
+                var toX = cx + rx * cosine * Math.Cos(to) - ry * sine * Math.Sin(to);
+                var toY = cy + rx * sine * Math.Cos(to) + ry * cosine * Math.Sin(to);
+                var fromDx = -rx * cosine * Math.Sin(from) - ry * sine * Math.Cos(from);
+                var fromDy = -rx * sine * Math.Sin(from) + ry * cosine * Math.Cos(from);
+                var toDx = -rx * cosine * Math.Sin(to) - ry * sine * Math.Cos(to);
+                var toDy = -rx * sine * Math.Sin(to) + ry * cosine * Math.Cos(to);
+                var control1X = fromX + alpha * fromDx;
+                var control1Y = fromY + alpha * fromDy;
+                var control2X = toX - alpha * toDx;
+                var control2Y = toY - alpha * toDy;
+                if (index == segments - 1) { toX = x2; toY = y2; }
+                if (!SvgPathPoint(control1X, control1Y) || !SvgPathPoint(control2X, control2Y) || !SvgPathPoint(toX, toY)) return false;
+                result.Add(new Vp('C', toX, toY, control1X, control1Y, control2X, control2Y));
+            }
+            return true;
+        }
+
+        private static bool SvgPathPoint(double x, double y)
+        {
+            return !Double.IsNaN(x) && !Double.IsInfinity(x) && !Double.IsNaN(y) && !Double.IsInfinity(y) &&
+                Math.Abs(x) <= MaxSvgCoordinate && Math.Abs(y) <= MaxSvgCoordinate;
+        }
+
+        private static bool SvgPathFlag(IList<string> tokens, ref int at, out bool value)
+        {
+            value = false;
+            double number;
+            if (!SvgPathNumber(tokens, ref at, out number) || number != 0D && number != 1D) return false;
+            value = number == 1D;
+            return true;
+        }
+
+        private static bool SvgPathNumber(IList<string> tokens, ref int at, out double value)
+        {
+            value = 0;
+            if (at >= tokens.Count || tokens[at].Length == 1 && Char.IsLetter(tokens[at][0])) return false;
+            return SvgFinite(tokens[at++], out value);
+        }
+
+        private static bool SvgFinite(string input, out double value)
+        {
+            return Double.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out value) && !Double.IsNaN(value) && !Double.IsInfinity(value);
+        }
+
+        private static bool SvgSeparators(string source, int start, int end)
+        {
+            for (var index = start; index < end; index++)
+                if (!AsciiWhite(source[index]) && source[index] != ',') return false;
+            return true;
+        }
+
+        private static B ImageBlock(P page, N image, Uri source, S style)
+        {
+            var map = ImageMap(page, image.Av("usemap"));
+            if (map != null)
+                foreach (var area in map.As)
+                    if (area.U != null) page.Ls.Add(new Ln { U = area.U, T = Clean(area.T) });
+            return new B
+            {
+                K = "img",
+                X = image.Av("alt"),
+                U = source,
+                S = style,
+                Mp = map,
+                Mw = map == null ? 0 : HtmlDimension(image.Av("width")),
+                Mh = map == null ? 0 : HtmlDimension(image.Av("height")),
+                El = image
+            };
+        }
+
+        private static void ImageDimensions(N image, S style)
+        {
+            if (style.W == 0) style.W = HtmlDimension(image.Av("width"));
+            if (style.H == 0) style.H = HtmlDimension(image.Av("height"));
+        }
+
+        private static int HtmlDimension(string value)
+        {
+            var match = Regex.Match(value ?? "", "^\\s*(?<n>[1-9][0-9]{0,4})(?:px)?\\s*$", RegexOptions.IgnoreCase);
+            int number;
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, out number) ? Math.Min(8192, number) : 0;
+        }
+
+        private static void BuildMaps(P page, N node, Uri baseUrl)
+        {
+            if (node == null || page.Mps.Count == MaxImageMaps) return;
+            if (node.K == "map")
+            {
+                var name = node.Av("name");
+                if (MapName(name) && MapByName(page, name) == null)
+                {
+                    var map = new Mp { N = name, El = node };
+                    AddMapAreas(map, node, baseUrl);
+                    page.Mps.Add(map);
+                }
+            }
+            foreach (var child in node.C)
+            {
+                if (page.Mps.Count == MaxImageMaps) break;
+                BuildMaps(page, child, baseUrl);
+            }
+        }
+
+        private static bool MapName(string value)
+        {
+            if (String.IsNullOrEmpty(value) || value.Length > 128) return false;
+            foreach (var c in value)
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') return false;
+            return true;
+        }
+
+        private static void AddMapAreas(Mp map, N node, Uri baseUrl)
+        {
+            foreach (var child in node.C)
+            {
+                if (map.As.Count == MaxMapAreas) return;
+                if (child.K == "area") map.As.Add(MapArea(child, baseUrl));
+                else AddMapAreas(map, child, baseUrl);
+            }
+        }
+
+        private static Ar MapArea(N node, Uri baseUrl)
+        {
+            var shape = (node.Av("shape") ?? "").Trim().ToLowerInvariant();
+            var kind = shape == "circle" || shape == "circ" ? "c" :
+                       shape == "poly" || shape == "polygon" ? "p" :
+                       shape == "default" ? "d" : "r";
+            Uri link = null;
+            var href = node.Av("href");
+            if (node.A.ContainsKey("href") && href.Length <= 4096) TryUri(baseUrl, href, out link);
+            var area = new Ar { K = kind, U = link, T = BoundValue(node.Av("alt"), 512), El = node };
+            if (kind != "d")
+                foreach (var value in MapCoordinates(node.Av("coords"))) area.Cs.Add(value);
+
+            var minimum = kind == "c" ? 3 : kind == "p" ? 6 : kind == "r" ? 4 : 0;
+            if (area.Cs.Count < minimum) area.Cs.Clear();
+            else if (kind == "c")
+            {
+                while (area.Cs.Count > 3) area.Cs.RemoveAt(area.Cs.Count - 1);
+                if (area.Cs[2] <= 0) area.Cs.Clear();
+            }
+            else if (kind == "r")
+            {
+                while (area.Cs.Count > 4) area.Cs.RemoveAt(area.Cs.Count - 1);
+                if (area.Cs[0] > area.Cs[2]) Swap(area.Cs, 0, 2);
+                if (area.Cs[1] > area.Cs[3]) Swap(area.Cs, 1, 3);
+            }
+            else if (kind == "p" && area.Cs.Count % 2 != 0) area.Cs.RemoveAt(area.Cs.Count - 1);
+            return area;
+        }
+
+        private static IList<double> MapCoordinates(string value)
+        {
+            var result = new List<double>();
+            value = value ?? "";
+            if (value.Length > 4096) return result;
+            var parts = value.Split(new char[] { ',', ' ', '\t', '\r', '\n', '\f' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var part in parts)
+            {
+                if (result.Count == MaxMapCoordinates) break;
+                double number;
+                if (!Double.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out number) || Double.IsNaN(number) || Double.IsInfinity(number))
+                {
+                    result.Clear();
+                    break;
+                }
+                result.Add(Math.Max(-MaxMapCoordinate, Math.Min(MaxMapCoordinate, number)));
+            }
+            return result;
+        }
+
+        private static void Swap(IList<double> values, int left, int right)
+        {
+            var value = values[left];
+            values[left] = values[right];
+            values[right] = value;
+        }
+
+        private static Mp ImageMap(P page, string reference)
+        {
+            var value = (reference ?? "").Trim();
+            if (value.Length < 2 || value.Length > 4097 || value[0] != '#') return null;
+            value = value.Substring(1);
+            try { value = Uri.UnescapeDataString(value); }
+            catch (UriFormatException) { return null; }
+            return value.Length > 128 ? null : MapByName(page, value);
+        }
+
+        private static Mp MapByName(P page, string name)
+        {
+            foreach (var map in page.Mps)
+                if (map.N.Equals(name, StringComparison.OrdinalIgnoreCase)) return map;
+            return null;
+        }
+
+        private static B GaugeBlock(N node, S style)
+        {
+            return new B { K = node.K, X = "", S = style, Vm = Gauge(node), El = node };
+        }
+
+        private static Vm Gauge(N node)
+        {
+            var model = new Vm();
+            double value;
+            double maximum;
+            if (node.K == "progress")
+            {
+                model.Mn = 0;
+                if (!GaugeNumber(node.Av("max"), out maximum) || maximum <= 0) maximum = 1;
+                model.Mx = maximum;
+                model.In = !node.A.ContainsKey("value");
+                if (!GaugeNumber(node.Av("value"), out value)) value = 0;
+                model.V = GaugeClamp(value, model.Mn, model.Mx);
+                model.R = GaugeRatio(model.V, model.Mn, model.Mx);
+                return model;
+            }
+
+            if (!GaugeNumber(node.Av("min"), out value)) value = 0;
+            model.Mn = value;
+            if (!GaugeNumber(node.Av("max"), out maximum)) maximum = 1;
+            model.Mx = Math.Max(model.Mn, maximum);
+            if (!GaugeNumber(node.Av("value"), out value)) value = 0;
+            model.V = GaugeClamp(value, model.Mn, model.Mx);
+            if (!GaugeNumber(node.Av("low"), out value)) value = model.Mn;
+            model.Lo = GaugeClamp(value, model.Mn, model.Mx);
+            if (!GaugeNumber(node.Av("high"), out value)) value = model.Mx;
+            model.Hi = GaugeClamp(Math.Max(model.Lo, value), model.Mn, model.Mx);
+            if (!GaugeNumber(node.Av("optimum"), out value)) value = model.Mn + (model.Mx - model.Mn) / 2D;
+            model.Op = GaugeClamp(value, model.Mn, model.Mx);
+            model.R = GaugeRatio(model.V, model.Mn, model.Mx);
+            model.Q = GaugeQuality(model);
+            return model;
+        }
+
+        private static bool GaugeNumber(string input, out double value)
+        {
+            value = 0;
+            var text = (input ?? "").Trim();
+            if (text.Length == 0 || text.Length > MaxGaugeText ||
+                !Double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value) ||
+                Double.IsNaN(value) || Double.IsInfinity(value)) return false;
+            value = Math.Max(-MaxGaugeValue, Math.Min(MaxGaugeValue, value));
+            return true;
+        }
+
+        private static double GaugeClamp(double value, double minimum, double maximum)
+        {
+            return Math.Max(minimum, Math.Min(maximum, value));
+        }
+
+        private static double GaugeRatio(double value, double minimum, double maximum)
+        {
+            if (maximum <= minimum) return 0;
+            return Math.Max(0, Math.Min(1, (value - minimum) / (maximum - minimum)));
+        }
+
+        private static int GaugeQuality(Vm model)
+        {
+            if (model.Op < model.Lo)
+            {
+                if (model.V < model.Lo) return 0;
+                return model.V <= model.Hi ? 1 : 2;
+            }
+            if (model.Op > model.Hi)
+            {
+                if (model.V > model.Hi) return 0;
+                return model.V >= model.Lo ? 1 : 2;
+            }
+            return model.V >= model.Lo && model.V <= model.Hi ? 0 : 1;
+        }
+
+        private static bool GaugeTag(string kind)
+        {
+            return kind == "progress" || kind == "meter";
+        }
+
+        private static bool ValueTag(string kind)
+        {
+            return kind == "output" || kind == "data" || kind == "time" || kind == "ins" || kind == "del";
+        }
+
+        private void AddValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
+        {
+            var block = ValueBlock(page, node, baseUrl, rules, style);
+            if (block.X.Length > 0 || block.Is.Count > 0 || LayoutContext(style)) page.Bs.Add(block);
+        }
+
+        private B ValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
+        {
+            var text = TextValue(RawText(node), style);
+            var model = ValueModel(page, node, text, baseUrl);
+            var block = new B { K = node.K, X = text, S = style, Dv = model, El = node };
+            AddBlockInlines(page, block, node, baseUrl, rules, style, null, node.K, model);
+            return block;
+        }
+
+        private static Dv ValueModel(P page, N node, string text, Uri baseUrl)
+        {
+            var raw = RawText(node);
+            var datetime = BoundValue(node.Av("datetime").Trim(), 128);
+            Uri citation;
+            if ((node.K != "ins" && node.K != "del") || !CitationUri(baseUrl, node.Av("cite"), out citation)) citation = null;
+            var model = new Dv
+            {
+                K = ValueKind(node.K),
+                X = BoundValue(text, 4096),
+                V = BoundValue(node.K == "data" ? node.Av("value") : node.K == "time" && node.A.ContainsKey("datetime") ? datetime : raw, 4096),
+                N = BoundValue(node.Av("name").Trim(), 256),
+                Fo = BoundValue(node.Av("form").Trim(), 128),
+                Dt = node.K == "time" && datetime.Length == 0 && !node.A.ContainsKey("datetime") ? BoundValue(raw, 128) : datetime,
+                U = citation,
+                El = node
+            };
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var value in (node.Av("for") ?? "").Split((char[])null, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var reference = BoundValue(value, 128);
+                if (reference.Length == 0 || !seen.Add(reference)) continue;
+                model.F.Add(reference);
+                if (model.F.Count == 32) break;
+            }
+            page.Dvs.Add(model);
+            return model;
+        }
+
+        private static string ValueKind(string kind)
+        {
+            if (kind == "output") return "o";
+            if (kind == "data") return "d";
+            if (kind == "time") return "t";
+            if (kind == "ins") return "i";
+            return "r";
+        }
+
+        private static bool CitationUri(Uri baseUrl, string value, out Uri url)
+        {
+            url = null;
+            value = (value ?? "").Trim();
+            if (value.Length == 0 || value.Length > 4096 || !TryUri(baseUrl, value, out url)) return false;
+            return url.IsFile || url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps;
+        }
+
+        private static string BoundValue(string value, int max)
+        {
+            value = value ?? "";
+            return value.Length <= max ? value : value.Substring(0, max);
+        }
+
+        private static Uri ImageUri(N node, Uri baseUrl, int targetWidth)
+        {
+            var source = ImageCandidate(node.Av("srcset"), targetWidth);
+            if (source.Length == 0) source = node.Av("src").Trim();
+            Uri image;
+            return source.Length > 0 && source.Length <= 12 * 1024 * 1024 && Uri.TryCreate(baseUrl, source, out image) ? image : null;
+        }
+
+        private static string ImageCandidate(string value, int targetWidth)
+        {
+            var candidates = ImageCandidates(value);
+            Ic chosen = null;
+            var widths = false;
+            foreach (var candidate in candidates) if (candidate.W > 0) { widths = true; break; }
+            if (widths)
+            {
+                var target = Math.Max(1, targetWidth);
+                foreach (var candidate in candidates)
+                {
+                    if (candidate.W < 1) continue;
+                    if (chosen == null || (chosen.W < target && candidate.W > chosen.W) || (candidate.W >= target && (chosen.W < target || candidate.W < chosen.W))) chosen = candidate;
+                }
+            }
+            else
+            {
+                foreach (var candidate in candidates)
+                {
+                    if (candidate.D < 1) continue;
+                    if (chosen == null || (chosen.D < 100 && candidate.D > chosen.D) || (candidate.D >= 100 && (chosen.D < 100 || candidate.D < chosen.D))) chosen = candidate;
+                }
+            }
+            return chosen == null ? "" : chosen.U;
+        }
+
+        private static List<Ic> ImageCandidates(string value)
+        {
+            var found = new List<Ic>();
+            var source = (value ?? "").Trim();
+            if (source.Length > 1024 * 1024) return found;
+            var index = 0;
+            while (index < source.Length && found.Count < 16)
+            {
+                while (index < source.Length && (source[index] == ',' || Char.IsWhiteSpace(source[index]))) index++;
+                if (index >= source.Length) break;
+                var start = index;
+                var data = source.Substring(index).StartsWith("data:", StringComparison.OrdinalIgnoreCase);
+                while (index < source.Length && !Char.IsWhiteSpace(source[index]) && (data || source[index] != ',')) index++;
+                var url = source.Substring(start, index - start).Trim().Trim('"', '\'');
+                while (index < source.Length && Char.IsWhiteSpace(source[index])) index++;
+                start = index;
+                while (index < source.Length && source[index] != ',') index++;
+                var descriptor = source.Substring(start, index - start).Trim().ToLowerInvariant();
+                if (index < source.Length && source[index] == ',') index++;
+
+                int width = 0;
+                var density = 0;
+                if (descriptor.Length == 0) density = 100;
+                else
+                {
+                    var widthMatch = Regex.Match(descriptor, "^(?<n>[1-9][0-9]{0,5})w$");
+                    var densityMatch = Regex.Match(descriptor, "^(?<n>(?:[0-9](?:\\.[0-9]{1,2})?|\\.[0-9]{1,2}))x$");
+                    if (widthMatch.Success) Int32.TryParse(widthMatch.Groups["n"].Value, out width);
+                    else if (densityMatch.Success)
+                    {
+                        decimal parsed;
+                        if (Decimal.TryParse(densityMatch.Groups["n"].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out parsed) && parsed > 0 && parsed <= 8) density = (int)Math.Round(parsed * 100);
+                    }
+                    else continue;
+                }
+                if (url.Length > 0 && (width > 0 || density > 0)) found.Add(new Ic(url, width, density));
+            }
+            return found;
+        }
+
+        private static bool ImageMedia(string value)
+        {
+            var media = (value ?? "").Trim().ToLowerInvariant();
+            return media.Length == 0 || media == "all" || media == "screen";
+        }
+
+        private static bool ImageType(string value)
+        {
+            var type = (value ?? "").Split(';')[0].Trim().ToLowerInvariant();
+            return type.Length == 0 || type == "image/png" || type == "image/jpeg" || type == "image/gif" || type == "image/bmp" || type == "image/x-icon" || type == "image/vnd.microsoft.icon";
+        }
+
+        private static bool IsTextBlock(string kind)
+        {
+            return IsHeading(kind) || kind == "address" || kind == "blockquote" || kind == "code" || kind == "dd" ||
+                   kind == "dt" || kind == "figcaption" || kind == "label" || kind == "legend" || kind == "li" ||
+                   kind == "p" || kind == "pre" || kind == "summary";
+        }
+
+        private static bool IsContainerBlock(string kind)
+        {
+            return kind == "article" || kind == "aside" || kind == "center" || kind == "details" || kind == "div" ||
+                   kind == "figure" || kind == "footer" || kind == "header" || kind == "main" || kind == "nav" ||
+                   kind == "section";
+        }
+
+        private static void MarkDisclosures(P page)
+        {
+            foreach (var block in page.Bs) MarkDisclosure(block);
+        }
+
+        private static void MarkDisclosure(B block)
+        {
+            if (block == null) return;
+            block.Hd = DisclosureHidden(block.El);
+            if (block.K == "summary")
+            {
+                var details = Disclosure(block.El);
+                if (details != null) block.Mk = details.Op ? "v" : ">";
+            }
+            if (block.Tb == null) return;
+            foreach (var row in block.Tb.Rs)
+                foreach (var cell in row.Cs)
+                    foreach (var part in cell.Bs) MarkDisclosure(part);
+        }
+
+        private static bool DisclosureHidden(N node)
+        {
+            for (var current = node; current != null && current.Up != null; current = current.Up)
+            {
+                var parent = current.Up;
+                if (parent.K != "details" || parent.Op) continue;
+                if (!Object.ReferenceEquals(FirstSummary(parent), current)) return true;
+            }
+            return false;
+        }
+
+        private static N Disclosure(N element)
+        {
+            if (element == null) return null;
+            if (element.K == "details") return element;
+            for (var current = element; current != null; current = current.Up)
+            {
+                if (current.K == "details") return null;
+                if (current.K != "summary") continue;
+                var details = current.Up;
+                return details != null && details.K == "details" && Object.ReferenceEquals(FirstSummary(details), current) ? details : null;
+            }
+            return null;
+        }
+
+        private static N FirstSummary(N details)
+        {
+            if (details == null) return null;
+            foreach (var child in details.C) if (child.K == "summary") return child;
+            return null;
+        }
+
+        private static string ListMarker(N item, S style, S markerStyle = null)
+        {
+            if (item == null || item.K != "li") return "";
+            if (markerStyle != null && markerStyle.Mn) return "";
+            if (markerStyle != null && markerStyle.Mc != null) return Tx(markerStyle.Mc, markerStyle);
+            int number;
+            if (!Int32.TryParse(item.Mk, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number)) number = 1;
+            var type = style == null ? "" : style.Lst;
+            if (type.Length == 0) type = item.Up != null && item.Up.K == "ol" ? "1" : "d";
+            var marker = CounterText(number, type);
+            if (type != "n" && type != "d" && type != "c" && type != "s") marker += ".";
+            return Tx(marker, markerStyle ?? style);
+        }
+
+        private static string CounterText(int number, string type)
+        {
+            return type == "n" ? "" : type == "d" ? "\u2022" : type == "c" ? "\u25e6" : type == "s" ? "\u25aa" :
+                type == "0" ? LeadingZero(number) : type == "a" || type == "A" ? AlphaMarker(number, type == "A") :
+                type == "r" || type == "R" ? RomanMarker(number, type == "R") : number.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static bool HasMarkerContent(B block)
+        {
+            if (block == null || block.K != "li" || block.S == null || block.Ms != null && block.Ms.Mn) return false;
+            if (block.Ms != null && (block.Ms.Mc != null || block.Ms.Mf != null)) return GeneratedContentPresent(block.Ms);
+            return !String.IsNullOrEmpty(block.Mk) || block.S.Li != null;
+        }
+
+        private bool MarkCounters(N root, List<R> rules, bool inline, bool prior)
+        {
+            var active = HasCounterProperties(rules, inline);
+            if (!active && !prior) return false;
+            ClearCounters(root);
+            if (!active) return false;
+            var inherited = new S();
+            N previous = null;
+            var quoteDepth = 0;
+            if (root.K == "#doc")
+            {
+                foreach (var child in root.C)
+                    if (child.K.Length > 0 && child.K[0] != '#') CounterWalk(child, inherited, rules, ref previous, ref quoteDepth);
+            }
+            else CounterWalk(root, inherited, rules, ref previous, ref quoteDepth);
+            return true;
+        }
+
+        private static bool HasCounterProperties(List<R> rules, bool inline)
+        {
+            if (inline) return true;
+            foreach (var rule in rules)
+                foreach (var declaration in rule.Ds)
+                    if (GeneratedStateSource(declaration.V) || !declaration.C && rule.Ps == '\0' &&
+                        (declaration.N == "counter-reset" || declaration.N == "counter-increment" || declaration.N == "counter-set")) return true;
+            return false;
+        }
+
+        private static bool GeneratedStateSource(string value)
+        {
+            var source = value ?? "";
+            return source.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                source.IndexOf("open-quote", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                source.IndexOf("close-quote", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static void ClearCounters(N node)
+        {
+            if (node == null) return;
+            node.Ct = null;
+            node.Cx = null;
+            node.Gb = null;
+            node.Ga = null;
+            node.Gm = null;
+            foreach (var child in node.C) ClearCounters(child);
+        }
+
+        private void CounterWalk(N node, S inherited, List<R> rules, ref N previous, ref int quoteDepth)
+        {
+            var source = PreviousElement(node) ?? node.Up;
+            var counters = CounterInherited(CounterState(source), CounterState(previous));
+            node.Ct = counters.Count == 0 ? null : counters;
+            var style = Style(node, inherited, rules);
+            if (style.D == "none" || CounterNoBox(node.K))
+            {
+                node.Cx = CounterCopy(node.Ct);
+                previous = node;
+                foreach (var child in node.C) ClearCounters(child);
+                return;
+            }
+            CounterApply(counters, node, style.Cr, 0);
+            CounterApply(counters, node, style.Ci, 1);
+            CounterApply(counters, node, style.Cs, 2);
+            node.Ct = counters.Count == 0 ? null : counters;
+            if (node.K == "li") node.Gm = MarkerStyle(node, style, rules, ref quoteDepth);
+            node.Gb = GeneratedContentStyle(GeneratedStyle(node, style, rules, 'b', ref quoteDepth));
+            previous = node;
+            foreach (var child in node.C)
+                if (child.K.Length > 0 && child.K[0] != '#') CounterWalk(child, style, rules, ref previous, ref quoteDepth);
+            var last = LastElementChild(node);
+            var after = last == null ? CounterCopy(node.Ct) : CounterInherited(CounterState(last), CounterState(previous));
+            var entry = node.Ct;
+            node.Ct = after.Count == 0 ? null : after;
+            node.Ga = GeneratedContentStyle(GeneratedStyle(node, style, rules, 'a', ref quoteDepth));
+            after = CounterCopy(node.Ct);
+            node.Ct = entry;
+            var exit = CounterInherited(entry, after);
+            node.Cx = exit.Count == 0 ? null : exit;
+            previous = node;
+        }
+
+        private static List<Cn> CounterState(N node)
+        {
+            return node == null ? null : node.Cx ?? node.Ct;
+        }
+
+        private static List<Cn> CounterCopy(List<Cn> counters)
+        {
+            var result = new List<Cn>();
+            if (counters != null) foreach (var counter in counters) result.Add(counter.Copy());
+            return result;
+        }
+
+        private static N LastElementChild(N node)
+        {
+            if (node == null) return null;
+            for (var index = node.C.Count - 1; index >= 0; index--)
+                if (node.C[index].K.Length > 0 && node.C[index].K[0] != '#') return node.C[index];
+            return null;
+        }
+
+        private static S GeneratedContentStyle(S style)
+        {
+            return style != null && !style.Mn && style.Mc != null ? style : null;
+        }
+
+        private static bool CounterNoBox(string kind)
+        {
+            return kind == "head" || kind == "script" || kind == "style" || kind == "noscript" || kind == "template";
+        }
+
+        private static List<Cn> CounterInherited(List<Cn> source, List<Cn> values)
+        {
+            var result = new List<Cn>();
+            if (source == null || values == null) return result;
+            foreach (var value in values)
+                if (CounterContains(source, value)) result.Add(value.Copy());
+            return result;
+        }
+
+        private static bool CounterContains(List<Cn> counters, Cn counter)
+        {
+            foreach (var item in counters)
+                if (item.N.Equals(counter.N, StringComparison.Ordinal) && Object.ReferenceEquals(item.O, counter.O)) return true;
+            return false;
+        }
+
+        private static void CounterApply(List<Cn> counters, N owner, string value, int kind)
+        {
+            if (String.IsNullOrEmpty(value)) return;
+            var parts = value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (var index = 0; index + 1 < parts.Length; index += 2)
+            {
+                int number;
+                if (!CounterInteger(parts[index + 1], out number)) continue;
+                var at = kind == 0 ? CounterCreate(counters, owner, parts[index], number) : CounterIndex(counters, parts[index]);
+                if (at < 0 && kind != 0) at = CounterCreate(counters, owner, parts[index], 0);
+                if (at < 0 || kind == 0) continue;
+                if (kind == 1) counters[at].V = CounterClamp((long)counters[at].V + number);
+                else counters[at].V = number;
+            }
+        }
+
+        private static int CounterCreate(List<Cn> counters, N owner, string name, int value)
+        {
+            for (var index = counters.Count - 1; index >= 0; index--)
+                if (counters[index].N.Equals(name, StringComparison.Ordinal))
+                {
+                    var creator = counters[index].O;
+                    if (Object.ReferenceEquals(creator, owner) || creator != null && owner != null && Object.ReferenceEquals(creator.Up, owner.Up)) counters.RemoveAt(index);
+                    break;
+                }
+            if (counters.Count >= MaxCounterEntries) return -1;
+            counters.Add(new Cn(name, owner, CounterClamp(value)));
+            return counters.Count - 1;
+        }
+
+        private static int CounterIndex(List<Cn> counters, string name)
+        {
+            for (var index = counters.Count - 1; index >= 0; index--)
+                if (counters[index].N.Equals(name, StringComparison.Ordinal)) return index;
+            return -1;
+        }
+
+        private static int CounterClamp(long value)
+        {
+            return value < -MaxCounterValue ? -MaxCounterValue : value > MaxCounterValue ? MaxCounterValue : (int)value;
+        }
+
+        private static void MarkLists(N node)
+        {
+            if (node == null) return;
+            if (node.K == "ol" || node.K == "ul" || node.K == "menu")
+            {
+                var ordered = node.K == "ol";
+                var reversed = ordered && node.A.ContainsKey("reversed");
+                var count = 0;
+                foreach (var item in node.C) if (item.K == "li") count++;
+                int number;
+                if (!ordered || !ListInteger(node.Av("start"), out number)) number = reversed ? count : 1;
+                foreach (var child in node.C)
+                {
+                    if (child.K != "li") continue;
+                    int value;
+                    if (ordered && ListInteger(child.Av("value"), out value)) number = value;
+                    child.Mk = number.ToString(CultureInfo.InvariantCulture);
+                    if (reversed)
+                    {
+                        if (number > -999999) number--;
+                    }
+                    else if (number < 999999) number++;
+                }
+            }
+            foreach (var child in node.C) MarkLists(child);
+        }
+
+        private static void ListTypeAttribute(S style, N node)
+        {
+            if (style == null || node == null) return;
+            var type = node.Av("type").Trim();
+            if (type.Length == 0) return;
+            var ordered = node.K == "ol" || node.K == "li" && node.Up != null && node.Up.K == "ol";
+            if (ordered)
+            {
+                if (type == "1") style.Lst = "1";
+                else if (type == "a") style.Lst = "a";
+                else if (type == "A") style.Lst = "A";
+                else if (type == "i") style.Lst = "r";
+                else if (type == "I") style.Lst = "R";
+                return;
+            }
+            type = type.ToLowerInvariant();
+            if (type == "disc") style.Lst = "d";
+            else if (type == "circle") style.Lst = "c";
+            else if (type == "square") style.Lst = "s";
+        }
+
+        private static string LeadingZero(int number)
+        {
+            var negative = number < 0;
+            var digits = Math.Abs((long)number).ToString(CultureInfo.InvariantCulture);
+            if (digits.Length < 2) digits = "0" + digits;
+            return negative ? "-" + digits : digits;
+        }
+
+        private static string AlphaMarker(int number, bool upper)
+        {
+            if (number < 1) return number.ToString(CultureInfo.InvariantCulture);
+            var marker = new StringBuilder();
+            while (number > 0)
+            {
+                number--;
+                marker.Insert(0, (char)((upper ? 'A' : 'a') + number % 26));
+                number /= 26;
+            }
+            return marker.ToString();
+        }
+
+        private static string RomanMarker(int number, bool upper)
+        {
+            if (number < 1 || number > 3999) return number.ToString(CultureInfo.InvariantCulture);
+            var marker = new StringBuilder();
+            RomanPart(marker, ref number, 1000, "M");
+            RomanPart(marker, ref number, 900, "CM");
+            RomanPart(marker, ref number, 500, "D");
+            RomanPart(marker, ref number, 400, "CD");
+            RomanPart(marker, ref number, 100, "C");
+            RomanPart(marker, ref number, 90, "XC");
+            RomanPart(marker, ref number, 50, "L");
+            RomanPart(marker, ref number, 40, "XL");
+            RomanPart(marker, ref number, 10, "X");
+            RomanPart(marker, ref number, 9, "IX");
+            RomanPart(marker, ref number, 5, "V");
+            RomanPart(marker, ref number, 4, "IV");
+            RomanPart(marker, ref number, 1, "I");
+            var result = marker.ToString();
+            return upper ? result : result.ToLowerInvariant();
+        }
+
+        private static void RomanPart(StringBuilder marker, ref int number, int value, string text)
+        {
+            while (number >= value)
+            {
+                marker.Append(text);
+                number -= value;
+            }
+        }
+
+        private static bool ListInteger(string value, out int number)
+        {
+            number = 0;
+            var text = (value ?? "").Trim();
+            return text.Length > 0 && text.Length <= 7 &&
+                   Int32.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number) &&
+                   number >= -999999 && number <= 999999;
+        }
+
+        private static string BlockText(N node, bool raw)
+        {
+            var text = new StringBuilder();
+            AddBlockText(node, text, true, raw);
+            return text.ToString();
+        }
+
+        private static string DirectText(N node)
+        {
+            var text = new StringBuilder();
+            foreach (var child in node.C) if (child.K == "#text") text.Append(child.X).Append(' ');
+            return Clean(text.ToString());
+        }
+
+        private static void AddBlockText(N node, StringBuilder text, bool root, bool raw)
+        {
+            if (node.K == "#text")
+            {
+                text.Append(node.X);
+                if (!raw) text.Append(' ');
+                return;
+            }
+            if (!root && (IsBlockTag(node.K) || node.K == "img" || node.K == "input" || node.K == "textarea" || node.K == "button" || node.K == "select")) return;
+            if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
+            foreach (var child in node.C) AddBlockText(child, text, false, raw);
+        }
+
+        private static bool PreservesLines(S style)
+        {
+            return style != null && (style.Ws == "p" || style.Ws == "pw" || style.Ws == "pl");
+        }
+
+        private static string TextValue(string value, S style)
+        {
+            return Tx(TextSpace(value, style), style);
+        }
+
+        private static string TextSpace(string value, S style)
+        {
+            if (!PreservesLines(style)) return Clean(value);
+            return (value ?? "").Replace("\r\n", "\n").Replace('\r', '\n');
+        }
+
+        // Tx applies Lea's compact inherited text-transform state to presentation text.
+        public static string Tx(string value, S style)
+        {
+            var text = value ?? "";
+            var mode = style == null ? "n" : style.Tt;
+            if (mode == "u") return text.ToUpperInvariant();
+            if (mode == "l") return text.ToLowerInvariant();
+            if (mode != "c" || text.Length == 0) return text;
+
+            var result = new StringBuilder(text.Length);
+            var start = true;
+            foreach (var ch in text)
+            {
+                if (start && Char.IsLetter(ch))
+                {
+                    result.Append(Char.ToUpperInvariant(ch));
+                    start = false;
+                }
+                else
+                {
+                    result.Append(ch);
+                    if (Char.IsLetterOrDigit(ch)) start = false;
+                }
+                if (Char.IsWhiteSpace(ch) || ch == '-') start = true;
+            }
+            return result.ToString();
+        }
+
+        private void AddNestedBlocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
+        {
+            foreach (var child in node.C)
+            {
+                if (child.K == "#text") continue;
+                if (Flex(inherited) || Grid(inherited) || IsBlockTag(child.K) || child.K == "img" || child.K == "input" || child.K == "textarea" || child.K == "button" || child.K == "select")
+                {
+                    Blocks(page, child, baseUrl, rules, inherited);
+                    continue;
+                }
+                var style = Style(child, inherited, rules);
+                if (style.D != "none") AddNestedBlocks(page, child, baseUrl, rules, style);
+            }
+        }
+
+        private static bool HasInlineStructure(N node)
+        {
+            foreach (var child in node.C) if (child.K != "#text") return true;
+            return false;
+        }
+
+        private void AddBlockInlines(P page, B block, N node, Uri baseUrl, List<R> rules, S style, Uri activeLink, string kind, Dv value = null)
+        {
+            var before = GeneratedRunStyle(node, style, rules, 'b');
+            var after = GeneratedRunStyle(node, style, rules, 'a');
+            if (!HasInlineStructure(node) && before == null && after == null) return;
+            var inlineStyle = style.Inherit();
+            if (IsHeading(kind)) inlineStyle.B = true;
+            AddGeneratedRun(block, node, before, activeLink, 'b', value);
+            foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, inlineStyle, activeLink, kind, value);
+            AddGeneratedRun(block, node, after, activeLink, 'a', value);
+            NormalizeInlines(block);
+            block.X = InlineText(block);
+        }
+
+        private S GeneratedRunStyle(N node, S inherited, List<R> rules, char pseudo)
+        {
+            if (node == null || !GeneratedHost(node.K)) return null;
+            var cached = pseudo == 'b' ? node.Gb : node.Ga;
+            return cached ?? GeneratedContentStyle(GeneratedStyle(node, inherited, rules, pseudo));
+        }
+
+        private static bool GeneratedHost(string kind)
+        {
+            return kind != "img" && kind != "input" && kind != "textarea" && kind != "select" && kind != "button" &&
+                kind != "progress" && kind != "meter" && kind != "picture" && kind != "svg" && kind != "canvas" &&
+                kind != "video" && kind != "audio" && kind != "iframe" && kind != "object" && kind != "embed" &&
+                kind != "br" && kind != "hr";
+        }
+
+        private static void AddGeneratedRun(B block, N node, S style, Uri activeLink, char pseudo, Dv value = null)
+        {
+            if (!GeneratedContentPresent(style)) return;
+            var kind = pseudo == 'b' ? "be" : "af";
+            if (style.Mf != null)
+            {
+                foreach (var fragment in style.Mf)
+                    block.Is.Add(new Ir { K = kind, X = fragment.X ?? "", U = activeLink, P = fragment.U, S = style, Dv = value, El = node });
+                return;
+            }
+            block.Is.Add(new Ir { K = kind, X = style.Mc, U = activeLink, S = style, Dv = value, El = node });
+        }
+
+        private static bool GeneratedContentPresent(S style)
+        {
+            return style != null && (!String.IsNullOrEmpty(style.Mc) || !String.IsNullOrEmpty(style.Ma) || style.Mf != null && style.Mf.Count > 0);
+        }
+
+        private void AddPageGeneratedBlock(P page, N node, List<R> rules, S inherited, char pseudo)
+        {
+            var style = GeneratedRunStyle(node, inherited, rules, pseudo);
+            if (!GeneratedContentPresent(style)) return;
+            var block = new B { K = "body", X = "", S = inherited, El = node };
+            AddGeneratedRun(block, node, style, null, pseudo);
+            NormalizeInlines(block);
+            block.X = InlineText(block);
+            if (block.X.Length > 0 || block.Is.Count > 0) page.Bs.Add(block);
+        }
+
+        private void AddInline(P page, B block, N node, Uri baseUrl, List<R> rules, S inherited, Uri activeLink, string inheritedKind, Dv inheritedValue = null)
+        {
+            if (node.K == "#text")
+            {
+                if (node.X.Length > 0) block.Is.Add(new Ir { K = inheritedKind, X = node.X, U = activeLink, S = inherited, Dv = inheritedValue, El = node.Up });
+                return;
+            }
+            if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
+            if (IsBlockTag(node.K)) return;
+
+            var style = Style(node, inherited, rules);
+            if (style.D == "none") return;
+            if (node.K == "br")
+            {
+                block.Is.Add(new Ir { K = "br", X = "", U = activeLink, S = style, El = node });
+                return;
+            }
+
+            var link = activeLink;
+            var kind = node.K;
+            var value = inheritedValue;
+            if (ValueTag(node.K)) value = ValueModel(page, node, TextValue(RawText(node), style), baseUrl);
+            if (node.K == "a")
+            {
+                Uri target;
+                var href = node.Av("href");
+                if (href.Length > 0 && TryUri(baseUrl, href, out target))
+                {
+                    link = target;
+                    page.Ls.Add(new Ln { U = link, T = Clean(NodeText(node)) });
+                }
+            }
+
+            var first = block.Is.Count;
+            if (GeneratedHost(node.K))
+            {
+                AddGeneratedRun(block, node, GeneratedRunStyle(node, style, rules, 'b'), link, 'b', value);
+                foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, style, link, kind, value);
+                AddGeneratedRun(block, node, GeneratedRunStyle(node, style, rules, 'a'), link, 'a', value);
+            }
+            if (node.K == "a" && link != null && block.Is.Count == first)
+                block.Is.Add(new Ir { K = "a", X = link.ToString(), U = link, S = style, El = node });
+        }
+
+        private static void NormalizeInlines(B block)
+        {
+            var clean = new List<Ir>();
+            if (PreservesLines(block.S))
+            {
+                foreach (var run in block.Is)
+                {
+                    if (run.K != "br") run.X = Tx(TextSpace(run.X ?? "", block.S), run.S);
+                    if (run.K != "br" && run.X.Length == 0 && run.P == null &&
+                        (!GeneratedRun(run) || run.S == null || String.IsNullOrEmpty(run.S.Ma))) continue;
+                    var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
+                    if (previous != null && previous.P == null && run.P == null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
+                    else clean.Add(run);
+                }
+                block.Is.Clear();
+                foreach (var run in clean) block.Is.Add(run);
+                return;
+            }
+
+            var pendingSpace = false;
+            var lineHasText = false;
+            foreach (var run in block.Is)
+            {
+                if (run.K == "br")
+                {
+                    clean.Add(run);
+                    pendingSpace = false;
+                    lineHasText = false;
+                    continue;
+                }
+
+                if (run.P != null)
+                {
+                    if (pendingSpace && lineHasText)
+                    {
+                        clean.Add(new Ir { K = run.K, X = " ", U = run.U, S = run.S, Dv = run.Dv, El = run.El });
+                        pendingSpace = false;
+                    }
+                    clean.Add(run);
+                    lineHasText = true;
+                    continue;
+                }
+
+                var value = run.X ?? "";
+                var text = new StringBuilder();
+                foreach (var ch in value)
+                {
+                    if (Char.IsWhiteSpace(ch))
+                    {
+                        if (lineHasText) pendingSpace = true;
+                        continue;
+                    }
+                    if (pendingSpace)
+                    {
+                        text.Append(' ');
+                        pendingSpace = false;
+                    }
+                    text.Append(ch);
+                    lineHasText = true;
+                }
+                if (text.Length == 0)
+                {
+                    if (!GeneratedRun(run) || run.S == null || String.IsNullOrEmpty(run.S.Ma)) continue;
+                    run.X = "";
+                    clean.Add(run);
+                    continue;
+                }
+                run.X = Tx(text.ToString(), run.S);
+                var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
+                if (previous != null && previous.P == null && run.P == null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
+                else clean.Add(run);
+            }
+            block.Is.Clear();
+            foreach (var run in clean) block.Is.Add(run);
+        }
+
+        private static bool GeneratedRun(Ir run)
+        {
+            return run != null && (run.K == "be" || run.K == "af");
+        }
+
+        private static string InlineText(B block)
+        {
+            var text = new StringBuilder();
+            var lines = PreservesLines(block.S);
+            foreach (var run in block.Is)
+            {
+                if (run.K == "br")
+                {
+                    if (lines) text.Append('\n');
+                    else if (text.Length > 0 && text[text.Length - 1] != ' ') text.Append(' ');
+                }
+                else text.Append(run.X);
+            }
+            return lines ? text.ToString() : text.ToString().Trim();
+        }
+
+        private void AddTable(P page, N node, Uri baseUrl, List<R> rules, S style)
+        {
+            var table = new Tb();
+            foreach (var child in node.C)
+            {
+                if (child.K == "caption" && table.Cp.Length == 0) table.Cp = Clean(NodeText(child));
+                else AddTableRows(page, table, child, baseUrl, rules, style);
+            }
+            if (table.Rs.Count > 0) page.Bs.Add(new B { K = "table", X = table.Cp, S = style, Tb = table, El = node });
+        }
+
+        private void AddTableRows(P page, Tb table, N node, Uri baseUrl, List<R> rules, S inherited)
+        {
+            if (node.K == "table") return;
+            var style = Style(node, inherited, rules);
+            if (style.D == "none") return;
+            if (node.K == "tr")
+            {
+                var row = new Tr();
+                var columns = 0;
+                foreach (var child in node.C)
+                {
+                    if (child.K != "td" && child.K != "th") continue;
+                    var cellStyle = Style(child, style, rules);
+                    if (cellStyle.D == "none") continue;
+                    int span;
+                    if (!Int32.TryParse(child.Av("colspan"), out span)) span = 1;
+                    span = Math.Max(1, Math.Min(16, span));
+                    var cell = new Tc { X = TextValue(RawText(child), cellStyle), S = cellStyle, H = child.K == "th", Sp = span, El = child };
+                    if (HasCellStructure(child))
+                    {
+                        AddCellGeneratedBlock(cell, child, rules, cellStyle, child.K, 'b');
+                        AddCellBlocks(page, cell, child, baseUrl, rules, cellStyle, child.K);
+                        AddCellGeneratedBlock(cell, child, rules, cellStyle, child.K, 'a');
+                    }
+                    else
+                    {
+                        var block = new B { K = child.K, X = cell.X, S = cellStyle, El = child };
+                        AddBlockInlines(page, block, child, baseUrl, rules, cellStyle, null, child.K);
+                        if (block.X.Length > 0 || block.Is.Count > 0) cell.Bs.Add(block);
+                    }
+                    if (cell.Bs.Count == 0 && cell.X.Length > 0) cell.Bs.Add(new B { K = child.K, X = cell.X, S = cellStyle, El = child });
+                    row.Cs.Add(cell);
+                    columns += span;
+                }
+                if (row.Cs.Count > 0)
+                {
+                    table.Rs.Add(row);
+                    table.Cs = Math.Max(table.Cs, columns);
+                }
+                return;
+            }
+            if (node.K != "thead" && node.K != "tbody" && node.K != "tfoot") return;
+            foreach (var child in node.C) AddTableRows(page, table, child, baseUrl, rules, style);
+        }
+
+        private void AddCellBlocks(P page, Tc cell, N node, Uri baseUrl, List<R> rules, S inherited, string fallback)
+        {
+            foreach (var child in node.C)
+            {
+                if (child.K == "#text")
+                {
+                    var text = TextValue(child.X, inherited);
+                    if (text.Length > 0)
+                    {
+                        var markerStyle = child.Up != null && child.Up.K == "li" ? MarkerStyle(child.Up, inherited, rules) : null;
+                        cell.Bs.Add(new B { K = fallback, X = text, Mk = ListMarker(child.Up, inherited, markerStyle), Ms = markerStyle, S = inherited, El = child.Up });
+                    }
+                    continue;
+                }
+
+                var style = Style(child, inherited, rules);
+                if (child.K == "pre" && style.Ws.Length == 0)
+                {
+                    style.Ws = "p";
+                    if (style.Wm.Length == 0) style.Wm = "n";
+                }
+                if (style.D == "none" || child.K == "script" || child.K == "style" || child.K == "noscript" || child.K == "template") continue;
+                if (child.K == "br")
+                {
+                    cell.Bs.Add(new B { K = "br", X = "", S = style, El = child });
+                    continue;
+                }
+                if (child.K == "a")
+                {
+                    Uri link;
+                    var href = child.Av("href");
+                    var text = TextValue(RawText(child), style);
+                    if (href.Length > 0 && TryUri(baseUrl, href, out link))
+                    {
+                        if (text.Length == 0) text = link.ToString();
+                        page.Ls.Add(new Ln { U = link, T = Clean(text) });
+                        var block = new B { K = "a", X = text, U = link, S = style, El = child };
+                        AddBlockInlines(page, block, child, baseUrl, rules, style, link, "a");
+                        cell.Bs.Add(block);
+                    }
+                    continue;
+                }
+                if (GaugeTag(child.K))
+                {
+                    cell.Bs.Add(GaugeBlock(child, style));
+                    continue;
+                }
+                if (ValueTag(child.K))
+                {
+                    var block = ValueBlock(page, child, baseUrl, rules, style);
+                    if (block.X.Length > 0 || block.Is.Count > 0 || LayoutContext(style)) cell.Bs.Add(block);
+                    continue;
+                }
+
+                var nested = HasCellStructure(child);
+                if (!nested)
+                {
+                    var text = TextValue(RawText(child), style);
+                    var before = GeneratedRunStyle(child, style, rules, 'b');
+                    var after = GeneratedRunStyle(child, style, rules, 'a');
+                    if (text.Length > 0 || before != null || after != null)
+                    {
+                        var markerStyle = child.K == "li" ? child.Gm ?? MarkerStyle(child, style, rules) : null;
+                        var block = new B { K = CellKind(child.K, fallback), X = text, Mk = ListMarker(child, style, markerStyle), Ms = markerStyle, S = style, El = child };
+                        AddBlockInlines(page, block, child, baseUrl, rules, style, null, block.K);
+                        if (block.X.Length > 0 || block.Is.Count > 0 || HasMarkerContent(block)) cell.Bs.Add(block);
+                    }
+                    continue;
+                }
+                AddCellGeneratedBlock(cell, child, rules, style, CellKind(child.K, fallback), 'b');
+                AddCellBlocks(page, cell, child, baseUrl, rules, style, CellKind(child.K, fallback));
+                AddCellGeneratedBlock(cell, child, rules, style, CellKind(child.K, fallback), 'a');
+            }
+        }
+
+        private void AddCellGeneratedBlock(Tc cell, N node, List<R> rules, S inherited, string kind, char pseudo)
+        {
+            var style = GeneratedRunStyle(node, inherited, rules, pseudo);
+            if (!GeneratedContentPresent(style)) return;
+            var block = new B { K = kind, X = "", S = inherited, El = node };
+            AddGeneratedRun(block, node, style, null, pseudo);
+            NormalizeInlines(block);
+            block.X = InlineText(block);
+            if (block.X.Length > 0 || block.Is.Count > 0) cell.Bs.Add(block);
+        }
+
+        private static bool HasCellStructure(N node)
+        {
+            foreach (var child in node.C) if (child.K != "#text") return true;
+            return false;
+        }
+
+        private static string CellKind(string kind, string fallback)
+        {
+            return IsTextBlock(kind) || kind == "strong" || kind == "b" ? kind : fallback;
+        }
+
+        private static void TagStyle(S style, string kind)
+        {
+            if (kind == "strong" || kind == "b") style.B = true;
+            if (kind == "em" || kind == "i") style.I = true;
+            if (kind == "u" || kind == "ins") AddDecoration(style, 'u');
+            if (kind == "s" || kind == "strike" || kind == "del") AddDecoration(style, 's');
+        }
+
+        private static void AddDecoration(S style, char value)
+        {
+            if (style.Td == "n") style.Td = "";
+            var underline = value == 'u' || style.Td.IndexOf('u') >= 0;
+            var strike = value == 's' || style.Td.IndexOf('s') >= 0;
+            style.Td = underline ? strike ? "us" : "u" : strike ? "s" : "";
+        }
+
+        private static void AddField(P page, N node, Uri baseUrl, S style)
+        {
+            var kind = node.K == "textarea" ? "textarea" : node.K == "select" ? "select" : node.K == "button" ? FieldKind(node, "submit") : FieldKind(node, "text");
+            if (kind == "hidden") return;
+
+            var buttonText = node.K == "button" ? Clean(NodeText(node)) : "";
+            var value = node.K == "textarea" ? RawText(node).Trim() : node.Av("value");
+            if (node.K == "button" && value.Length == 0) value = buttonText;
+            if (kind == "file") value = "";
+            if ((kind == "checkbox" || kind == "radio") && value.Length == 0) value = "on";
+            if (kind == "color" && !Regex.IsMatch(value, "^#[0-9a-f]{6}$", RegexOptions.IgnoreCase)) value = "#000000";
+            if (kind == "range" && value.Length == 0) value = RangeDefault(node.Av("min"), node.Av("max"));
+
+            var form = Parent(node, "form");
+            Uri action = baseUrl;
+            Uri formAction;
+            var actionValue = node.Av("formaction");
+            if (actionValue.Length == 0 && form != null) actionValue = form.Av("action");
+            if (actionValue.Length > 0 && TryUri(baseUrl, actionValue, out formAction)) action = formAction;
+            var method = node.Av("formmethod");
+            if (method.Length == 0 && form != null) method = form.Av("method");
+            method = method.Length == 0 ? "get" : method.Trim().ToLowerInvariant();
+            int min;
+            int max;
+            var pattern = node.Av("pattern");
+            if (pattern.Length > 512) pattern = pattern.Substring(0, 512);
+            var field = new Fi
+            {
+                K = kind,
+                N = node.Av("name"),
+                V = value,
+                D = value,
+                P = node.Av("placeholder"),
+                C = node.A.ContainsKey("checked"),
+                Dc = node.A.ContainsKey("checked"),
+                Ds = node.A.ContainsKey("disabled"),
+                Ro = node.A.ContainsKey("readonly"),
+                Rq = node.A.ContainsKey("required"),
+                Mn = Int32.TryParse(node.Av("minlength"), out min) ? Math.Max(0, Math.Min(min, 32767)) : 0,
+                Mx = Int32.TryParse(node.Av("maxlength"), out max) ? Math.Max(0, Math.Min(max, 32767)) : 0,
+                Pa = pattern,
+                Lo = node.Av("min"),
+                Hi = node.Av("max"),
+                Sp = node.Av("step"),
+                Ac = node.Av("accept"),
+                Mu = node.A.ContainsKey("multiple"),
+                En = FormEncoding(node, form),
+                Nv = node.A.ContainsKey("formnovalidate") || (form != null && form.A.ContainsKey("novalidate")),
+                F = form,
+                U = action,
+                M = method,
+                S = style,
+                El = node
+            };
+            if (kind == "select") AddOptions(field, node);
+            Fi current;
+            if (page.Fr.TryGetValue(node, out current))
+            {
+                var currentValue = current.V;
+                var currentChecked = current.C;
+                var currentIndex = current.Si;
+                var currentValid = current.Ok;
+                var currentMessage = current.Vm;
+                CopyField(current, field);
+                current.V = currentValue;
+                current.C = currentChecked;
+                current.Si = currentIndex;
+                current.Ok = currentValid;
+                current.Vm = currentMessage;
+                field = current;
+            }
+            else page.Fr[node] = field;
+            page.Fs.Add(field);
+
+            var blockKind = node.K == "button" || kind == "submit" || kind == "reset" || kind == "button" ? "button" : node.K;
+            var text = node.K == "button" && buttonText.Length > 0 ? buttonText : blockKind == "button" ? value : node.Av("aria-label");
+            if (blockKind == "button" && text.Length == 0) text = kind == "reset" ? "Reset" : kind == "submit" ? "Submit" : "Button";
+            if (blockKind == "button") text = Tx(text, style);
+            page.Bs.Add(new B { K = blockKind, X = text, S = style, I = field, El = node });
+        }
+
+        private static void CopyField(Fi target, Fi source)
+        {
+            target.K = source.K;
+            target.N = source.N;
+            target.P = source.P;
+            target.Ds = source.Ds;
+            target.Ro = source.Ro;
+            target.Rq = source.Rq;
+            target.Mn = source.Mn;
+            target.Mx = source.Mx;
+            target.Pa = source.Pa;
+            target.Lo = source.Lo;
+            target.Hi = source.Hi;
+            target.Sp = source.Sp;
+            target.Ac = source.Ac;
+            target.Mu = source.Mu;
+            target.En = source.En;
+            target.Nv = source.Nv;
+            target.Ok = source.Ok;
+            target.Vm = source.Vm;
+            target.F = source.F;
+            target.U = source.U;
+            target.M = source.M;
+            target.S = source.S;
+            target.D = source.D;
+            target.Dc = source.Dc;
+            target.Di = source.Di;
+            target.El = source.El;
+            target.Os.Clear();
+            foreach (var option in source.Os) target.Os.Add(option);
+        }
+
+        private static void AddOptions(Fi field, N select)
+        {
+            var nodes = new List<N>();
+            FindAll(select, "option", nodes);
+            O first = null;
+            O chosen = null;
+            var chosenIndex = -1;
+            var index = 0;
+            foreach (var node in nodes)
+            {
+                var text = Clean(NodeText(node));
+                var option = new O
+                {
+                    V = node.A.ContainsKey("value") ? node.Av("value") : text,
+                    T = text,
+                    Ds = node.A.ContainsKey("disabled") || (node.Up != null && node.Up.K == "optgroup" && node.Up.A.ContainsKey("disabled"))
+                };
+                field.Os.Add(option);
+                if (first == null) first = option;
+                if (chosen == null && node.A.ContainsKey("selected"))
+                {
+                    chosen = option;
+                    chosenIndex = index;
+                }
+                index++;
+            }
+            if (chosen == null)
+            {
+                chosen = first;
+                chosenIndex = first == null ? -1 : 0;
+            }
+            field.V = chosen == null ? "" : chosen.V;
+            field.D = field.V;
+            field.Si = chosenIndex;
+            field.Di = chosenIndex;
+        }
+
+        private static string FieldKind(N node, string fallback)
+        {
+            var kind = node.Av("type").Trim().ToLowerInvariant();
+            if (kind.Length == 0) return fallback;
+            return Regex.IsMatch(kind, "^(?:text|password|search|email|url|tel|number|range|color|date|time|month|week|datetime-local|checkbox|radio|file|submit|reset|button|hidden)$") ? kind : fallback;
+        }
+
+        private static string FormEncoding(N node, N form)
+        {
+            var value = node.Av("formenctype");
+            if (value.Length == 0 && form != null) value = form.Av("enctype");
+            return value.Trim().Equals("multipart/form-data", StringComparison.OrdinalIgnoreCase) ? "m" : "u";
+        }
+
+        private static string RangeDefault(string low, string high)
+        {
+            decimal lo;
+            decimal hi;
+            if (!Decimal.TryParse(low, NumberStyles.Float, CultureInfo.InvariantCulture, out lo)) lo = 0;
+            if (!Decimal.TryParse(high, NumberStyles.Float, CultureInfo.InvariantCulture, out hi)) hi = 100;
+            if (hi < lo) hi = lo;
+            return (lo + (hi - lo) / 2M).ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static N Parent(N node, string kind)
+        {
+            var parent = node.Up;
+            while (parent != null && parent.K != kind) parent = parent.Up;
+            return parent;
+        }
+
+        private static Er LoadError(Exception error, Uri url)
+        {
+            var typed = error as Er;
+            if (typed != null) return typed;
+            if (error is InvalidDataException || error is DecoderFallbackException)
+                return new Er("decode", url, 0, false, "Lea could not decode the response" + ErrorAt(url) + ".", error);
+            if (error is UriFormatException || error is NotSupportedException)
+                return new Er("url", url, 0, false, "Lea could not use the address" + ErrorAt(url) + ".", error);
+            var webError = error as WebException;
+            if (webError != null)
+            {
+                var response = webError.Response as HttpWebResponse;
+                if (response != null)
+                {
+                    try
+                    {
+                        var status = (int)response.StatusCode;
+                        var retryable = status == 408 || status == 429 || status >= 500;
+                        return new Er("http", response.ResponseUri ?? url, status, retryable, "Lea received HTTP " + status + ErrorAt(response.ResponseUri ?? url) + ".", error);
+                    }
+                    finally { response.Close(); }
+                }
+                if (webError.Status == WebExceptionStatus.Timeout)
+                    return new Er("timeout", url, 0, true, "Lea timed out while loading" + ErrorAt(url) + ".", error);
+                if (webError.Status == WebExceptionStatus.RequestCanceled)
+                    return new Er("cancel", url, 0, false, "Lea stopped loading" + ErrorAt(url) + ".", error);
+                return new Er("net", url, 0, true, "Lea could not reach" + ErrorAt(url) + ".", error);
+            }
+            if (error is OperationCanceledException)
+                return new Er("cancel", url, 0, false, "Lea stopped loading" + ErrorAt(url) + ".", error);
+            if (error is FileNotFoundException || error is DirectoryNotFoundException || error is UnauthorizedAccessException || (error is IOException && url != null && url.IsFile))
+                return new Er("file", url, 0, false, "Lea could not read the local file" + ErrorAt(url) + ".", error);
+            if (error is IOException)
+                return new Er("net", url, 0, true, "Lea could not read the response" + ErrorAt(url) + ".", error);
+            return null;
+        }
+
+        private static string ErrorAt(Uri url)
+        {
+            return url == null ? "" : " " + url;
+        }
+
+        private bool GetCache(Uri url, out Cr reply, out Cr stale, out bool fromDisk)
+        {
+            var key = CacheKey(url);
+            reply = null;
+            stale = null;
+            fromDisk = false;
+            if (cm > 0 && cache.TryGetValue(key, out reply))
+            {
+                if (reply.Fr <= DateTime.UtcNow)
+                {
+                    stale = reply;
+                    reply = null;
+                    ValidateStale(url, ref stale);
+                    return false;
+                }
+                lru.Remove(key);
+                lru.Add(key);
+                ch++;
+                return true;
+            }
+            if (!GetDisk(url, out reply, false)) return false;
+            if (reply.Fr <= DateTime.UtcNow)
+            {
+                stale = reply;
+                reply = null;
+                fromDisk = true;
+                ValidateStale(url, ref stale);
+                return false;
+            }
+            Remember(key, reply);
+            fromDisk = true;
+            ch++;
+            return true;
+        }
+
+        private void ValidateStale(Uri url, ref Cr stale)
+        {
+            if (stale == null || stale.Et.Length == 0 && stale.Lm.Length == 0)
+            {
+                DropCache(url);
+                stale = null;
+            }
+        }
+
+        private void PutCache(Uri url, Cr reply)
+        {
+            var key = CacheKey(url);
+            var reusable = reply.Fr > DateTime.UtcNow || reply.Et.Length > 0 || reply.Lm.Length > 0;
+            if (reply.Ns || !reusable || reply.St < 200 || reply.St >= 300 || reply.Sz > MaxCachePage)
+            {
+                DropCache(url);
+                return;
+            }
+            Remember(key, reply);
+            if (DiskOn) disk.Pt(key, new Pr(reply.U, reply.H, reply.St, reply.Ct, reply.Ce, reply.Ch, reply.Sz, reply.Fr, reply.Et, reply.Lm));
+        }
+
+        private bool DiskOn { get { return !Pv && disk.On; } }
+
+        private bool GetDisk(Uri url, out Cr reply, bool remember)
+        {
+            reply = null;
+            if (!DiskOn) return false;
+            Pr saved;
+            var state = disk.Gt(CacheKey(url), out saved);
+            if (state == 2) Trace("CACHE", url, 0, "", 0, "recover");
+            if (state != 1 || saved == null) return false;
+            reply = new Cr(saved.U, saved.H, saved.St, saved.Ct, saved.Ce, saved.Ch, saved.Sz, false, saved.Fr, saved.Et, saved.Lm);
+            if (remember) Remember(CacheKey(url), reply);
+            return true;
+        }
+
+        private void Remember(string key, Cr reply)
+        {
+            if (cm == 0)
+            {
+                cache.Remove(key);
+                lru.Remove(key);
+                return;
+            }
+            cache[key] = reply;
+            lru.Remove(key);
+            lru.Add(key);
+            TrimCache();
+        }
+
+        private void TrimCache()
+        {
+            while (lru.Count > cm)
+            {
+                var key = lru[0];
+                lru.RemoveAt(0);
+                cache.Remove(key);
+            }
+        }
+
+        private void DropCache(Uri url)
+        {
+            if (url == null) return;
+            var key = CacheKey(url);
+            cache.Remove(key);
+            lru.Remove(key);
+            if (DiskOn) disk.Rm(key);
+        }
+
+        private static string CacheKey(Uri url)
+        {
+            if (url.Fragment.Length == 0) return url.AbsoluteUri;
+            var clean = new UriBuilder(url);
+            clean.Fragment = "";
+            return clean.Uri.AbsoluteUri;
+        }
+
+        private static bool SameDocument(Uri left, Uri right)
+        {
+            return left != null && right != null && String.Equals(CacheKey(left), CacheKey(right), StringComparison.Ordinal);
+        }
+
+        private static bool SameAddress(Uri left, Uri right)
+        {
+            return left != null && right != null && String.Equals(left.AbsoluteUri, right.AbsoluteUri, StringComparison.Ordinal);
+        }
+
+        private static bool FragmentReference(string input)
+        {
+            return (input ?? "").Trim().Trim('"').StartsWith("#", StringComparison.Ordinal);
+        }
+
+        private static bool FragmentNavigation(Uri current, Uri target)
+        {
+            if (current == null || target == null) return false;
+            return current.Fragment.Length > 0 || target.Fragment.Length > 0 || target.OriginalString.EndsWith("#", StringComparison.Ordinal);
+        }
+
+        private static Cr ReadFile(Uri url, int limit, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            var path = Local(url);
+            byte[] bytes;
+            using (var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 32768))
+                bytes = Ri.Bytes(input, url, input.Length, "", limit, token);
+            string charset;
+            var html = Decode(bytes, "", out charset);
+            return new Cr(url, html, 200, FileType(path), "", charset, bytes.Length, true, DateTime.MinValue, "", "");
+        }
+
+        private static Cr ReadWeb(Uri url, byte[] bytes, HttpWebResponse response, int cacheSeconds)
+        {
+            string charset;
+            var headers = response.Headers;
+            var control = headers[HttpResponseHeader.CacheControl] ?? "";
+            var html = Decode(bytes, Charset(response.ContentType), out charset);
+            return new Cr(response.ResponseUri ?? url, html, (int)response.StatusCode, MediaType(response.ContentType), headers[HttpResponseHeader.ContentEncoding], charset, bytes.Length,
+                control.IndexOf("no-store", StringComparison.OrdinalIgnoreCase) >= 0,
+                FreshUntil(control, headers[HttpResponseHeader.Expires], cacheSeconds), headers[HttpResponseHeader.ETag], headers[HttpResponseHeader.LastModified]);
+        }
+
+        private Cr Revalidated(Cr stale)
+        {
+            return new Cr(web.U ?? stale.U, stale.H, stale.St, stale.Ct, stale.Ce, stale.Ch, stale.Sz, web.Ns,
+                FreshUntil(web.Cc, web.Ex, cs), web.Et.Length == 0 ? stale.Et : web.Et, web.Lm.Length == 0 ? stale.Lm : web.Lm);
+        }
+
+        private static DateTime FreshUntil(string cacheControl, string expires, int secondsDefault)
+        {
+            var control = cacheControl ?? "";
+            if (Regex.IsMatch(control, "(?:^|,)\\s*(?:no-store|no-cache)\\b", RegexOptions.IgnoreCase)) return DateTime.MinValue;
+            var age = Regex.Match(control, "(?:^|,)\\s*max-age\\s*=\\s*\"?(?<n>[0-9]+)", RegexOptions.IgnoreCase);
+            long seconds;
+            if (age.Success && Int64.TryParse(age.Groups["n"].Value, out seconds))
+                return DateTime.UtcNow.AddSeconds(Math.Min(604800L, seconds));
+            DateTimeOffset expiry;
+            if (DateTimeOffset.TryParse(expires ?? "", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out expiry)) return expiry.UtcDateTime;
+            return DateTime.UtcNow.AddSeconds(secondsDefault);
+        }
+
+        private static string FileType(string path)
+        {
+            var extension = Path.GetExtension(path).ToLowerInvariant();
+            if (extension == ".htm" || extension == ".html") return "text/html";
+            if (extension == ".txt") return "text/plain";
+            if (extension == ".css") return "text/css";
+            return "application/octet-stream";
+        }
+
+        private static string MediaType(string contentType)
+        {
+            var split = (contentType ?? "").IndexOf(';');
+            return (split < 0 ? contentType ?? "" : contentType.Substring(0, split)).Trim().ToLowerInvariant();
+        }
+
+        private static string Charset(string contentType)
+        {
+            var match = Regex.Match(contentType ?? "", "(?:^|;)\\s*charset\\s*=\\s*[\"']?(?<c>[^;\\s\"']+)", RegexOptions.IgnoreCase);
+            return match.Success ? match.Groups["c"].Value.Trim() : "";
+        }
+
+        private static string Decode(byte[] bytes, string charset, out string used)
+        {
+            Encoding encoding = null;
+            if (bytes.Length >= 4 && bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 254 && bytes[3] == 255) encoding = new UTF32Encoding(true, true);
+            else if (bytes.Length >= 4 && bytes[0] == 255 && bytes[1] == 254 && bytes[2] == 0 && bytes[3] == 0) encoding = Encoding.UTF32;
+            else if (bytes.Length >= 3 && bytes[0] == 239 && bytes[1] == 187 && bytes[2] == 191) encoding = Encoding.UTF8;
+            else if (bytes.Length >= 2 && bytes[0] == 254 && bytes[1] == 255) encoding = Encoding.BigEndianUnicode;
+            else if (bytes.Length >= 2 && bytes[0] == 255 && bytes[1] == 254) encoding = Encoding.Unicode;
+            if (encoding == null && charset.Length > 0)
+            {
+                try { encoding = Encoding.GetEncoding(charset); }
+                catch (ArgumentException) { }
+            }
+            if (encoding == null) encoding = Encoding.UTF8;
+            used = encoding.WebName.ToLowerInvariant();
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new StreamReader(stream, encoding, true)) return reader.ReadToEnd();
+        }
+
+        private sealed class Tk
+        {
+            public readonly char K;
+            public readonly string N;
+            public readonly string A;
+            public readonly string X;
+            public readonly bool S;
+            public readonly bool D;
+
+            private Tk(char kind, string name, string attrs, string text, bool self, bool decode)
+            {
+                K = kind;
+                N = name;
+                A = attrs;
+                X = text;
+                S = self;
+                D = decode;
+            }
+
+            public static Tk T(string text, bool decode) { return new Tk('t', "", "", text, false, decode); }
+            public static Tk O(string name, string attrs, bool self) { return new Tk('o', name, attrs, "", self, false); }
+            public static Tk C(string name) { return new Tk('c', name, "", "", false, false); }
+        }
+
+        private struct Pd
+        {
+            public readonly string N;
+            public readonly string V;
+            public readonly Uri U;
+            public readonly bool C;
+            public readonly bool I;
+
+            public Pd(string name, string value, Uri origin, bool custom, bool important)
+            {
+                N = name;
+                V = value;
+                U = origin;
+                C = custom;
+                I = important;
+            }
+        }
+
+        private sealed class Sx
+        {
+            public readonly Dictionary<string, N> Ns = new Dictionary<string, N>(StringComparer.Ordinal);
+            public readonly List<N> Os = new List<N>();
+        }
+
+        private sealed class Sv
+        {
+            public string F = "#000000";
+            public string S = "none";
+            public string C = "#000000";
+            public string A = "s";
+            public string R = "n";
+            public string Cr = "n";
+            public string Lc = "b";
+            public string Lj = "m";
+            public double W = 1D;
+            public double O = 1D;
+            public double Fo = 1D;
+            public double So = 1D;
+            public double Z = 16D;
+            public double Ml = 4D;
+            public double Do;
+            public double[] Da = new double[0];
+            public string X = "";
+            public double[] M = SvgIdentity();
+            public double[] Xm = SvgIdentity();
+
+            public Sv Copy()
+            {
+                return new Sv { F = F, S = S, C = C, A = A, R = R, Cr = Cr, Lc = Lc, Lj = Lj, W = W, O = O, Fo = Fo, So = So, Z = Z, Ml = Ml, Do = Do, Da = (double[])Da.Clone(), X = X, M = (double[])M.Clone(), Xm = (double[])Xm.Clone() };
+            }
+        }
+
+        private sealed class Mc
+        {
+            public readonly int N;
+            public readonly int X;
+            public readonly int Hn;
+            public readonly int Hx;
+            public readonly int Rn;
+            public readonly int Rd;
+            public readonly int Rx;
+            public readonly int Rxd;
+            public readonly char O;
+            public readonly bool Ne;
+            public readonly bool Xe;
+            public readonly bool Hne;
+            public readonly bool Hxe;
+            public readonly bool Rne;
+            public readonly bool Rxe;
+            public readonly int Dn;
+            public readonly int Dx;
+            public readonly bool Dne;
+            public readonly bool Dxe;
+            public readonly char Th;
+            public readonly char Rm;
+            public readonly char Pc;
+            public readonly char Je;
+            public readonly char Pdt;
+            public readonly char Mt;
+            public readonly bool Nt;
+            public readonly char Pt;
+            public readonly char Hv;
+            public readonly char Ap;
+            public readonly char Ah;
+            public readonly Mc A;
+            public readonly Mc B;
+            public bool Cp { get { return A != null; } }
+
+            public Mc(int minimum, int maximum)
+                : this(minimum, maximum, 0, 0, 0, 0, 0, 0, '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, false, false, false, false, false, false)
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    Int32.MinValue, Int32.MaxValue, false, false)
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, '\0', '\0', '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive, char theme)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, '\0', '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion, char contrast)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion, char contrast, char scripting)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive,
+                    theme, motion, contrast, scripting, '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion, char contrast, char scripting,
+                char preferredData)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive,
+                    theme, motion, contrast, scripting, preferredData, '\0', false, '\0', '\0', '\0', '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion, char contrast, char scripting,
+                char preferredData, char mediaType, bool negated, char pointer, char hover, char anyPointer, char anyHover)
+            {
+                N = minimum;
+                X = maximum;
+                Hn = heightMinimum;
+                Hx = heightMaximum;
+                Rn = ratioMinimum;
+                Rd = ratioMinimumDenominator;
+                Rx = ratioMaximum;
+                Rxd = ratioMaximumDenominator;
+                O = orientation;
+                Ne = minimumExclusive;
+                Xe = maximumExclusive;
+                Hne = heightMinimumExclusive;
+                Hxe = heightMaximumExclusive;
+                Rne = ratioMinimumExclusive;
+                Rxe = ratioMaximumExclusive;
+                Dn = densityMinimum;
+                Dx = densityMaximum;
+                Dne = densityMinimumExclusive;
+                Dxe = densityMaximumExclusive;
+                Th = theme;
+                Rm = motion;
+                Pc = contrast;
+                Je = scripting;
+                Pdt = preferredData;
+                Mt = mediaType;
+                Nt = negated;
+                Pt = pointer;
+                Hv = hover;
+                Ap = anyPointer;
+                Ah = anyHover;
+            }
+
+            public Mc(Mc left, Mc right)
+            {
+                Dn = Int32.MinValue;
+                Dx = Int32.MaxValue;
+                A = left;
+                B = right;
+            }
+
+            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting,
+                char preferredData, char pointer, char hover, char anyPointer, char anyHover)
+            {
+                if (Cp) return A.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                        pointer, hover, anyPointer, anyHover) &&
+                    B.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                        pointer, hover, anyPointer, anyHover);
+                var matches = Mt != 'p' && Mt != 'x' &&
+                    !(width < N || Ne && width == N || X > 0 && (width > X || Xe && width == X) ||
+                    height < Hn || Hne && height == Hn || Hx > 0 && (height > Hx || Hxe && height == Hx));
+                if (matches && (Rn > 0 && (RatioCompare(width, height, Rn, Rd) < 0 || Rne && RatioCompare(width, height, Rn, Rd) == 0) ||
+                    Rx > 0 && (RatioCompare(width, height, Rx, Rxd) > 0 || Rxe && RatioCompare(width, height, Rx, Rxd) == 0))) matches = false;
+                var scaledDensity = density * 1000;
+                if (matches && (Dn != Int32.MinValue && (scaledDensity < Dn || Dne && scaledDensity == Dn) ||
+                    Dx != Int32.MaxValue && (scaledDensity > Dx || Dxe && scaledDensity == Dx))) matches = false;
+                matches = matches && (O == '\0' || O == 'p' && height >= width || O == 'l' && width > height) &&
+                    (Th == '\0' || Th == theme) && (Rm == '\0' || Rm == motion) &&
+                    (Pc == '\0' || Pc == '*' && contrast != 'n' || Pc == contrast) &&
+                    (Je == '\0' || Je == '*' && scripting != 'n' || Je == scripting) &&
+                    (Pdt == '\0' || Pdt == preferredData) && DiscreteOn(Pt, pointer) &&
+                    DiscreteOn(Hv, hover) && AnyPointerOn(Ap, anyPointer) && DiscreteOn(Ah, anyHover);
+                return Nt ? !matches : matches;
+            }
+
+            public string D
+            {
+                get
+                {
+                    if (Cp) return "(" + A.D + "&" + B.D + ")";
+                    var parts = new List<string>();
+                    if (N == X && N > 0 && !Ne && !Xe) parts.Add("@m=" + N);
+                    else if (N == 0 && X > 0) parts.Add("@m" + (Xe ? "<" : "<=") + X);
+                    else if (N > 0 && X == 0) parts.Add("@m" + (Ne ? ">" : ">=") + N);
+                    else if (N > 0 && X > 0 && !Ne && !Xe) parts.Add("@m" + N + "-" + X);
+                    else
+                    {
+                        if (N > 0) parts.Add("@m" + (Ne ? ">" : ">=") + N);
+                        if (X > 0) parts.Add("@m" + (Xe ? "<" : "<=") + X);
+                    }
+                    if (Hn == Hx && Hn > 0 && !Hne && !Hxe) parts.Add("@h=" + Hn);
+                    else if (Hn == 0 && Hx > 0) parts.Add("@h" + (Hxe ? "<" : "<=") + Hx);
+                    else if (Hn > 0 && Hx == 0) parts.Add("@h" + (Hne ? ">" : ">=") + Hn);
+                    else if (Hn > 0 && Hx > 0 && !Hne && !Hxe) parts.Add("@h" + Hn + "-" + Hx);
+                    else
+                    {
+                        if (Hn > 0) parts.Add("@h" + (Hne ? ">" : ">=") + Hn);
+                        if (Hx > 0) parts.Add("@h" + (Hxe ? "<" : "<=") + Hx);
+                    }
+                    if (Rn > 0 && Rx > 0 && RatioCompare(Rn, Rd, Rx, Rxd) == 0 && !Rne && !Rxe) parts.Add("@r=" + Rn + "/" + Rd);
+                    else
+                    {
+                        if (Rn > 0) parts.Add("@r" + (Rne ? ">" : ">=") + Rn + "/" + Rd);
+                        if (Rx > 0) parts.Add("@r" + (Rxe ? "<" : "<=") + Rx + "/" + Rxd);
+                    }
+                    if (O != '\0') parts.Add("@o=" + O);
+                    if (Th != '\0') parts.Add("@t=" + Th);
+                    if (Rm != '\0') parts.Add("@rm=" + Rm);
+                    if (Pc != '\0') parts.Add(Pc == '*' ? "@pc" : "@pc=" + Pc);
+                    if (Je != '\0') parts.Add(Je == '*' ? "@je" : "@je=" + Je);
+                    if (Pdt != '\0') parts.Add("@pdt=" + Pdt);
+                    if (Pt != '\0') parts.Add(Pt == '*' ? "@pt" : "@pt=" + Pt);
+                    if (Hv != '\0') parts.Add(Hv == '*' ? "@hv" : "@hv=" + Hv);
+                    if (Ap != '\0') parts.Add(Ap == '*' ? "@ap" : "@ap=" + Ap);
+                    if (Ah != '\0') parts.Add(Ah == '*' ? "@ah" : "@ah=" + Ah);
+                    if (Dn == Dx && Dn != Int32.MinValue && !Dne && !Dxe) parts.Add("@d=" + DensityText(Dn));
+                    else
+                    {
+                        if (Dn != Int32.MinValue) parts.Add("@d" + (Dne ? ">" : ">=") + DensityText(Dn));
+                        if (Dx != Int32.MaxValue) parts.Add("@d" + (Dxe ? "<" : "<=") + DensityText(Dx));
+                    }
+                    if (Mt == 'p') parts.Insert(0, "@type=print");
+                    else if (Mt == 'x') parts.Insert(0, "@type=none");
+                    var value = String.Join("&", parts.ToArray());
+                    return Nt ? "!(" + (value.Length == 0 ? "@all" : value) + ")" : value;
+                }
+            }
+
+            private static string DensityText(int value)
+            {
+                return (value / 1000D).ToString("0.###", CultureInfo.InvariantCulture) + "dpi";
+            }
+
+            private static bool DiscreteOn(char expected, char actual)
+            {
+                return expected == '\0' || expected == '*' && actual != 'n' || expected == actual;
+            }
+
+            private static bool AnyPointerOn(char expected, char actual)
+            {
+                if (expected == '\0') return true;
+                if (expected == '*') return actual != 'n';
+                if (expected == 'n') return actual == 'n';
+                if (expected == 'c') return actual == 'c' || actual == 'b';
+                if (expected == 'f') return actual == 'f' || actual == 'b';
+                return expected == 'b' && actual == 'b';
+            }
+        }
+
+        private sealed class Sc
+        {
+            public readonly string X;
+            public readonly Uri U;
+
+            public Sc(string source, Uri origin)
+            {
+                X = source ?? "";
+                U = origin;
+            }
+        }
+
+        private sealed class Sh
+        {
+            public readonly string K;
+            public readonly string X;
+            public readonly int Sz;
+            public readonly List<R> Rs;
+
+            public Sh(string key, string source, int bytes, List<R> rules) { K = key; X = source; Sz = bytes; Rs = rules; }
+        }
+
+        private sealed class Kq
+        {
+            public readonly string N;
+            public readonly string D;
+            public readonly Kx X;
+            public readonly int A;
+
+            public Kq(string name, string source, Kx expression)
+            {
+                N = name ?? "";
+                X = expression;
+                A = ContainerAxes(expression);
+                var compact = Regex.Replace(source ?? "", "\\s+", "");
+                if (compact.Length > 96) compact = compact.Substring(0, 96);
+                D = "@c(" + (N.Length == 0 ? "" : N + ":") + compact + ")";
+            }
+        }
+
+        private sealed class Kx
+        {
+            public readonly char K;
+            public readonly string N;
+            public readonly string V;
+            public readonly Kx[] C;
+            public readonly int L;
+            public readonly char U;
+            public readonly int O;
+            public readonly char T;
+
+            public Kx(string name, string value)
+            {
+                K = 'v';
+                N = name;
+                V = value;
+                C = new Kx[0];
+                L = 0;
+                U = '\0';
+            }
+
+            public Kx(char operation, Kx[] children)
+            {
+                K = operation;
+                N = "";
+                V = "";
+                C = children ?? new Kx[0];
+                L = 0;
+                U = '\0';
+            }
+
+            public Kx(char axis, string operation, int value, char unit)
+            {
+                K = axis;
+                N = operation ?? "";
+                V = "";
+                C = new Kx[0];
+                L = value;
+                U = unit;
+            }
+
+            public Kx(char axis, string operation, int value, char unit, int offset, char offsetUnit)
+                : this(axis, operation, value, unit)
+            {
+                O = offset;
+                T = offsetUnit;
+            }
+
+            public Kx(char feature, string value)
+            {
+                K = feature;
+                N = "";
+                V = value ?? "";
+                C = new Kx[0];
+                L = 0;
+                U = '\0';
+            }
+
+            public Kx(char feature, string operation, int numerator, int denominator)
+            {
+                K = feature;
+                N = operation ?? "";
+                V = numerator.ToString(CultureInfo.InvariantCulture) + "/" + denominator.ToString(CultureInfo.InvariantCulture);
+                C = new Kx[0];
+                L = 0;
+                U = '\0';
+            }
+        }
+
+        private sealed class R
+        {
+            public readonly string Q;
+            public readonly string V;
+            public readonly int W;
+            public readonly int O;
+            public readonly Se[] P;
+            public readonly char[] J;
+            public readonly Mc[] M;
+            public readonly string Md;
+            public readonly Pd[] Ds;
+            public readonly char Ps;
+            public readonly string Ln;
+            public readonly int L;
+            public readonly Kq[] Kqs;
+            public bool Pm { get { return Ps == 'm'; } }
+
+            public R(R rule, int order)
+                : this(rule, order, rule.L)
+            {
+            }
+
+            public R(R rule, int order, int layer)
+            {
+                Q = rule.Q; V = rule.V; W = rule.W; O = order;
+                P = rule.P; J = rule.J; M = rule.M; Ds = rule.Ds; Ps = rule.Ps; Su = rule.Su; Ln = rule.Ln; L = layer; Kqs = rule.Kqs;
+                Md = RuleLabel(Su, M, Ln, Kqs);
+            }
+
+            public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
+                : this(query, values, null, weight, order, parts, joins, new Mc[] { new Mc(0, 0) }, '\0')
+            {
+            }
+
+            public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media, char pseudo,
+                string supports = "", string layerName = "", int layer = -1, Kq[] containers = null)
+            {
+                Q = query;
+                V = values;
+                W = weight;
+                O = order;
+                P = parts;
+                J = joins;
+                M = media ?? new Mc[0];
+                Ps = pseudo;
+                Su = supports ?? "";
+                Ln = layerName ?? "";
+                L = layer;
+                Kqs = containers ?? new Kq[0];
+                Ds = CssDeclarations(values, origin);
+                Md = RuleLabel(Su, M, Ln, Kqs);
+            }
+
+            private readonly string Su;
+
+            private static string RuleLabel(string supports, Mc[] media, string layer, Kq[] containers)
+            {
+                var labels = new List<string>();
+                if (containers != null)
+                    foreach (var container in containers) labels.Add(container.D);
+                foreach (var condition in media)
+                    if (condition.D.Length > 0) labels.Add(condition.D);
+                var mediaLabel = String.Join("|", labels.ToArray());
+                var prefix = String.IsNullOrEmpty(layer) ? "" : "@l(" + layer + ")";
+                if (!String.IsNullOrEmpty(supports)) prefix = prefix.Length == 0 ? supports : prefix + "&" + supports;
+                return prefix.Length == 0 ? mediaLabel : mediaLabel.Length == 0 ? prefix : prefix + "&" + mediaLabel;
+            }
+
+            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting,
+                char preferredData, char pointer, char hover, char anyPointer, char anyHover)
+            {
+                foreach (var condition in M)
+                    if (condition.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                        pointer, hover, anyPointer, anyHover)) return true;
+                return false;
+            }
+        }
+
+        private sealed class Ic
+        {
+            public readonly string U;
+            public readonly int W;
+            public readonly int D;
+
+            public Ic(string url, int width, int density)
+            {
+                U = url;
+                W = width;
+                D = density;
+            }
+        }
+
+        private sealed class Se
+        {
+            public readonly string T;
+            public readonly string[] I;
+            public readonly string[] C;
+            public readonly Ca[] A;
+            public readonly Ps[] Ps;
+            public readonly int W;
+
+            public Se(string tag, string[] ids, string[] classes, Ca[] attrs, Ps[] pseudos, int weight)
+            {
+                T = tag;
+                I = ids;
+                C = classes;
+                A = attrs;
+                Ps = pseudos;
+                W = weight;
+            }
+        }
+
+        private sealed class Ca
+        {
+            public readonly string N;
+            public readonly string O;
+            public readonly string V;
+
+            public Ca(string name, string operation, string value)
+            {
+                N = name;
+                O = operation;
+                V = value;
+            }
+        }
+
+        private sealed class Ps
+        {
+            public readonly string N;
+            public readonly int A;
+            public readonly int B;
+            public readonly Se[] Ss;
+            public readonly Hr[] Rs;
+
+            public Ps(string name)
+                : this(name, 0, 0, NoSelectors, NoRelatives)
+            {
+            }
+
+            public Ps(string name, Se[] selectors)
+                : this(name, 0, 0, selectors, NoRelatives)
+            {
+            }
+
+            public Ps(string name, Hr[] relatives)
+                : this(name, 0, 0, NoSelectors, relatives)
+            {
+            }
+
+            public Ps(string name, int a, int b, Se[] selectors)
+                : this(name, a, b, selectors, NoRelatives)
+            {
+            }
+
+            private Ps(string name, int a, int b, Se[] selectors, Hr[] relatives)
+            {
+                N = name;
+                A = a;
+                B = b;
+                Ss = selectors ?? NoSelectors;
+                Rs = relatives ?? NoRelatives;
+            }
+        }
+
+        private sealed class Hr
+        {
+            public readonly char L;
+            public readonly Se[] P;
+            public readonly char[] J;
+            public readonly int W;
+
+            public Hr(char leading, Se[] parts, char[] joins, int weight)
+            {
+                L = leading;
+                P = parts;
+                J = joins;
+                W = weight;
+            }
+        }
+
+        private sealed class He
+        {
+            public readonly P P;
+            public readonly Uri U;
+
+            public He(P page, Uri url)
+            {
+                P = page;
+                U = url;
+            }
+        }
+
+        private sealed class Ld
+        {
+            public readonly Cr R;
+            public readonly bool Ca;
+
+            public Ld(Cr reply, bool cached)
+            {
+                R = reply;
+                Ca = cached;
+            }
+        }
+
+        private sealed class Cr
+        {
+            public readonly Uri U;
+            public readonly string H;
+            public readonly int St;
+            public readonly string Ct;
+            public readonly string Ce;
+            public readonly string Ch;
+            public readonly int Sz;
+            public readonly bool Ns;
+            public readonly DateTime Fr;
+            public readonly string Et;
+            public readonly string Lm;
+
+            public Cr(Uri url, string html, int status, string contentType, string contentEncoding, string charset, int size, bool noStore, DateTime freshUntil, string etag, string lastModified)
+            {
+                U = url;
+                H = html ?? "";
+                St = status;
+                Ct = contentType ?? "";
+                Ce = (contentEncoding ?? "").Trim().ToLowerInvariant();
+                Ch = charset ?? "";
+                Sz = size;
+                Ns = noStore;
+                Fr = freshUntil;
+                Et = etag ?? "";
+                Lm = lastModified ?? "";
+            }
+        }
+
+        private sealed class W : WebClient
+        {
+            public const int CookieMax = 64;
+            private CookieContainer normal = NewJar();
+            private CookieContainer privateJar = NewJar();
+            private CookieContainer jar;
+            private bool pv;
+            private int tm = DefaultTimeout;
+
+            public Uri U { get; private set; }
+            public int St { get; private set; }
+            public string Ct { get; private set; }
+            public string Ce { get; private set; }
+            public bool Ns { get; private set; }
+            public string Cc { get; private set; }
+            public string Ex { get; private set; }
+            public string Et { get; private set; }
+            public string Lm { get; private set; }
+            public long Len { get; private set; }
+            private string ve = "";
+            private string vm = "";
+
+            public W()
+            {
+                jar = normal;
+            }
+
+            public int Kc { get { return jar.Count; } }
+            public int Tm { get { return tm; } set { tm = value; } }
+            public bool Pv
+            {
+                get { return pv; }
+                set
+                {
+                    if (pv == value) return;
+                    pv = value;
+                    if (pv)
+                    {
+                        privateJar = NewJar();
+                        jar = privateJar;
+                    }
+                    else
+                    {
+                        privateJar = NewJar();
+                        jar = normal;
+                    }
+                }
+            }
+
+            public void Kcl()
+            {
+                if (pv) privateJar = NewJar();
+                else normal = NewJar();
+                jar = pv ? privateJar : normal;
+            }
+
+            public void Va(string etag, string lastModified)
+            {
+                ve = etag ?? "";
+                vm = lastModified ?? "";
+            }
+
+            public bool Nm(WebException error)
+            {
+                var response = error == null ? null : error.Response as HttpWebResponse;
+                if (response == null || response.StatusCode != HttpStatusCode.NotModified) return false;
+                try { Capture(response); return true; }
+                finally { response.Close(); }
+            }
+
+            public Cr ReadResource(Uri url, byte[] data, string type, int limit, int cacheSeconds, CancellationToken token)
+            {
+                token.ThrowIfCancellationRequested();
+                var request = ResourceRequest(url, data, type);
+                using (token.Register(request.Abort))
+                {
+                    if (data != null)
+                        using (var output = request.GetRequestStream()) output.Write(data, 0, data.Length);
+                    using (var response = (HttpWebResponse)request.GetResponse())
+                    using (var source = response.GetResponseStream())
+                    {
+                        var bytes = Ri.Bytes(source, response.ResponseUri ?? url, response.ContentLength, response.Headers[HttpResponseHeader.ContentEncoding], limit, token);
+                        return ReadWeb(url, bytes, response, cacheSeconds);
+                    }
+                }
+            }
+
+            public async Task<Cr> ReadResourceA(Uri url, byte[] data, string type, int limit, int cacheSeconds, CancellationToken token)
+            {
+                token.ThrowIfCancellationRequested();
+                var request = ResourceRequest(url, data, type);
+                using (token.Register(request.Abort))
+                {
+                    if (data != null)
+                        using (var output = await request.GetRequestStreamAsync().ConfigureAwait(false))
+                            await output.WriteAsync(data, 0, data.Length, token).ConfigureAwait(false);
+                    using (var response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
+                    using (var source = response.GetResponseStream())
+                    {
+                        var bytes = await Ri.BytesA(source, response.ResponseUri ?? url, response.ContentLength, response.Headers[HttpResponseHeader.ContentEncoding], limit, token).ConfigureAwait(false);
+                        return ReadWeb(url, bytes, response, cacheSeconds);
+                    }
+                }
+            }
+
+            private HttpWebRequest ResourceRequest(Uri url, byte[] data, string type)
+            {
+                if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                    throw new NotSupportedException("Lea document requests require HTTP or HTTPS.");
+                var request = (HttpWebRequest)GetWebRequest(url);
+                if (data != null)
+                {
+                    request.Method = "POST";
+                    request.ContentType = type;
+                    request.ContentLength = data.Length;
+                }
+                return request;
+            }
+
+            protected override WebRequest GetWebRequest(Uri address)
+            {
+                U = null;
+                St = 0;
+                Ct = "";
+                Ce = "";
+                Ns = false;
+                Cc = "";
+                Ex = "";
+                Et = "";
+                Lm = "";
+                Len = -1;
+                var request = base.GetWebRequest(address);
+                var http = request as HttpWebRequest;
+                if (http != null)
+                {
+                    http.CookieContainer = jar;
+                    http.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
+                    http.CachePolicy = new RequestCachePolicy(RequestCacheLevel.BypassCache);
+                    http.UserAgent = "Lea/0.3";
+                    http.Timeout = tm;
+                    http.ReadWriteTimeout = tm;
+                    if (ve.Length > 0) http.Headers[HttpRequestHeader.IfNoneMatch] = ve;
+                    DateTime modified;
+                    if (vm.Length > 0 && DateTime.TryParse(vm, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out modified)) http.IfModifiedSince = modified.ToUniversalTime();
+                }
+                return request;
+            }
+
+            protected override WebResponse GetWebResponse(WebRequest request)
+            {
+                return Capture(base.GetWebResponse(request));
+            }
+
+            protected override WebResponse GetWebResponse(WebRequest request, IAsyncResult result)
+            {
+                return Capture(base.GetWebResponse(request, result));
+            }
+
+            private WebResponse Capture(WebResponse response)
+            {
+                var http = response as HttpWebResponse;
+                if (http == null) return response;
+                U = http.ResponseUri;
+                St = (int)http.StatusCode;
+                Ct = http.ContentType ?? "";
+                Ce = http.Headers[HttpResponseHeader.ContentEncoding] ?? "";
+                Cc = http.Headers[HttpResponseHeader.CacheControl] ?? "";
+                Ex = http.Headers[HttpResponseHeader.Expires] ?? "";
+                Et = http.Headers[HttpResponseHeader.ETag] ?? "";
+                Lm = http.Headers[HttpResponseHeader.LastModified] ?? "";
+                Len = http.ContentLength;
+                Ns = Cc.IndexOf("no-store", StringComparison.OrdinalIgnoreCase) >= 0;
+                return response;
+            }
+
+            private static CookieContainer NewJar()
+            {
+                return new CookieContainer(CookieMax, 16, 4096);
+            }
+        }
+
+        private static Uri ToUri(string input, Uri baseUrl)
+        {
+            input = (input ?? "").Trim().Trim('"');
+            Uri u;
+            if (baseUrl != null && input.StartsWith("#", StringComparison.Ordinal)) return new Uri(CacheKey(baseUrl) + input);
+            if (Uri.TryCreate(input, UriKind.Absolute, out u)) return u;
+            if (baseUrl != null && Uri.TryCreate(baseUrl, input, out u)) return u;
+            if (File.Exists(input)) return new Uri(Path.GetFullPath(input));
+            try { return new Uri("https://" + input); }
+            catch (UriFormatException error) { throw new Er("url", null, 0, false, "Lea could not understand that address.", error); }
+        }
+
+        private static bool TryUri(Uri baseUrl, string value, out Uri url)
+        {
+            url = null;
+            if (baseUrl == null) return false;
+            try
+            {
+                if ((value ?? "").StartsWith("#", StringComparison.Ordinal)) url = new Uri(CacheKey(baseUrl) + value);
+                else return Uri.TryCreate(baseUrl, value, out url);
+                return true;
+            }
+            catch (UriFormatException) { return false; }
+        }
+
+        private static string Local(Uri url)
+        {
+            var path = url.LocalPath;
+            var query = path.IndexOf('?');
+            return query < 0 ? path : path.Substring(0, query);
+        }
+
+        private static string Query(Uri url)
+        {
+            var text = url.AbsoluteUri;
+            var start = text.IndexOf('?');
+            var mark = 1;
+            if (start < 0 && url.IsFile)
+            {
+                start = text.IndexOf("%3F", StringComparison.OrdinalIgnoreCase);
+                mark = 3;
+            }
+            if (start < 0) return "";
+            var end = text.IndexOf('#', start);
+            return end < 0 ? text.Substring(start + mark) : text.Substring(start + mark, end - start - mark);
+        }
+
+        private static string Clean(string text)
+        {
+            return Regex.Replace(text ?? "", "\\s+", " ").Trim();
+        }
+    }
+}

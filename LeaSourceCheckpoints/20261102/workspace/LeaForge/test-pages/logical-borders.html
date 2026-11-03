@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea logical borders</title>
+  <style>
+    body { margin: 0; padding: 12px; color: #123f8c; background: #ffffff; }
+    p { margin: 4px 0; padding: 2px; }
+    #geometry-shell { position: relative; width: 400px; height: 180px; margin: 0; padding: 0; background: #e8f3ff; }
+    #axis { position: absolute; left: 20px; top: 30px; width: 100px; height: 40px; margin: 0; padding: 0; border-inline: 4px solid #123f8c; border-block: 6px dashed #176b4d; border-radius: 14px; }
+    #longhand { border-inline-start-width: 2px; border-inline-start-style: dotted; border-inline-start-color: #a13b18; border-inline-end-width: 3px; border-inline-end-style: solid; border-inline-end-color: #176b4d; border-block-start-width: 4px; border-block-start-style: dashed; border-block-start-color: #123f8c; border-block-end-width: 5px; border-block-end-style: double; border-block-end-color: #b7791f; }
+    #axis-components { border-inline-width: 7px 9px; border-inline-style: solid dotted; border-inline-color: #a13b18 #176b4d; border-block-width: 11px 13px; border-block-style: dashed double; border-block-color: #123f8c #b7791f; }
+    #source { border: 1px solid black; border-left: 3px dotted red; border-inline-start: 5px dashed #123f8c; border-right-color: green; border-inline-end-color: #176b4d; border-top-style: dotted; border-block-start-style: double; }
+    #physical { border-width: 1px 2px 3px 4px; border-style: solid dashed dotted double; border-color: #111111 #222222 #333333 #444444; }
+    #variables { --iw: 8px 10px; --bc: rgb(18 63 140) rgba(23, 107, 77, .8); border-inline-width: var(--iw); border-inline-style: solid dashed; border-inline-color: var(--bc); }
+    #important { border-inline: 4px solid #123f8c !important; border-left: 9px dotted red; border-right-width: 11px !important; border-inline-end-width: 6px; }
+    #inherit-parent { border-width: 2px 3px 4px 5px; border-style: dotted solid dashed double; border-color: #a13b18 #176b4d #123f8c #b7791f; }
+    #inherit-child { border-inline: inherit; border-block: inherit; }
+    #reset { border: 9px solid #a13b18; border-inline: initial; border-block: unset; }
+    #invalid { border-inline-width: 5px 7px; border-inline-width: 9px bad; border-block-style: dashed dotted; border-block-style: solid nope; border-inline-color: #123f8c #176b4d; border-inline-color: red #xyz; border-inline-start: 8px dotted #a13b18; border-inline-start: 2px solid red extra; }
+    #hidden { width: 100px; height: 20px; border-inline-start: 30px hidden red; border-inline-end: 5px solid #176b4d; }
+    #rounded { width: 120px; height: 50px; border-radius: 18px 10px; border-inline-start: 8px solid #a13b18; border-inline-end: 6px dotted #176b4d; border-block-start: 5px dashed #123f8c; border-block-end: 7px double #b7791f; background: #fff4cc; }
+    #command { width: 120px; height: 40px; border: 2px solid #123f8c; border-radius: 12px; background: #dff6e9; }
+  </style>
+</head>
+<body>
+  <div id="geometry-shell"><p id="axis">Axis</p></div>
+  <p id="longhand">Logical edge longhands</p>
+  <p id="axis-components">Logical axis components</p>
+  <p id="source">Physical and logical source order</p>
+  <p id="physical">Physical component lists</p>
+  <p id="variables">Variables and functional colors</p>
+  <p id="important">Important border cascade</p>
+  <div id="inherit-parent"><p id="inherit-child">Inherited logical borders</p></div>
+  <p id="reset">Reset logical borders</p>
+  <p id="invalid">Atomic invalid declarations</p>
+  <p id="hidden">Hidden edge geometry</p>
+  <p id="rounded">Mixed rounded border</p>
+  <p id="command">Command border</p>
+  <button id="set-short" type="button" onclick="bi('command','4px solid #176b4d');bb('command','5px dashed #a13b18');bis('command','6px dotted #123f8c');bie('command','7px solid #b7791f');bbs('command','8px double #176b4d');bbe('command','9px dotted #a13b18')">Set short borders</button>
+  <button id="set-components" type="button" onclick="biw('command','10px 11px');biy('command','solid dashed');bic('command','#123f8c #176b4d');bbw('command','12px 13px');bby('command','dotted double');bbc('command','#a13b18 #b7791f');siw('command','14px');siy('command','dotted');sic('command','#a13b18');eiw('command','15px');eiy('command','solid');eic('command','#176b4d');sbw('command','16px');sby('command','dashed');sbc('command','#123f8c');ebw('command','17px');eby('command','double');ebc('command','#b7791f')">Set short components</button>
+  <button id="dom-all" type="button" onclick="document.getElementById('command').style.borderInline='3px solid red';document.getElementById('command').style.borderBlock='4px dashed green';document.getElementById('command').style.borderInlineStart='5px dotted blue';document.getElementById('command').style.borderInlineEnd='6px double black';document.getElementById('command').style.borderBlockStart='7px solid red';document.getElementById('command').style.borderBlockEnd='8px dashed green';document.getElementById('command').style.borderInlineWidth='9px 10px';document.getElementById('command').style.borderInlineStyle='solid dotted';document.getElementById('command').style.borderInlineColor='#111111 #222222';document.getElementById('command').style.borderBlockWidth='11px 12px';document.getElementById('command').style.borderBlockStyle='dashed double';document.getElementById('command').style.borderBlockColor='#333333 #444444';document.getElementById('command').style.borderInlineStartWidth='21px';document.getElementById('command').style.borderInlineStartStyle='dotted';document.getElementById('command').style.borderInlineStartColor='#a13b18';document.getElementById('command').style.borderInlineEndWidth='22px';document.getElementById('command').style.borderInlineEndStyle='solid';document.getElementById('command').style.borderInlineEndColor='#176b4d';document.getElementById('command').style.borderBlockStartWidth='23px';document.getElementById('command').style.borderBlockStartStyle='dashed';document.getElementById('command').style.borderBlockStartColor='#123f8c';document.getElementById('command').style.borderBlockEndWidth='24px';document.getElementById('command').style.borderBlockEndStyle='double';document.getElementById('command').style.borderBlockEndColor='#b7791f'">Set DOM borders</button>
+  <button id="clear-all" type="button" onclick="document.getElementById('command').style.borderInline='';document.getElementById('command').style.borderBlock='';document.getElementById('command').style.borderInlineStart='';document.getElementById('command').style.borderInlineEnd='';document.getElementById('command').style.borderBlockStart='';document.getElementById('command').style.borderBlockEnd='';document.getElementById('command').style.borderInlineWidth='';document.getElementById('command').style.borderInlineStyle='';document.getElementById('command').style.borderInlineColor='';document.getElementById('command').style.borderBlockWidth='';document.getElementById('command').style.borderBlockStyle='';document.getElementById('command').style.borderBlockColor='';document.getElementById('command').style.borderInlineStartWidth='';document.getElementById('command').style.borderInlineStartStyle='';document.getElementById('command').style.borderInlineStartColor='';document.getElementById('command').style.borderInlineEndWidth='';document.getElementById('command').style.borderInlineEndStyle='';document.getElementById('command').style.borderInlineEndColor='';document.getElementById('command').style.borderBlockStartWidth='';document.getElementById('command').style.borderBlockStartStyle='';document.getElementById('command').style.borderBlockStartColor='';document.getElementById('command').style.borderBlockEndWidth='';document.getElementById('command').style.borderBlockEndStyle='';document.getElementById('command').style.borderBlockEndColor=''">Restore authored border</button>
+</body>
+</html>

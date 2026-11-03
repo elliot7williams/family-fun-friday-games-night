@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Underline Offset</title>
+  <style>
+    :root { --lea-underline-offset: 18%; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    .sample { width: 330px; margin: 12px 0; padding: 10px 16px; background: #f8fafc; font-size: 28px; }
+    #auto { text-decoration: underline solid #dc2626 2px; text-underline-offset: auto; }
+    #positive { text-decoration: underline solid #dc2626 2px; text-underline-offset: 6px; }
+    #negative { text-decoration: underline solid #dc2626 2px; text-underline-offset: -4px; }
+    #percent { font-size: 30px; text-decoration: underline solid #0f766e 2px; text-underline-offset: 20%; }
+    #offset-only { color: #dc2626; text-decoration: underline; text-underline-offset: 6px; }
+    #inherit-parent { text-underline-offset: 5px; }
+    #inherited, #explicit-inherit, #unset { text-decoration: underline solid #a13b18 2px; }
+    #explicit-inherit { text-underline-offset: 1px; text-underline-offset: inherit; }
+    #unset { text-underline-offset: unset; }
+    #shorthand-independent { text-underline-offset: 7px; text-decoration: underline double #2563eb 2px; }
+    #reset { text-decoration: underline solid #64748b 2px; text-underline-offset: 5px; text-underline-offset: initial; }
+    #invalid { text-decoration: underline solid #176b4d 2px; text-underline-offset: 4px; text-underline-offset: 33px; text-underline-offset: 101%; text-underline-offset: 2em; }
+    #variable { text-decoration: underline dashed #7c3aed 2px; text-underline-offset: var(--lea-underline-offset); }
+    #important { text-decoration: underline dotted #2563eb 2px; text-underline-offset: 8px !important; }
+    #inline { text-decoration: underline solid #dc2626 2px; text-underline-offset: 5px; }
+    #inline span { text-underline-offset: -2px; }
+    #wrapped { width: 180px; text-decoration: underline dotted #0f766e 2px; text-underline-offset: 5px; }
+    #cell { text-decoration: underline dashed #b91c1c 2px; text-underline-offset: -3px; }
+    #link { color: #111827; text-decoration-color: #7c3aed; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+    #field { width: 270px; height: 44px; text-decoration: underline solid #dc2626 2px; text-underline-offset: 4px; }
+    #dynamic { text-decoration: underline solid #64748b 2px; text-underline-offset: 1px; }
+    #dynamic:hover { text-decoration-color: #dc2626; text-underline-offset: 7px; }
+    #responsive { text-decoration: underline double #64748b 2px; text-underline-offset: 2px; }
+    #command { text-decoration: underline solid #176b4d 2px; text-underline-offset: auto; }
+    @media (max-width: 420px) {
+      #responsive { text-decoration-color: #7c3aed; text-underline-offset: 25%; }
+    }
+  </style>
+</head>
+<body>
+  <p id="auto" class="sample">Underline offset sample</p>
+  <p id="positive" class="sample">Underline offset sample</p>
+  <p id="negative" class="sample">Underline offset sample</p>
+  <p id="percent" class="sample">Percentage offset</p>
+  <p id="offset-only" class="sample">Offset-only custom path</p>
+  <section id="inherit-parent">
+    <p id="inherited" class="sample">Inherited offset</p>
+    <p id="explicit-inherit" class="sample">Explicit inherited offset</p>
+    <p id="unset" class="sample">Unset inherited offset</p>
+  </section>
+  <p id="shorthand-independent" class="sample">Shorthand keeps offset</p>
+  <p id="reset" class="sample">Initial automatic offset</p>
+  <p id="invalid" class="sample">Invalid keeps four pixels</p>
+  <p id="variable" class="sample">Variable percentage offset</p>
+  <p id="important" class="sample" style="text-underline-offset:1px">Important offset</p>
+  <p id="inline" class="sample">Parent offset <span>child offset</span></p>
+  <p id="wrapped" class="sample">Wrapped underline offset follows each retained visual line</p>
+  <table><tr><td id="cell" class="sample">Offset table cell</td></tr></table>
+  <p id="link-row" class="sample"><a id="link" href="#command">Default link underline offset</a></p>
+  <input id="field" value="Offset field text">
+  <p id="dynamic" class="sample">Hover offset</p>
+  <p id="responsive" class="sample">Responsive offset</p>
+  <p id="command" class="sample">Command offset</p>
+  <button id="set-short" data-lea="uo('command','6px')">Set short</button>
+  <button id="set-readable" data-lea="textunderlineoffset('command','-3px')">Set readable</button>
+  <button id="set-dom" data-lea="document.getElementById('command').style.textUnderlineOffset='25%'">Set DOM</button>
+  <button id="clear-dom" data-lea="document.getElementById('command').style.textUnderlineOffset=''">Clear DOM</button>
+</body>
+</html>

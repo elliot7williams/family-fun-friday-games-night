@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea generated images</title>
+  <style>
+    :root {
+      --generated-picture: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==");
+    }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    p, li, td, a { line-height: 1.5; }
+    #mixed::before { content: "Start " var(--generated-picture) " end " / "Generated picture: "; }
+    #after::after { content: " " var(--generated-picture) / " picture after"; }
+    #only::before { content: var(--generated-picture) / "Only picture "; }
+    #decorative::before { content: var(--generated-picture) / ""; }
+    #relative::before { content: url("../../assets/lea.ico") / "Lea icon "; }
+    #attribute { counter-reset: picture 3; }
+    #attribute::before { content: attr(data-prefix) var(--generated-picture) counter(picture) / "Attribute picture "; }
+    #image-link::before { content: var(--generated-picture) / "Open generated picture"; }
+    #labelled::before { content: var(--generated-picture) / "Generated label"; }
+    #cell::before { content: "C" var(--generated-picture) / "Cell picture "; }
+    #marker::marker { content: "[" var(--generated-picture) "]" / "Picture marker: "; }
+    #marker-inside { list-style-position: inside; }
+    #marker-inside::marker { content: var(--generated-picture) "!" / "Inside picture marker: "; }
+    #eight::before { content: url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") / "Eight pictures "; }
+    #nine::before { content: "KEEP " / "Preserved "; content: url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") url("../../assets/lea.ico") / "Nine pictures "; }
+    #bad-scheme::before { content: "KEEP " / "Preserved "; content: url("javascript:blocked") / "Blocked "; }
+    #alt-image::before { content: "KEEP " / "Preserved "; content: "BAD " / var(--generated-picture); }
+    #missing::before { content: url("missing-generated-picture.png") / "Missing picture "; }
+    #dynamic::before { content: "IDLE " / "Idle "; }
+    #dynamic:hover::before { content: var(--generated-picture) / "Hovered picture "; }
+    #responsive::before { content: "WIDE " / "Wide "; }
+    #command::before { content: "CSS " / "Authored "; }
+    #marker-command::marker { content: "C " / "CSS marker: "; }
+    @media screen and (max-width: 400px) {
+      #responsive::before { content: var(--generated-picture) / "Narrow picture "; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Generated images</h1>
+  <p id="mixed">Mixed content</p>
+  <p id="after">After content</p>
+  <p id="only">Only content</p>
+  <p id="decorative">Decorative content</p>
+  <p id="relative">Relative content</p>
+  <p id="attribute" data-prefix="A">Attribute content</p>
+  <a id="image-link" href="second.html"></a>
+  <a id="labelled" href="second.html" aria-label="Explicit picture link"></a>
+  <table><tr><td id="cell">Table content</td></tr></table>
+  <ol>
+    <li id="marker">Marker content</li>
+    <li id="marker-inside">Inside marker content</li>
+    <li id="marker-command">Marker command</li>
+  </ol>
+  <p id="eight">Eight content</p>
+  <p id="nine">Nine content</p>
+  <p id="bad-scheme">Blocked content</p>
+  <p id="alt-image">Alternative image content</p>
+  <p id="missing">Missing content</p>
+  <p id="dynamic">Dynamic content</p>
+  <p id="responsive">Responsive content <input id="generated-image-field" value="Retained generated image field"></p>
+  <p id="command">Command content</p>
+</body>
+</html>
