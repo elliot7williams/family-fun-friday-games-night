@@ -1,0 +1,79 @@
+{
+  "hostAdopted": false,
+  "files": [
+    {
+      "path": "PROJECT_CONTEXT.md",
+      "sha256": "974C8C87F397F6C62D88EF86714AE6184D6AA871226E8FE2C4015F39A6E9BFA3",
+      "bytes": 29551
+    },
+    {
+      "path": "LeaForge/PROGRESS.md",
+      "sha256": "F52390DBBDCBF09572A03BCF36670CD5D228987E37B8952D2A13002E51151C34",
+      "bytes": 403619
+    },
+    {
+      "path": "LeaForge/PRIVATE_BINDINGS.md",
+      "sha256": "96E112A4ADD8B825BA072A42B3838E5929EF02B44ADC4E8F3ABF0EF023FB4203",
+      "bytes": 12463
+    },
+    {
+      "path": "LeaForge/STORAGE_CLEANUP.md",
+      "sha256": "DF1C32A7F92C4FF2ECF043B2A0E82419EDB8F73BC2051177018C451034E313E1",
+      "bytes": 59549
+    },
+    {
+      "path": "Lea.Build/Prepare-PrivateBindingFullSuite.ps1",
+      "sha256": "3447780B08FB68F4AF23DC894F811CD5AD51A79053FC03C6CB62A097C9D1F80E",
+      "bytes": 8877
+    },
+    {
+      "path": "Lea.Build/Build-PrivateBindingFullEntry.ps1",
+      "sha256": "E620F0879617FFE0D9CD9258C3E9B047460596CB21C4F6ED781759D889EC9D91",
+      "bytes": 7320
+    },
+    {
+      "path": "Lea.Build/Test-PrivateBindingTrustedConnectivity.ps1",
+      "sha256": "9DBA08EDCC2EE1C77C25C2779B6B6F9DC15A5AD478332BB0C014C026D65440EC",
+      "bytes": 5577
+    },
+    {
+      "path": "Lea.Build/Compress-HistoricalPassingRuntimes.ps1",
+      "sha256": "92A1236E3A5B5A7318E4CA48756160304C160364756982D69DB1298101697B0E",
+      "bytes": 8215
+    },
+    {
+      "path": "Lea.Build/NtfsStorageProbe.cs",
+      "sha256": "423783BA6546BE9AED8077CBFC5F45E36EE897BD5780C05D1D985FF321D112E7",
+      "bytes": 1892
+    },
+    {
+      "path": "evidence/preparation.json",
+      "sha256": "D39F737A12DDBD7A4EEF01A25B7EFF06D7665F3EF493180F81A607C6CFA8F247",
+      "bytes": 128676
+    },
+    {
+      "path": "evidence/trusted-connectivity.json",
+      "sha256": "197A63BF3E891E0A8793023497AB9E4F9B4363DF014763DA34D6F7E8B165E6D0",
+      "bytes": 30531
+    },
+    {
+      "path": "evidence/baseline-compression.json",
+      "sha256": "16657BC6A10E917C28271E1765EDE0262C267E68C616B1B4155BBB197AAFD6D3",
+      "bytes": 49432
+    },
+    {
+      "path": "evidence/diagnostic-compression.json",
+      "sha256": "179552245233869FA8CA152C3FF6AF220A2EA0FF803178C5FB98E9A620B0B8D8",
+      "bytes": 37762
+    }
+  ],
+  "sourceCheckpoint": {
+    "files": 1631,
+    "archiveLocalOnly": true,
+    "sha256": "CB77B7003FCA98ADF5C1D0076C115FC8AB7C5D1234AF68AB22F746F92D33AEE1"
+  },
+  "verified": true,
+  "compiled": false,
+  "scope": "Changed preparation tools, current documentation and selected receipts only; not a full source export or runnable SDK",
+  "fullSuiteExecuted": false
+}

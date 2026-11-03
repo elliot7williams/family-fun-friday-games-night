@@ -1,0 +1,957 @@
+{
+  "freeBytesAfter": 671092736,
+  "storageCounterBytesSaved": 25121888.0,
+  "operatingSystemFilesTouched": false,
+  "operations": [
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5066549581641728,
+        "LogicalBytes": 366592,
+        "StorageBytes": 208896
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\Acornima.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5066549581641728,
+        "LogicalBytes": 366592,
+        "StorageBytes": 366592
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063060,
+        "LogicalBytes": 942080,
+        "StorageBytes": 610304
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\bootstrap\\Acornima.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063060,
+        "LogicalBytes": 942080,
+        "StorageBytes": 942080
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063065,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 5308416
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\bootstrap\\Jint.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063065,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 7946240
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "E777E0CAE71D694BBA96E43E01BEED102B2B512B0B24B4ABE11AF2CDB3E7C2C6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063066,
+        "LogicalBytes": 139264,
+        "StorageBytes": 86016
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\bootstrap\\Lea.Script.Worker.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063066,
+        "LogicalBytes": 139264,
+        "StorageBytes": 139264
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063078,
+        "LogicalBytes": 942080,
+        "StorageBytes": 610304
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\clock\\Acornima.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063078,
+        "LogicalBytes": 942080,
+        "StorageBytes": 942080
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063081,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 5308416
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\clock\\Jint.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063081,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 7946240
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "E777E0CAE71D694BBA96E43E01BEED102B2B512B0B24B4ABE11AF2CDB3E7C2C6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063082,
+        "LogicalBytes": 139264,
+        "StorageBytes": 86016
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\clock\\Lea.Script.Worker.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063082,
+        "LogicalBytes": 139264,
+        "StorageBytes": 139264
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063085,
+        "LogicalBytes": 942080,
+        "StorageBytes": 610304
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\frames\\Acornima.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063085,
+        "LogicalBytes": 942080,
+        "StorageBytes": 942080
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063091,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 5308416
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\frames\\Jint.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063091,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 7946240
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "E777E0CAE71D694BBA96E43E01BEED102B2B512B0B24B4ABE11AF2CDB3E7C2C6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063092,
+        "LogicalBytes": 139264,
+        "StorageBytes": 86016
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\frames\\Lea.Script.Worker.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063092,
+        "LogicalBytes": 139264,
+        "StorageBytes": 139264
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063097,
+        "LogicalBytes": 942080,
+        "StorageBytes": 610304
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\markers\\Acornima.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063097,
+        "LogicalBytes": 942080,
+        "StorageBytes": 942080
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063099,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 5308416
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\markers\\Jint.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063099,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 7946240
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "E777E0CAE71D694BBA96E43E01BEED102B2B512B0B24B4ABE11AF2CDB3E7C2C6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063101,
+        "LogicalBytes": 139264,
+        "StorageBytes": 86016
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\markers\\Lea.Script.Worker.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063101,
+        "LogicalBytes": 139264,
+        "StorageBytes": 139264
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063127,
+        "LogicalBytes": 942080,
+        "StorageBytes": 610304
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\wire\\Acornima.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063127,
+        "LogicalBytes": 942080,
+        "StorageBytes": 942080
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063128,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 5308416
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\wire\\Jint.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063128,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 7946240
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "E777E0CAE71D694BBA96E43E01BEED102B2B512B0B24B4ABE11AF2CDB3E7C2C6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063129,
+        "LogicalBytes": 139264,
+        "StorageBytes": 86016
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ComponentProbes\\wire\\Lea.Script.Worker.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063129,
+        "LogicalBytes": 139264,
+        "StorageBytes": 139264
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063135,
+        "LogicalBytes": 2627072,
+        "StorageBytes": 1548288
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\Jint.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063135,
+        "LogicalBytes": 2627072,
+        "StorageBytes": 2627072
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "9A968D02E8679D02F001B3B68C7E9A347D3DEB540AFFC04887E9238FFC87E5FB",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063136,
+        "LogicalBytes": 479232,
+        "StorageBytes": 286720
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\Lea.Engine.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063136,
+        "LogicalBytes": 479232,
+        "StorageBytes": 479232
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "D2685E2F9AC15A72373CEE7B2B5EA69A7DD46605E1C058CB32406A085D7F6518",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063140,
+        "LogicalBytes": 107520,
+        "StorageBytes": 69632
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\Lea.Script.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063140,
+        "LogicalBytes": 107520,
+        "StorageBytes": 107520
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "61DA2736DB46AE97B2D2D42DD141AEF2A691693CEE7013547BEFCEDD7562813F",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063144,
+        "LogicalBytes": 337408,
+        "StorageBytes": 225280
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\Lea.Win.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063144,
+        "LogicalBytes": 337408,
+        "StorageBytes": 337408
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063149,
+        "LogicalBytes": 942080,
+        "StorageBytes": 610304
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ScriptWorker\\Acornima.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063149,
+        "LogicalBytes": 942080,
+        "StorageBytes": 942080
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063150,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 5308416
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ScriptWorker\\Jint.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063150,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 7946240
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "E777E0CAE71D694BBA96E43E01BEED102B2B512B0B24B4ABE11AF2CDB3E7C2C6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063161,
+        "LogicalBytes": 139264,
+        "StorageBytes": 86016
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ScriptWorker\\Lea.Script.Worker.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063161,
+        "LogicalBytes": 139264,
+        "StorageBytes": 139264
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "B867A3C0EBBEFD300EA67F6FA30A3DA8C26ED19C657F26A3EE4DAEB055A43EF6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3940649674799226,
+        "LogicalBytes": 151552,
+        "StorageBytes": 106496
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\ScriptWorker\\Lea.Script.Worker.exe",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3940649674799226,
+        "LogicalBytes": 151552,
+        "StorageBytes": 151552
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063170,
+        "LogicalBytes": 142240,
+        "StorageBytes": 90112
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\System.Memory.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063170,
+        "LogicalBytes": 142240,
+        "StorageBytes": 142240
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063171,
+        "LogicalBytes": 115856,
+        "StorageBytes": 57344
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\System.Numerics.Vectors.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063171,
+        "LogicalBytes": 115856,
+        "StorageBytes": 115856
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "E777E0CAE71D694BBA96E43E01BEED102B2B512B0B24B4ABE11AF2CDB3E7C2C6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063176,
+        "LogicalBytes": 139264,
+        "StorageBytes": 86016
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\WorkerEntryFixture\\Lea.Script.Worker.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063176,
+        "LogicalBytes": 139264,
+        "StorageBytes": 139264
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "B867A3C0EBBEFD300EA67F6FA30A3DA8C26ED19C657F26A3EE4DAEB055A43EF6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063177,
+        "LogicalBytes": 151552,
+        "StorageBytes": 106496
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\WorkerEntryFixture\\Lea.Script.Worker.exe",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063177,
+        "LogicalBytes": 151552,
+        "StorageBytes": 151552
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "C3AB2E109090D2AE680D62A6E9403FF5E5A46C5C23FC4E987E978E0FCED17DBD",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063180,
+        "LogicalBytes": 151552,
+        "StorageBytes": 106496
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\WorkerEntryFixture\\WorkerEntryCore.exe",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063180,
+        "LogicalBytes": 151552,
+        "StorageBytes": 151552
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "D2685E2F9AC15A72373CEE7B2B5EA69A7DD46605E1C058CB32406A085D7F6518",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063183,
+        "LogicalBytes": 107520,
+        "StorageBytes": 69632
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\WorkerEntryProbe\\Lea.Script.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5629499535063183,
+        "LogicalBytes": 107520,
+        "StorageBytes": 107520
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "2DAA57975294C52564999F071B72F5CDA8941CDB19908B8D7DC71395BFA65EEC",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3940649674799253,
+        "LogicalBytes": 857600,
+        "StorageBytes": 438272
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\deterministic-full-replay-v1\\runtime\\Lea.Script.Tests.exe",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3940649674799253,
+        "LogicalBytes": 857600,
+        "StorageBytes": 857600
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 4222124651823328,
+        "LogicalBytes": 366592,
+        "StorageBytes": 208896
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\Acornima.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 4222124651823328,
+        "LogicalBytes": 366592,
+        "StorageBytes": 366592
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5066549581955305,
+        "LogicalBytes": 2627072,
+        "StorageBytes": 1548288
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\Jint.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 5066549581955305,
+        "LogicalBytes": 2627072,
+        "StorageBytes": 2627072
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "9A968D02E8679D02F001B3B68C7E9A347D3DEB540AFFC04887E9238FFC87E5FB",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3377699721691603,
+        "LogicalBytes": 479232,
+        "StorageBytes": 286720
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\Lea.Engine.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3377699721691603,
+        "LogicalBytes": 479232,
+        "StorageBytes": 479232
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "FBD50D216D724A4BFCA0488C53CB1B648BC659AAE19F800AE7E129B207EBBD4C",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3940649675112918,
+        "LogicalBytes": 107520,
+        "StorageBytes": 65536
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\Lea.Script.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3940649675112918,
+        "LogicalBytes": 107520,
+        "StorageBytes": 107520
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 2814749768270391,
+        "LogicalBytes": 142240,
+        "StorageBytes": 90112
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\System.Memory.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 2814749768270391,
+        "LogicalBytes": 142240,
+        "StorageBytes": 142240
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3096224744981286,
+        "LogicalBytes": 115856,
+        "StorageBytes": 57344
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\System.Numerics.Vectors.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3096224744981286,
+        "LogicalBytes": 115856,
+        "StorageBytes": 115856
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 2251799814849374,
+        "LogicalBytes": 942080,
+        "StorageBytes": 610304
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\ScriptWorker\\Acornima.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 2251799814849374,
+        "LogicalBytes": 942080,
+        "StorageBytes": 942080
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 4222124651823981,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 5308416
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\ScriptWorker\\Jint.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 4222124651823981,
+        "LogicalBytes": 7946240,
+        "StorageBytes": 7946240
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "8F81649B75A028EB3E98EB79417B5A24F0C36F8903A503C5099C4A9EC8D095F9",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3940649675113590,
+        "LogicalBytes": 139264,
+        "StorageBytes": 86016
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\ScriptWorker\\Lea.Script.Worker.dll",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 3940649675113590,
+        "LogicalBytes": 139264,
+        "StorageBytes": 139264
+      }
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "B867A3C0EBBEFD300EA67F6FA30A3DA8C26ED19C657F26A3EE4DAEB055A43EF6",
+      "exitCode": 0,
+      "verified": true,
+      "after": {
+        "Attributes": 2080,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 1970324838139063,
+        "LogicalBytes": 151552,
+        "StorageBytes": 106496
+      },
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\is-connected-isolated-v1\\runtime\\ScriptWorker\\Lea.Script.Worker.exe",
+      "before": {
+        "Attributes": 32,
+        "Volume": 639810484,
+        "Links": 1,
+        "FileId": 1970324838139063,
+        "LogicalBytes": 151552,
+        "StorageBytes": 151552
+      }
+    }
+  ],
+  "freeBytesBefore": 645939200,
+  "allLogicalDataAndAclsUnchanged": true,
+  "currentPrivateBindingRuntimeTouched": false,
+  "verified": true,
+  "noDirectoriesMarked": true,
+  "scope": "Plain NTFS compression of explicitly planned historical passing runtime files only. No /EXE, recursive directory marking, deletion or byte/ACL changes. Older timing observations are not new performance claims; free-space delta may include external changes.",
+  "noFilesDeleted": true
+}
