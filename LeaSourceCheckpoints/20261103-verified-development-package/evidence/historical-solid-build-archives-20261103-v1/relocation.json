@@ -1,0 +1,23 @@
+[
+  {
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\solid-build-archives-v1\\older-builds.7z",
+    "destination": "I:\\LeaBuildStorage\\historical-solid-build-archives-20261103-v1\\solid-build-archives-v1\\older-builds.7z",
+    "bytes": 19684869,
+    "sha256": "698EEED4F464A1673F2113DBECB0CF9071A6B02BA3CF8D155172946FE78853EB",
+    "sourceRemoved": true
+  },
+  {
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\solid-build-archives-v2\\older-builds.7z",
+    "destination": "I:\\LeaBuildStorage\\historical-solid-build-archives-20261103-v1\\solid-build-archives-v2\\older-builds.7z",
+    "bytes": 27772500,
+    "sha256": "EDD842140BC1E2958C5F81B651D7EB91F83B864A3A232D6DE6D8025F6809ECA1",
+    "sourceRemoved": true
+  },
+  {
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\solid-build-archives-v3\\older-builds.7z",
+    "destination": "I:\\LeaBuildStorage\\historical-solid-build-archives-20261103-v1\\solid-build-archives-v3\\older-builds.7z",
+    "bytes": 24828297,
+    "sha256": "7CAE32B9CDE28B1C5F9E74D1E4A453608FB73DFB7A6FF1693D78BED45DEC5B0C",
+    "sourceRemoved": true
+  }
+]

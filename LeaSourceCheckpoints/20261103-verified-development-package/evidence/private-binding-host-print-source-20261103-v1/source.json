@@ -1,0 +1,15 @@
+{
+  "templateSha256": "D508993FC484A2185DCBD770F842763EA7D1E12CBC97F54E8B13BAB617F170D3",
+  "queueSubmissionAllowed": false,
+  "hostAdopted": false,
+  "verified": true,
+  "retirementBudgetMs": 5000,
+  "printBudgetMs": 90000,
+  "inverseVerified": true,
+  "assertionsChanged": false,
+  "runnerSha256": "7A95C168D657CA30A203FD39D960097B9EEFC56362C1A9A03487D3A3CE2E098E",
+  "executed": false,
+  "sha256": "8EEBE670453A7C6604A1C3560EA8EF6EDF91F461789CCCBCCF58B708CBB05365",
+  "manifestSha256": "694C89BB4FDF24936EF5424CAFC09C57BCDB50ED7EC21483D0DBDBD3A3E122FA",
+  "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-PrivateBindingHostPrint-v1.generated.ps1"
+}

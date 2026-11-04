@@ -1,0 +1,15 @@
+{
+  "retirementBudgetMs": 5000,
+  "hostAdopted": false,
+  "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-PrivateBindingExtraction-v1.generated.ps1",
+  "templateSha256": "0FE62B647EDF56BC3B01A5B730D666A113CFF38F753B074794E7203C6EFBB13E",
+  "navigationBudgetMs": 90000,
+  "assertionsChanged": false,
+  "sha256": "3DC6D7BF960039A18206CDC504046164C77C416AC373910E690A187C6A49DF46",
+  "settingsBudgetMs": 30000,
+  "actualExeBudgetMs": 100000,
+  "inverseVerified": true,
+  "verified": true,
+  "executed": false,
+  "runnerSha256": "927E40CF0D53D81A67DB0B2E1030377B73881FAD5C52576B2E5095BC67CE3EC5"
+}

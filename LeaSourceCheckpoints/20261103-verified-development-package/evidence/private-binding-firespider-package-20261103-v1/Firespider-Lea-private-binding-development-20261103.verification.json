@@ -1,0 +1,22 @@
+{
+  "hostWorkflowCases": 15,
+  "fullScriptingChecks": 3412,
+  "extractAndRunOnNtfs": true,
+  "packageBytes": 7508766,
+  "allSitesQualified": false,
+  "physicalPrintingQualified": false,
+  "packageSha256": "2D684D53800618A2920E86B6051526DEB651D946EC6781A628F887CAD71B3D68",
+  "cleanMachineQualified": false,
+  "performanceImprovementProven": false,
+  "requires": [
+    ".NET Framework 4.8",
+    "Microsoft.NETCore.App 8.0.33 x64 with roll-forward disabled"
+  ],
+  "freshExtractionSmokes": 3,
+  "hostSha256": "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85",
+  "developmentOnly": true,
+  "deliveryAuditSha256": "22E6AA83E5A8D58D60DD98C9EC56762233EC345922CDA2E33565BDE5FCA0381D",
+  "installedBrowserChanged": false,
+  "scope": "Current-machine verified development package; this later record supersedes packaging-time pending extraction metadata without changing the tested ZIP",
+  "printPreviewAndCancelVerified": true
+}

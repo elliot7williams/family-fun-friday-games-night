@@ -1,0 +1,247 @@
+{
+  "printPreviewVerified": true,
+  "developmentPackageSha256": "2D684D53800618A2920E86B6051526DEB651D946EC6781A628F887CAD71B3D68",
+  "freshExtractionSmokes": 3,
+  "sourceCheckpoint": {
+    "version": 142,
+    "sha256": "C6723DFCC9F24339AFF189182480DF622DB6E7AD6677469C8C9EF020B50D62A3",
+    "files": 1644,
+    "archiveIncluded": true
+  },
+  "files": [
+    {
+      "path": "PROJECT_CONTEXT.md",
+      "sha256": "83D4D4760B401CDCA055D603D8D2BCEF4E262DA3980D473E1F9581C8F8FB3996",
+      "bytes": 14667
+    },
+    {
+      "path": "LeaForge/CURRENT_HOST.md",
+      "sha256": "1E3D92820E1244439484CEE09D1D062102C66520F55FFB0A142F7BA76EB1B91B",
+      "bytes": 28055
+    },
+    {
+      "path": "LeaForge/PRIVATE_BINDINGS.md",
+      "sha256": "3D2AB78B5A3D4AEF80BA4E5BED7263D916BE0F71AC0568E083CC2E07CBFCAC3B",
+      "bytes": 18143
+    },
+    {
+      "path": "LeaForge/PROGRESS.md",
+      "sha256": "AF3EDBCDF64366E0BB8DCCE9C80D9910780D27D19AB3B5E5385C591B1A46F174",
+      "bytes": 407442
+    },
+    {
+      "path": "LeaForge/FINISH_PLAN.md",
+      "sha256": "DD7C9969DEEC34501DEE0BA76624A5A6FF068A2ED651171486E87FFFA1879350",
+      "bytes": 54292
+    },
+    {
+      "path": "LeaForge/COMPATIBILITY.md",
+      "sha256": "18148551A2C53D1F2F167CE8734944E141A92A0F72B51E4064985DC9AA3FF7BD",
+      "bytes": 6308
+    },
+    {
+      "path": "LeaForge/STORAGE_CLEANUP.md",
+      "sha256": "0F139803428836FE6F98DEF357546DCD4F9713169324A6A4B975D7AF3B7B0796",
+      "bytes": 61418
+    },
+    {
+      "path": "LeaForge/SOURCE_BACKUPS.md",
+      "sha256": "468F93CD33DCF5E4FE9297CEE5CE4D19D9E69B3540204FF06E5E29F7F1F139F3",
+      "bytes": 5324
+    },
+    {
+      "path": "Lea.Build/Prepare-PrivateBindingHostPrint.ps1",
+      "sha256": "7A95C168D657CA30A203FD39D960097B9EEFC56362C1A9A03487D3A3CE2E098E",
+      "bytes": 2460
+    },
+    {
+      "path": "Lea.Build/Test-PrivateBindingHostPrint-v1.generated.ps1",
+      "sha256": "8EEBE670453A7C6604A1C3560EA8EF6EDF91F461789CCCBCCF58B708CBB05365",
+      "bytes": 7254
+    },
+    {
+      "path": "Lea.Build/Package-DeterministicFirespider.ps1",
+      "sha256": "437A38AC4E28C1A10CCB30CB21548A97EBD5DAEA8B326BD4CDFFB345CDE0F6BD",
+      "bytes": 9585
+    },
+    {
+      "path": "Lea.Build/Prepare-PrivateBindingExtraction.ps1",
+      "sha256": "927E40CF0D53D81A67DB0B2E1030377B73881FAD5C52576B2E5095BC67CE3EC5",
+      "bytes": 3160
+    },
+    {
+      "path": "Lea.Build/Test-PrivateBindingExtraction-v1.generated.ps1",
+      "sha256": "3DC6D7BF960039A18206CDC504046164C77C416AC373910E690A187C6A49DF46",
+      "bytes": 7783
+    },
+    {
+      "path": "Lea.Build/Audit-PrivateBindingDelivery.ps1",
+      "sha256": "21464F2388442BC32E64E4FFCDC1D06B7CE83187F0CB9C9CC61AC604B98BAF71",
+      "bytes": 4855
+    },
+    {
+      "path": "Lea.Build/Relocate-HistoricalArchives.ps1",
+      "sha256": "97DA31B12E3AC1C48C2E38791846C0FE04993CF60C31A507CD74F70B647F8926",
+      "bytes": 8202
+    },
+    {
+      "path": "Lea.Build/Archive-HistoricalScriptDependencies.ps1",
+      "sha256": "3B51ED07CF532165B3B76ED775E8D9562AB45554FCB1963E087236F888CD4351",
+      "bytes": 11038
+    },
+    {
+      "path": "Lea.Build/Audit-HistoricalDependencyArchives.ps1",
+      "sha256": "BFBA218D5BCEB31808990AFD9F4D362D974478D948D444FA411E1BD402C78B19",
+      "bytes": 2154
+    },
+    {
+      "path": "evidence/private-binding-host-print-v1/browser-preview.png",
+      "sha256": "D758D48BE01C6E57F7861A9B80DE37845F4593CBE04A2DFEEE8C9B1B35690207",
+      "bytes": 24514
+    },
+    {
+      "path": "evidence/private-binding-host-print-v1/print-command-preview.result.json",
+      "sha256": "5E07AE615CB39EF5A91759EA0A59E024ACE82229714FF9F56D52DA0787B26726",
+      "bytes": 1255
+    },
+    {
+      "path": "evidence/private-binding-host-print-v1/print-command-preview.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "bytes": 0
+    },
+    {
+      "path": "evidence/private-binding-host-print-v1/print-command-preview.stdout.txt",
+      "sha256": "AD79F0E9F673676AE30B2217B863DBF8FEDC47279260C032B76CCD10DCAA00E7",
+      "bytes": 537
+    },
+    {
+      "path": "evidence/private-binding-host-print-v1/result.json",
+      "sha256": "293D69D23B6BC2CA7C6C5D9433E89D8166599088FA4BE213AD4179C731B47789",
+      "bytes": 503846
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/clean.json",
+      "sha256": "BF6A522E825A12D9B64A6968F20FEB71233EF0EF8C677CE0C3CD30E56FCC952B",
+      "bytes": 2602
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/exe-clean.result.json",
+      "sha256": "58E2D68207A9F66D2BE13C9DD43AB6EC56391E47298032B9B9EBDBE0679AC736",
+      "bytes": 1241
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/exe-clean.stderr.txt",
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "bytes": 616
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/exe-clean.stdout.txt",
+      "sha256": "06B681F95EA051EAE96F601526D6EE8A1DEE1BE8951577D32B66951559F279D8",
+      "bytes": 1295
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/navigation.result.json",
+      "sha256": "FCA7592B3AA2B53DADA27B36B28C9FEFF9B5D0A82386CF69F975B7F609FBE2DB",
+      "bytes": 1237
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/navigation.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "bytes": 0
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/navigation.stdout.txt",
+      "sha256": "87087CFBB946E433E08BF3ADC1A644546CCFD1E0786E65EE55AC164A2E9ECBE7",
+      "bytes": 364
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/result.json",
+      "sha256": "1196A596DFD41807A1A73BDE2501C15AC0088D8D34F173FD2EBB67879400F815",
+      "bytes": 419343
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/settings-path.result.json",
+      "sha256": "53E6FFCB7923CF26C4FCF4087D9A75C93FB88A06AE63FBF873EE976BE87F0B45",
+      "bytes": 1245
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/settings-path.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "bytes": 0
+    },
+    {
+      "path": "evidence/private-binding-package-extraction-v1/settings-path.stdout.txt",
+      "sha256": "2F168CB5A668D7342D0DC151688FF006B52F4D91900586652ACC0F3D644D011B",
+      "bytes": 313
+    },
+    {
+      "path": "evidence/private-binding-firespider-package-20261103-v1/result.json",
+      "sha256": "AF32F7320FB74F2CBAE418E5966196D93AEFFBE278A7A41E4B72BFC4F9762E7D",
+      "bytes": 145016
+    },
+    {
+      "path": "evidence/private-binding-firespider-package-20261103-v1/lea-development-manifest.json",
+      "sha256": "64687A9A523A517D11C430631D523A6BB85DF15A1C9FBCF62D2ECB1B0742C946",
+      "bytes": 71547
+    },
+    {
+      "path": "evidence/private-binding-firespider-package-20261103-v1/DEVELOPMENT.txt",
+      "sha256": "14CF3BC52A9BB13A9120D897A8BF2705FF334F67CD1A67A0A0F16727D707E346",
+      "bytes": 626
+    },
+    {
+      "path": "evidence/private-binding-firespider-package-20261103-v1/l-drive-copy.json",
+      "sha256": "79941DCB68A48CA2BF491B62AAF707CF3CBC017CF95346351290E1917149490B",
+      "bytes": 464
+    },
+    {
+      "path": "evidence/private-binding-firespider-package-20261103-v1/Firespider-Lea-private-binding-development-20261103.verification.json",
+      "sha256": "63E24765E79B04F599AC8F21F2B4AE60AC6DF7001FCB05C102968082157B1EE8",
+      "bytes": 959
+    },
+    {
+      "path": "evidence/private-binding-delivery-audit-20261103-v1/audit.json",
+      "sha256": "22E6AA83E5A8D58D60DD98C9EC56762233EC345922CDA2E33565BDE5FCA0381D",
+      "bytes": 4652
+    },
+    {
+      "path": "evidence/private-binding-host-print-source-20261103-v1/source.json",
+      "sha256": "7B81E53B033B051C0CB14FC86D27BE8B92BBD56D84EE3BCE9C71D96180DC7104",
+      "bytes": 711
+    },
+    {
+      "path": "evidence/private-binding-extraction-source-20261103-v1/source.json",
+      "sha256": "D0CFEB4B2423AF79FB75F40D7CD366B4EA174D8488C5F7B3FAC36221CD319CA0",
+      "bytes": 654
+    },
+    {
+      "path": "evidence/historical-solid-build-archives-20261103-v1/relocation.json",
+      "sha256": "73D2B95A23E30CC51FDCD7EB1E6D0B396460CC18D114FDBADE668AC5147913D7",
+      "bytes": 1268
+    },
+    {
+      "path": "evidence/historical-solid-build-archives-20261103-v1/audit.json",
+      "sha256": "F807C5AE4A1FA9EF5749B4D4DEF450382DF83947FA3182A947E538FEA74C96DC",
+      "bytes": 268
+    },
+    {
+      "path": "evidence/historical-script-dependencies-20261103-v7/result.json",
+      "sha256": "7EA371CB6AE799F6E7671E9AB98E49BEB36B3346C352785728088528A7C04774",
+      "bytes": 37526
+    },
+    {
+      "path": "evidence/historical-script-dependencies-20261103-v7/audit.json",
+      "sha256": "64BBC622DCDD6537AF761995F79E7E613CEB87A83DC0D952F06936DD88016E15",
+      "bytes": 327
+    },
+    {
+      "path": "archive/lea-workspace-source-v142.zip",
+      "sha256": "C6723DFCC9F24339AFF189182480DF622DB6E7AD6677469C8C9EF020B50D62A3",
+      "bytes": 4676975
+    }
+  ],
+  "releaseQualified": false,
+  "verified": true,
+  "scope": "Changed tools/docs, source ZIP142 and selected print/package/extraction/cleanup evidence; runtime binary ZIP excluded",
+  "physicalPrintingQualified": false
+}
