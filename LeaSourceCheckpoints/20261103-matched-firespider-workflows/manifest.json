@@ -1,5 +1,5 @@
 {
-  "scope": "Changed tools/docs, all87 preserved host source members, selected exact build/startup/workflow evidence; dependency binaries and full workspace ZIP excluded",
+  "scope": "Changed tools/docs, all87 preserved host source members, selected exact build/startup/workflow evidence and verified root/Lea source ZIP141; dependency binaries excluded",
   "workflowsPassed": 15,
   "verified": true,
   "printQualified": false,
@@ -8,7 +8,8 @@
     "files": 1639,
     "sha256": "8A60BBDE1523DB4509DCEADE6577A7477689308D068CA6FBA130A715A5F5D283",
     "version": 141,
-    "archiveLocalOnly": true
+    "archiveLocalOnly": false,
+    "archivePath": "archive/lea-workspace-source-v141.zip"
   },
   "releaseQualified": false,
   "smokesPassed": 3,
@@ -868,6 +869,11 @@
       "sha256": "B49E56EF5D37DB6D497524A65B4818564E72F43C07DCFAAFC112A1A74B8CE970",
       "path": "evidence/workflows/settings-path.stdout.txt",
       "bytes": 309
+    },
+    {
+      "path": "archive/lea-workspace-source-v141.zip",
+      "bytes": 4661276,
+      "sha256": "8A60BBDE1523DB4509DCEADE6577A7477689308D068CA6FBA130A715A5F5D283"
     }
   ],
   "hostSha256": "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85",
