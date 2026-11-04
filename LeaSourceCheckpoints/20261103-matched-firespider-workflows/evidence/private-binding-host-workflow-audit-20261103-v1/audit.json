@@ -1,0 +1,8 @@
+{
+  "runs": 15,
+  "receiptSha256": "3BEF980EFE9D141AD7E0830BC7EBCF1B59808A899D17532AC14301BBA3A48956",
+  "passed": true,
+  "runtimeMembers": 400,
+  "scope": "Independent current-machine workflow audit; no print-command/preview, reliability, clean-PC, all-sites or release qualification",
+  "actualExeScenarios": 6
+}

@@ -1,0 +1,16 @@
+{
+  "executed": false,
+  "hostAdopted": false,
+  "smokeSha256": "0AC6D53BA9C051AA359805F8C5938D269E1F69960FEEA9CB3D8A26BA9BD24D7C",
+  "verified": true,
+  "hostBudgetMs": 90000,
+  "sha256": "AE4F6F346E736C28D60291FEBF0EA578D2CEF331CAC2260294F5BEA37564BFE0",
+  "retirementBudgetMs": 5000,
+  "requiredCases": 15,
+  "runnerSha256": "F83F29C870B8F51CEEF08649450BF579A86D0B270EFDACCA00C28FC711EF041E",
+  "settingsBudgetMs": 30000,
+  "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-PrivateBindingHostWorkflows-v1.generated.ps1",
+  "originalCampaignSha256": "3635C9AE9EC0468FB8212987082BD9C394898F5AFA1A2956B4953EAC2F68B5B8",
+  "actualExeBudgetMs": 100000,
+  "originalWorkflowBlockRetained": true
+}

@@ -1,0 +1,39 @@
+{
+  "manifestSha256": "694C89BB4FDF24936EF5424CAFC09C57BCDB50ED7EC21483D0DBDBD3A3E122FA",
+  "inverseVerified": true,
+  "navigationBudgetMs": 90000,
+  "hostAdopted": false,
+  "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-PrivateBindingHostSmokes-v1.generated.ps1",
+  "retirementBudgetMs": 5000,
+  "templateSha256": "D7E21BDABCBD872FD98D8983BA14B630783F207B7EFB7161C67AD1413E147825",
+  "executed": false,
+  "sha256": "0AC6D53BA9C051AA359805F8C5938D269E1F69960FEEA9CB3D8A26BA9BD24D7C",
+  "assertionsChanged": false,
+  "verified": true,
+  "replacements": [
+    [
+      "continuity-evidence/deterministic-host-smokes-v2",
+      "continuity-evidence/private-binding-host-smokes-v1"
+    ],
+    [
+      "I:\\LeaBuildStorage\\deterministic-firespider-runtime-20261102-v1\\runtime-manifest.json",
+      "I:\\LeaBuildStorage\\private-binding-firespider-runtime-20261103-v1\\runtime-manifest.json"
+    ],
+    [
+      "72D5699F0A392633EF9B967BCDE5E6AB7961FC8405C5F5CB76DE15E342BA2C17",
+      "694C89BB4FDF24936EF5424CAFC09C57BCDB50ED7EC21483D0DBDBD3A3E122FA"
+    ],
+    [
+      "B1B290CA5E90B0F5DD2460BFA3A90DCB81EF8F0ADF5DA96599D437B36B3F416E",
+      "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85"
+    ],
+    [
+      "Exact deterministic host settings/navigation/actual clean EXE smokes",
+      "Exact private-binding host settings/navigation/actual clean EXE smokes"
+    ]
+  ],
+  "runtimeAuditSha256": "64DDAA130B91E957BD75B9FF871FFB4AE960DAC3A8F29405A663F2CE51D2F66D",
+  "runnerSha256": "ED28ECC3D26B9993C30140B51F7E3659332AFD8735186344E0616048D80A2340",
+  "actualExeBudgetMs": 100000,
+  "settingsBudgetMs": 30000
+}

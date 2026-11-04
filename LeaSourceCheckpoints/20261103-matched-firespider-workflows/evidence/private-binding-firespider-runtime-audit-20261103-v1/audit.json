@@ -1,0 +1,13 @@
+{
+  "members": 400,
+  "nativeAclQualified": false,
+  "hostSha256": "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85",
+  "passed": true,
+  "bytes": 19055945,
+  "currentOutputs": 22,
+  "unsafePathControls": 6,
+  "scope": "Independent runtime inventory and exact build binding audit only; fresh NTFS browser tests pending",
+  "workerMembers": 6,
+  "manifestSha256": "694C89BB4FDF24936EF5424CAFC09C57BCDB50ED7EC21483D0DBDBD3A3E122FA",
+  "browserExecuted": false
+}

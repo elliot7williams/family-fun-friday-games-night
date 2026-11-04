@@ -1,0 +1,30 @@
+
+
+Passed              : True
+Scenario            : clean
+Responsive          : True
+Lea                 : True
+Tabs                : 1
+DeferredSelection   : False
+Resumed             : False
+LegacyEngine        : False
+ReadyMs             : 6991
+ObservedMs          : 7096
+Title               : Firespider Internet 17 - Lea in Firespider
+Executable          : C:\Users\Elliot\AppData\Local\Temp\lea-startup-runtime-b6009f294c77486d954ae17e17b079c6\Firespide
+                      r Internet 19.exe
+ConfigSHA256        : CF3D9873CD593DDA71F7572490DD13796489C7C1C2D04F7154B0BB0E84363740
+SourceConfigSHA256  : E91AC2CC41148E4F9F2FA181E5B17C8A4A35E07A56055A9BA6567A6EEC92BFAF
+ProfileIsolation    : Fresh unsigned executable path; standard settings provider
+Settings            : {recoveryEnabled, el, dashboard, ps...}
+Session             : C:\Users\Elliot\AppData\Local\Temp\lea-startup-c66608228cd341a1872c05299a7ea263.txt
+InitialUris         : {}
+BudgetSeconds       : 63
+ResumeBudgetSeconds : 15
+LastObservation     : @{ElapsedMs=6989; Handle=2164296; Title=Firespider Internet 17 - Lea in Firespider; Tabs=1; 
+                      Selected=0; Deferred=False; Resume=0; Ready=True; TopNames=System.Object[]}
+ForcedCleanup       : False
+CleanupErrors       : {}
+
+
+

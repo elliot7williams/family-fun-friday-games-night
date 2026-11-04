@@ -1,0 +1,2 @@
+PASS edit: real menu/hover dispatch, selection, undo/redo, clipboard, readonly/password, paused/empty tabs, and explicit legacy fallback
+PASS Lea boot: edit; Show=1853 ms; initial tabs=1
