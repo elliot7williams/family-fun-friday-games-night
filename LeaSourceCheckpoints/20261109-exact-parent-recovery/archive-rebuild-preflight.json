@@ -1,0 +1,15 @@
+{
+  "directSourceRebuildVerified": true,
+  "directSourceRebuildReceiptSha256": "0039F8C17DBC82B4E3FB1586D30B65748CEA529BCB7576E7C7B2B49AA2A1275F",
+  "successfulRecipeSnapshot": "I:\\LeaBuildStorage\\recovered-script-parent-build-20261109-v1\\build.ps1",
+  "successfulRecipeSha256": "5B35128AECB889F25EF1DB3539D0FD5F75D92070FE0C69E07159D1635F1F6267",
+  "observedCFreeBytes": 627695616,
+  "note": "Source archive itself verified19entries; no fresh archive build pass claimed. Current wrapper adds an unexecuted archive mode. Successful recipe snapshot recovered by exact original input hash.",
+  "nativeChildStarted": false,
+  "retainedShellExitObserved": true,
+  "requiredCReserveBytes": 629145600,
+  "attemptOutputCreated": false,
+  "preflightStopped": true,
+  "session": 10792,
+  "freshExtractionRebuildVerified": false
+}

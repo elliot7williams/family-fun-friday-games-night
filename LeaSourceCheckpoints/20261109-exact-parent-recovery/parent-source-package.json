@@ -1,0 +1,137 @@
+{
+  "archive": "I:\\LeaBuildStorage\\recovered-script-parent-source-package-20261109-v1\\Lea.Script-recovered-source.zip",
+  "completeSdk": false,
+  "files": 19,
+  "entries": [
+    {
+      "bytes": 248,
+      "sha256": "9396191B864CAADBFF92390701601747C841F1429A26FB63285848C43744BC65",
+      "path": "Directory.Build.targets"
+    },
+    {
+      "bytes": 94,
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2",
+      "path": "Lea.Script/1.cs"
+    },
+    {
+      "bytes": 1164,
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF",
+      "path": "Lea.Script/10.cs"
+    },
+    {
+      "bytes": 8733,
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0",
+      "path": "Lea.Script/11.cs"
+    },
+    {
+      "bytes": 7357,
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5",
+      "path": "Lea.Script/12.cs"
+    },
+    {
+      "bytes": 40103,
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6",
+      "path": "Lea.Script/13.cs"
+    },
+    {
+      "bytes": 597,
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8",
+      "path": "Lea.Script/14.cs"
+    },
+    {
+      "bytes": 2954,
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11",
+      "path": "Lea.Script/15.cs"
+    },
+    {
+      "bytes": 967,
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9",
+      "path": "Lea.Script/2.cs"
+    },
+    {
+      "bytes": 2394,
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC",
+      "path": "Lea.Script/3.cs"
+    },
+    {
+      "bytes": 2504,
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5",
+      "path": "Lea.Script/4.cs"
+    },
+    {
+      "bytes": 11210,
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5",
+      "path": "Lea.Script/5.cs"
+    },
+    {
+      "bytes": 26495,
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC",
+      "path": "Lea.Script/6.cs"
+    },
+    {
+      "bytes": 460,
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683",
+      "path": "Lea.Script/7.cs"
+    },
+    {
+      "bytes": 9047,
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E",
+      "path": "Lea.Script/8.cs"
+    },
+    {
+      "bytes": 2939,
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12",
+      "path": "Lea.Script/9.cs"
+    },
+    {
+      "bytes": 21342,
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+      "path": "Lea.Script/Dom.compact.js"
+    },
+    {
+      "bytes": 37780,
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A",
+      "path": "Lea.Script/Dom.js"
+    },
+    {
+      "bytes": 2591,
+      "sha256": "6CE68A14E15DFC62EF19D41FAB4AD4355AD88C282CDA176B853407DA68F67342",
+      "path": "Lea.Script/Lea.Script.csproj"
+    }
+  ],
+  "toolchainBundled": false,
+  "sha256": "D759DFFA618D37A31943DD80733C9A96DF6C057B2B6016B33AA390A57282D793",
+  "dependenciesRequiredButNotBundled": [
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-build-20261109-v1\\source\\lib\\Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-build-20261109-v1\\source\\lib\\Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-build-20261109-v1\\source\\lib\\System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-build-20261109-v1\\source\\lib\\System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-build-20261109-v1\\source\\lib\\System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-build-20261109-v1\\source\\lib\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-build-20261109-v1\\source\\bin\\Release\\Lea.Engine.dll",
+      "sha256": "9A968D02E8679D02F001B3B68C7E9A347D3DEB540AFFC04887E9238FFC87E5FB"
+    }
+  ],
+  "knownComponentSha256": "406C5634638D75C66892BD95429760CB4A5C74C94277913D1DF467147E30E75F",
+  "verified": true,
+  "runtimeBinariesBundled": false
+}

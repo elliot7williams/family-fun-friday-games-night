@@ -1,0 +1,37 @@
+{
+  "compileMs": 8041,
+  "remoteMetadataReadbackVerified": true,
+  "startupFixed": false,
+  "bytes": 101376,
+  "byteComparisonVerified": true,
+  "originalSourceFiles": 15,
+  "copies": [
+    {
+      "sha256": "0039F8C17DBC82B4E3FB1586D30B65748CEA529BCB7576E7C7B2B49AA2A1275F",
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-audit-20261109-v1\\result.json"
+    },
+    {
+      "sha256": "52DBBB85226AE480C690870A1CEE7107E85254A9CA7C4931DB48E2EEFEE2CC58",
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-audit-20261109-v1\\rebuild-recovered-parent.stdout.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-audit-20261109-v1\\rebuild-recovered-parent.stderr.txt"
+    },
+    {
+      "sha256": "14FC4D2575F4FCD3A29ED45735721EB87C0E73BFE498FB31DAB681EC3CF99C29",
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-audit-20261109-v1\\rebuild-recovered-parent.result.json"
+    },
+    {
+      "sha256": "74C7A0C634DD9D64ED34BA67C8F652A720B68EE9B4E72360DC8B16FC31F58D02",
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-audit-20261109-v1\\parent-source-complete-20261109-v1.json"
+    }
+  ],
+  "hostAdopted": false,
+  "fullSuitePassed": false,
+  "historicalMetadataRecovered": true,
+  "verified": true,
+  "retirementMs": 116,
+  "runtimeExecuted": false,
+  "sha256": "406C5634638D75C66892BD95429760CB4A5C74C94277913D1DF467147E30E75F"
+}

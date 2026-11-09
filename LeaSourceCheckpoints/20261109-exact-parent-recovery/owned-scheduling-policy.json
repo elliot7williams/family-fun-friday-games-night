@@ -1,0 +1,196 @@
+{
+  "ownerAttention": false,
+  "runs": [
+    {
+      "childRetirementIndependentlyAudited": true,
+      "startAttempted": true,
+      "startUnknown": false,
+      "error": null,
+      "parentBudgetMs": 120000,
+      "activeAfterRetirement": 0,
+      "ownedJob": true,
+      "stdout": "I:\\LeaBuildStorage\\owned-scheduling-policy-20261109-v1\\compile-scheduling-control.stdout.txt",
+      "stderr": "I:\\LeaBuildStorage\\owned-scheduling-policy-20261109-v1\\compile-scheduling-control.stderr.txt",
+      "stdoutRetainedBytes": 87,
+      "exitObserved": true,
+      "name": "compile-scheduling-control",
+      "pid": 11620,
+      "stdoutBytes": 87,
+      "startReturned": true,
+      "retainedForOwner": false,
+      "retirementAndDrainElapsedMs": 167,
+      "birthUtc": "2026-11-09T09:07:33.9469479Z",
+      "stderrRetainedBytes": 0,
+      "timedOut": false,
+      "captureOverflow": false,
+      "outputDrained": true,
+      "stderrComplete": true,
+      "started": true,
+      "exitCode": 0,
+      "unsafeToContinue": false,
+      "killRequested": false,
+      "originalHandleCaptured": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "elapsedMs": 2929,
+      "stderrBytes": 0,
+      "passed": true,
+      "stdoutComplete": true,
+      "finishedUtc": "2026-11-09T09:07:37.0048024Z"
+    },
+    {
+      "childRetirementIndependentlyAudited": true,
+      "startAttempted": true,
+      "startUnknown": false,
+      "error": null,
+      "parentBudgetMs": 30000,
+      "activeAfterRetirement": 0,
+      "ownedJob": true,
+      "stdout": "I:\\LeaBuildStorage\\owned-scheduling-policy-20261109-v1\\owned-scheduling-control.stdout.txt",
+      "stderr": "I:\\LeaBuildStorage\\owned-scheduling-policy-20261109-v1\\owned-scheduling-control.stderr.txt",
+      "stdoutRetainedBytes": 832,
+      "exitObserved": true,
+      "name": "owned-scheduling-control",
+      "pid": 4852,
+      "stdoutBytes": 832,
+      "startReturned": true,
+      "retainedForOwner": false,
+      "retirementAndDrainElapsedMs": 104,
+      "birthUtc": "2026-11-09T09:07:37.2920158Z",
+      "stderrRetainedBytes": 0,
+      "timedOut": false,
+      "captureOverflow": false,
+      "outputDrained": true,
+      "stderrComplete": true,
+      "started": true,
+      "exitCode": 0,
+      "unsafeToContinue": false,
+      "killRequested": false,
+      "originalHandleCaptured": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "elapsedMs": 656,
+      "stderrBytes": 0,
+      "passed": true,
+      "stdoutComplete": true,
+      "finishedUtc": "2026-11-09T09:07:37.9231452Z"
+    }
+  ],
+  "settingsChanged": false,
+  "inputs": [
+    {
+      "sha256": "81210DBDC18E6B3266D11141131E823C0EE0BE4EAEE3F4202E36882DD93566A5",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-OwnedSchedulingPolicy.ps1"
+    },
+    {
+      "sha256": "D553F33A48B9B7DD5CF97012E6974C4B4054C315B19FD0086C05543844242AFA",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\OwnedTestProcess.cs"
+    },
+    {
+      "sha256": "E5DD42C23546F58CEF425DE5602CC39D478409A824FDBB4C19F5CB454FC0FC00",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Invoke-OwnedTestRun.ps1"
+    },
+    {
+      "sha256": "1C630699CF6E9C87D0592824C6846E78CF8BDBB021F44064D1CC72D6DAF765F0",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\CurrentSchedulingPolicy.cs"
+    },
+    {
+      "sha256": "33629661BC4018C4837AC6FFFA83915D021D6809151C1882518CDC1E4C3D2BB7",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\SchedulingPolicyMain.cs"
+    },
+    {
+      "sha256": "AA750629747FBBC8D2D33370CF01F634C87CBC0AB5A63164ED29D8E28F8FBD6C",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\DiagnosticScriptAssemblyInfo.cs"
+    },
+    {
+      "sha256": "5DCF2B7B18483C094F206A6B93558692ABF1BEAF507AD8AA076040E98DE72B6C",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\mscorlib.dll"
+    },
+    {
+      "sha256": "C5E2E638FF819616C8B30DBA5927D60F4E0251B2CFA0E9C5A6D67C7898BCBC9F",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.dll"
+    },
+    {
+      "sha256": "860278D7437CAAA95C988ABC910A92DB130ED1EE88841747BFED974EF1C95CC1",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Core.dll"
+    },
+    {
+      "sha256": "36C6D1164F2E7B627F3D535D3229B9F918C5DD92FBC8FC5729D469E4D7273B2D",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Web.Extensions.dll"
+    },
+    {
+      "sha256": "2F4318B918482FD6D1B016680EADD4A4AF15B6F0F2F321BF8B84F65A4D7FFB1C",
+      "path": "I:\\LeaBuildStorage\\owned-scheduling-policy-20261109-v1\\control.rsp"
+    },
+    {
+      "sha256": "A1EF87676086E14B67CC106C232B573C6BB70EBEACA41BF5C9155797022BC55F",
+      "path": "C:\\Program Files\\dotnet\\dotnet.exe"
+    },
+    {
+      "sha256": "FEE49445287D3C12E8ECC098544AA87F6710BF8CE5222A516485A7F839EF5C67",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\csc.dll"
+    },
+    {
+      "sha256": "0BE4BE860B146DB7CE8BFBB2085ECD78734739EA236A6DD75CC797526FE8F130",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\csc.deps.json"
+    },
+    {
+      "sha256": "F0A2BF4CBAD107BE70624C080E5A6F7776EF7BB0A300E25D810207EB0AC2BC4E",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\csc.runtimeconfig.json"
+    },
+    {
+      "sha256": "C8F219C56D4CB477A171A2FE0D3260508F883DD2AEFA587DE5C0A863C3067468",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\Microsoft.CodeAnalysis.dll"
+    },
+    {
+      "sha256": "67EB14B7A67D7A96DC02D88FB8A959574B53FD2C274FE6E706D1FA42D2A15DF4",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\Microsoft.CodeAnalysis.CSharp.dll"
+    },
+    {
+      "sha256": "4AAC59F4B2161A872AECA9BBD7499323B75F3624336DC0E26B70869C63582CAA",
+      "path": "I:\\LeaBuildStorage\\owned-scheduling-policy-20261109-v1\\Lea.ProcessPolicy.Tests.exe"
+    }
+  ],
+  "nativeIsolationQualified": false,
+  "report": {
+    "before": {
+      "Pid": 4852,
+      "Tid": 12860,
+      "PriorityClass": 32,
+      "ProcessMemoryPriority": 5,
+      "ThreadMemoryPriority": 5,
+      "BirthFileTime": 134386888572920158,
+      "ProcessPowerQuery": true,
+      "ThreadPowerQuery": true,
+      "ProcessPowerError": 0,
+      "ThreadPowerError": 0,
+      "ProcessPowerControl": 0,
+      "ProcessPowerState": 0,
+      "ThreadPowerControl": 0,
+      "ThreadPowerState": 0
+    },
+    "after": {
+      "Pid": 4852,
+      "Tid": 12860,
+      "PriorityClass": 32,
+      "ProcessMemoryPriority": 5,
+      "ThreadMemoryPriority": 5,
+      "BirthFileTime": 134386888572920158,
+      "ProcessPowerQuery": true,
+      "ThreadPowerQuery": true,
+      "ProcessPowerError": 0,
+      "ThreadPowerError": 0,
+      "ProcessPowerControl": 0,
+      "ProcessPowerState": 0,
+      "ThreadPowerControl": 0,
+      "ThreadPowerState": 0
+    },
+    "selfIdentityStable": true,
+    "settingsChanged": false,
+    "scope": "Two self snapshots in an owned native control. No interpreter, priority changes or ancestor-policy query."
+  },
+  "inputsUnchanged": true,
+  "passed": true,
+  "diagnosticOnly": true,
+  "binarySha256": "4AAC59F4B2161A872AECA9BBD7499323B75F3624336DC0E26B70869C63582CAA",
+  "originalChildIdentityVerified": true,
+  "interpreterExecuted": false
+}

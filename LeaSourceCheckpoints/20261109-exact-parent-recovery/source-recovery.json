@@ -1,0 +1,87 @@
+{
+  "recovered14Sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8",
+  "remoteCommit": "5fbf9d3b4b2955e934e7abc4b5ab8cf4a23df345",
+  "historicalMetadataRecovered": true,
+  "entries": [
+    {
+      "name": "1.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\1.cs",
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2"
+    },
+    {
+      "name": "2.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\2.cs",
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "name": "3.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\3.cs",
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC"
+    },
+    {
+      "name": "4.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\4.cs",
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5"
+    },
+    {
+      "name": "5.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\5.cs",
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5"
+    },
+    {
+      "name": "6.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\6.cs",
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC"
+    },
+    {
+      "name": "7.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\7.cs",
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683"
+    },
+    {
+      "name": "8.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\8.cs",
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E"
+    },
+    {
+      "name": "9.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\9.cs",
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12"
+    },
+    {
+      "name": "10.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\10.cs",
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF"
+    },
+    {
+      "name": "11.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\11.cs",
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0"
+    },
+    {
+      "name": "12.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\12.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "name": "13.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\13.cs",
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6"
+    },
+    {
+      "name": "14.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\14.cs",
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8"
+    },
+    {
+      "name": "15.cs",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\15.cs",
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11"
+    }
+  ],
+  "remoteReadbackVerified": true,
+  "parentRebuilt": false,
+  "originalBuildReceiptSha256": "D32732C0BF3B548DB649966100D4B074663E07544BC9C25A648A80D6723AB02C",
+  "files": 15,
+  "verified": true
+}
