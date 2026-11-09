@@ -1,0 +1,35 @@
+{
+  "traceEnvironmentRestored": true,
+  "failureCaptureVerified": true,
+  "receiptSha256": "F099EC003AEA14718CE72DDB646C58235F33A4290FDD5CF5C92EE87FD619AE85",
+  "elapsedMs": 12785,
+  "retirementMs": 190,
+  "runnerSha256": "363CA5C60A698610ADF9EB7EF46FB589BE3D75587561186FFB3087F53DDFDCBD",
+  "failure": "System.InvalidOperationException: FAIL computed script: limit; Script budget exceeded. phase=bootstrap; reason=TimeoutException; stage=events",
+  "workersRetired": true,
+  "copies": [
+    {
+      "sha256": "F099EC003AEA14718CE72DDB646C58235F33A4290FDD5CF5C92EE87FD619AE85",
+      "path": "I:\\LeaBuildStorage\\font-net48-full-failure-20261109-v1\\result.json"
+    },
+    {
+      "sha256": "D3E6F31DF5D05ACE1F36C3723B147194F3A6EA42DA1E0C012695B0FBA476D34D",
+      "path": "I:\\LeaBuildStorage\\font-net48-full-failure-20261109-v1\\full-script-timed.stdout.txt"
+    },
+    {
+      "sha256": "79369DA021B96E96BE93F7C19A386289D87ED8CE979D8ACF621F8E9D6E3F2CEB",
+      "path": "I:\\LeaBuildStorage\\font-net48-full-failure-20261109-v1\\full-script-timed.stderr.txt"
+    },
+    {
+      "sha256": "F0EB82E9FB5E6C0227FF0D64DBB610B654E694F2F5F3BA78BC067D49478ABFAB",
+      "path": "I:\\LeaBuildStorage\\font-net48-full-failure-20261109-v1\\full-script-timed.result.json"
+    }
+  ],
+  "causeProven": false,
+  "runtimeBytesAndAclUnchanged": true,
+  "startedPhase": 8,
+  "hostAdopted": false,
+  "fullSuitePassed": false,
+  "passed": false,
+  "completedPhases": 8
+}

@@ -1,0 +1,27 @@
+{
+  "pairShapeControls": 1,
+  "scope": "Buffered process CPU/wall/GC stamps for trusted bootstrap only; seven reversible source projections with critical-operation counts, original1000ms/guards unchanged. Metrics and buffering perturb timing; not a fix or release evidence.",
+  "negativeControls": 6,
+  "inverseVerified": true,
+  "compiled": false,
+  "executed": false,
+  "pageCodeLogged": false,
+  "budgetsChanged": false,
+  "verified": true,
+  "criticalOperationsVerified": true,
+  "diagnosticOnly": true,
+  "files": [
+    {
+      "sha256": "622FB7A291C118D5D676C385C71BF0839E2DE7EF110FD35DC2AF38735E3D26ED",
+      "originalSha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E",
+      "name": "8.cs",
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-source-20261109-v1\\8.cs"
+    },
+    {
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+      "originalSha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+      "name": "Dom.compact.js",
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-source-20261109-v1\\Dom.compact.js"
+    }
+  ]
+}

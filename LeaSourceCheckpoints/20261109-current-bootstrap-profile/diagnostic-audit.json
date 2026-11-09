@@ -1,0 +1,241 @@
+{
+  "diagnosticParentSha256": "C56FB88B72F9D2492101B28B8E8B93FD6B82A94F95A7C1444F6D5E3E5112F21B",
+  "scope": "One fresh diagnostic process; explicit replacement metadata, original Js/Vo operations and policies. Buffered observation perturbs timing. Nested intervals must not be summed.",
+  "productionRuntimeChanged": false,
+  "evidenceVerified": true,
+  "runnerSha256": "4EA1E224EEBB874353A639526449D15467CEAA7D16F21B787FEDA48EF5DC7D97",
+  "negativeControls": 6,
+  "timeoutFixed": false,
+  "historicalMetadataRecovered": false,
+  "speedImprovementProven": false,
+  "causeProven": false,
+  "diagnosticOnly": true,
+  "copies": [
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\cold-current-profile.result.json",
+      "sha256": "D746E41DE035964DF75BB29EFADB39B1D4F6F8A52E31B225650A2FC603EF8289"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\cold-current-profile.stderr.txt",
+      "sha256": "4F94BDB64092DDF2905C5AE6F771443FF412CEC1A69B9576283F81E2F2D844E6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\cold-current-profile.stdout.txt",
+      "sha256": "A744B96885B773A9F5565B8DD7210BA07B2C1B022C9A5BFA8E559E5E1EC655E1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\compile-current-profile-harness.result.json",
+      "sha256": "BB728B58B194E622F704FDDC245296DBDCA75FD5F6322889D4ED254FF1A57371"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\compile-current-profile-harness.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\compile-current-profile-harness.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\compile-current-profile.result.json",
+      "sha256": "74221CA0625EBA61A73A8F70A2ABBAB22E5995FE542A02DDD1FE08803078E53B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\compile-current-profile.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\compile-current-profile.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\harness.rsp",
+      "sha256": "EDB9E736E70D7791EDA903EEE69BC9112A4D1814DB932D932FEEF0E7D5A960E6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\parent.rsp",
+      "sha256": "2F2BC8F03A2902B6FE3EF093371E41E968F48A31F000FBE2001A2657A7BE1427"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-audit-20261109-v1\\result.json",
+      "sha256": "E926C855BBAA2528E7FD113A2D1A337C616A1F0173C44B06B74C94EEA22D3B0F"
+    }
+  ],
+  "profile": {
+    "markers": 15,
+    "bootstrapSucceeded": true,
+    "intervals": [
+      {
+        "phase": "vm",
+        "gc2": 0,
+        "gc0": 0,
+        "gc1": 0,
+        "processCpuMs": 31.25,
+        "wallMs": 297.1597
+      },
+      {
+        "phase": "bridge",
+        "gc2": 0,
+        "gc0": 0,
+        "gc1": 0,
+        "processCpuMs": 0.0,
+        "wallMs": 91.2073
+      },
+      {
+        "phase": "prepare",
+        "gc2": 0,
+        "gc0": 1,
+        "gc1": 0,
+        "processCpuMs": 109.375,
+        "wallMs": 1171.5891
+      },
+      {
+        "phase": "evaluate",
+        "gc2": 0,
+        "gc0": 0,
+        "gc1": 0,
+        "processCpuMs": 78.125,
+        "wallMs": 856.1192
+      },
+      {
+        "phase": "scope-to-events",
+        "gc2": 0,
+        "gc0": 0,
+        "gc1": 0,
+        "processCpuMs": 15.625,
+        "wallMs": 335.9612
+      },
+      {
+        "phase": "events-to-interfaces",
+        "gc2": 0,
+        "gc0": 0,
+        "gc1": 0,
+        "processCpuMs": 0.0,
+        "wallMs": 156.936
+      }
+    ],
+    "rows": [
+      {
+        "gc1": 0,
+        "label": "enter",
+        "gc2": 0,
+        "wall": 34762,
+        "cpu": 0,
+        "gc0": 0
+      },
+      {
+        "gc1": 0,
+        "label": "vm-begin",
+        "gc2": 0,
+        "wall": 120424,
+        "cpu": 0,
+        "gc0": 0
+      },
+      {
+        "gc1": 0,
+        "label": "vm-end",
+        "gc2": 0,
+        "wall": 3092021,
+        "cpu": 312500,
+        "gc0": 0
+      },
+      {
+        "gc1": 0,
+        "label": "prepare-begin",
+        "gc2": 0,
+        "wall": 4004094,
+        "cpu": 312500,
+        "gc0": 0
+      },
+      {
+        "gc1": 0,
+        "label": "prepare-end",
+        "gc2": 0,
+        "wall": 15719985,
+        "cpu": 1406250,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "evaluate-begin",
+        "gc2": 0,
+        "wall": 15720725,
+        "cpu": 1406250,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-declarations",
+        "gc2": 0,
+        "wall": 18355795,
+        "cpu": 1875000,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-scope",
+        "gc2": 0,
+        "wall": 19079615,
+        "cpu": 2031250,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-events",
+        "gc2": 0,
+        "wall": 22439227,
+        "cpu": 2187500,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-interfaces",
+        "gc2": 0,
+        "wall": 24008587,
+        "cpu": 2187500,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-elements",
+        "gc2": 0,
+        "wall": 24010485,
+        "cpu": 2187500,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-document",
+        "gc2": 0,
+        "wall": 24241862,
+        "cpu": 2187500,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "evaluate-end",
+        "gc2": 0,
+        "wall": 24281917,
+        "cpu": 2187500,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "complete",
+        "gc2": 0,
+        "wall": 24285687,
+        "cpu": 2187500,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "end",
+        "gc2": 0,
+        "wall": 24286020,
+        "cpu": 2187500,
+        "gc0": 1
+      }
+    ],
+    "scope": "Single diagnostic process measurements; scope-to-events is nested in evaluate, do not sum all intervals. Wall/CPU gap is not causal attribution.",
+    "verified": true
+  }
+}
