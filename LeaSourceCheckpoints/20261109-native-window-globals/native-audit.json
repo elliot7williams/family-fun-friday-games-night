@@ -1,0 +1,181 @@
+{
+  "nativeWindowInstaller": true,
+  "hostInverseVerified": true,
+  "evidenceVerified": true,
+  "productionRuntimeChanged": false,
+  "summary": [
+    {
+      "samples": 2,
+      "meanTotalMs": 1897.5,
+      "meanEvaluateMs": 646.25345,
+      "meanPrepareMs": 764.3289,
+      "group": "baseline"
+    },
+    {
+      "samples": 2,
+      "meanTotalMs": 2162.0,
+      "meanEvaluateMs": 822.2130500000001,
+      "meanPrepareMs": 847.36445,
+      "group": "native"
+    }
+  ],
+  "adoptionRecommended": false,
+  "runnerSha256": "9862B9BAD1ADF995E19D69181A7D8F012D45062C136A6948E9FEA1DA393E6312",
+  "speedImprovementProven": false,
+  "scope": "One fixed ABBA campaign, two fresh processes per arm, instrumented and explicit diagnostic metadata. No general speed/reliability or full-suite qualification.",
+  "oneOptionInverseVerified": false,
+  "diagnosticOnly": true,
+  "samples": [
+    {
+      "evaluateMs": 693.4097,
+      "evaluateProcessCpuMs": 62.5,
+      "prepareMs": 824.7825,
+      "markers": 15,
+      "totalMs": 2039,
+      "label": "baseline-1",
+      "group": "baseline"
+    },
+    {
+      "evaluateMs": 949.9274,
+      "evaluateProcessCpuMs": 156.25,
+      "prepareMs": 1028.4124,
+      "markers": 15,
+      "totalMs": 2548,
+      "label": "native-2",
+      "group": "native"
+    },
+    {
+      "evaluateMs": 694.4987,
+      "evaluateProcessCpuMs": 31.25,
+      "prepareMs": 666.3165,
+      "markers": 15,
+      "totalMs": 1776,
+      "label": "native-3",
+      "group": "native"
+    },
+    {
+      "evaluateMs": 599.0972,
+      "evaluateProcessCpuMs": 15.625,
+      "prepareMs": 703.8753,
+      "markers": 15,
+      "totalMs": 1756,
+      "label": "baseline-4",
+      "group": "baseline"
+    }
+  ],
+  "timeoutFixed": false,
+  "copies": [
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\baseline-1.result.json",
+      "sha256": "780B167343DC2283A2C2476F50145D4D92E6DFA1C50BBB5AF614EC911B4367C8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\baseline-1.stderr.txt",
+      "sha256": "B2C6EC7193961476266991FD2D786A2D238980F9EBD1A1F99C8E032947D4C809"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\baseline-1.stdout.txt",
+      "sha256": "A3B8DD2B48463FE83A004D4C3BB186CCAE2FB1428D2A022A73CB3DFFE8DCDEC8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\baseline-4.result.json",
+      "sha256": "A1264F07837381A2B65A6EDCE5AE5867E1620CA37E925825D6857D89F9E83A16"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\baseline-4.stderr.txt",
+      "sha256": "14B426BC22FE238EFBF9826180C0E4B52D73E60E32EC36B6D071718F7505C217"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\baseline-4.stdout.txt",
+      "sha256": "98277B42855DB616969B4C1EC08882985967B6855DBBA8D5E8E6AE78E7B3F1DD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\compile-current-profile-harness.result.json",
+      "sha256": "846ED2DD70AD28FD390C6FF065A950D7559506742A6687A0A5F7336349C6FF77"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\compile-current-profile-harness.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\compile-current-profile-harness.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\compile-current-profile.result.json",
+      "sha256": "DBA48B1FCB06584F2D80FA8C41B170CB76079B96384DF50DECD0F95BA62D33C8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\compile-current-profile.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\compile-current-profile.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\compile-window-contract.result.json",
+      "sha256": "71BDFFD61B372F2FC49C64D38CC017DCF0AEFF644F59F331EE02246C7AC2E33D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\compile-window-contract.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\compile-window-contract.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\contract.rsp",
+      "sha256": "6C53220C974F592D39772FFF66A4E061A0149ECC02B8C6C9B3B1F309CEF41669"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\harness.rsp",
+      "sha256": "3DF0EFEC5971CD039843713AA361B1C1DA5462C8B34B6869AD72A93E19379034"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\native-2.result.json",
+      "sha256": "6147C5E5706FB726E758FAACE00134F3C8B85EFC440B351D632C4E55222EE3F2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\native-2.stderr.txt",
+      "sha256": "C2E56E0CC71C55FCEFCF9184E84CE041F4CC30CFE19E50B85EF889B818ECD991"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\native-2.stdout.txt",
+      "sha256": "BAA184E80982E1500EED14B929B46E50359A43587BBCDDF172AA00F591EA554B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\native-3.result.json",
+      "sha256": "4C74E23431409709FA7B3A789C9FC5A43B3BEE4E087F7EAD9111D090595E40BF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\native-3.stderr.txt",
+      "sha256": "3ED26E3E2FD1209E0D19BAB097A47B59319184A4867300F3AE3AC65581E91244"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\native-3.stdout.txt",
+      "sha256": "9D81C1D3DD1FD041A9296030EF5625D3A38D5EAD7D4CC353F450D437C2A13200"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\parent.rsp",
+      "sha256": "2B0BF347EE54362462A136929C53A56E6DCA615956279E8F15BC05D1507E30B2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\result.json",
+      "sha256": "350F8F2F14AD50699BD4437098BE734E6717D766AD1CA7D114ABEB89E1AE9E1A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\window-globals-contract.result.json",
+      "sha256": "C8EB82EB07A0EE9C779F1F1FC154DD0C183858383FC7F1A2A14DCF66F1332E45"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\window-globals-contract.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\native-window-globals-audit-20261109-v1\\window-globals-contract.stdout.txt",
+      "sha256": "0AAD5FB1C57B067B5B1C432A73E9010BADB5C5964C53D772D6B6837BE2E7445C"
+    }
+  ]
+}

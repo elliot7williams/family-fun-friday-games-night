@@ -1,0 +1,213 @@
+using System;
+using System.IO;
+using System.Threading;
+using Jint;
+using Jint.Runtime;
+using Jint.Runtime.Interop;
+using Lea.Engine;
+
+namespace Lea.Script
+{
+    // Trusted in-process option. Use Jp for the isolated worker experiment.
+    public sealed class Js : IDisposable
+    {
+        private readonly E engine;
+        private readonly P page;
+        private readonly int thread;
+        private readonly Ja bridge;
+        private readonly Func<Action<Options>, Jint.Engine> factory;
+        private Jint.Engine vm;
+        private Jint.Native.JsValue dispatch;
+        private bool disposed;
+        private bool running;
+        private string startupStage;
+        private long generation;
+        private static readonly string bootstrap = LoadBootstrap();
+        private static readonly ScriptPreparationOptions preparation = new ScriptPreparationOptions
+        {
+            StaticAnalysis = true,
+            FoldConstants = false,
+            ParsingOptions = new ScriptParsingOptions
+            {
+                CompileRegex = false,
+                RegexTimeout = TimeSpan.FromMilliseconds(100)
+            }
+        };
+        // Share only the fixed trusted syntax tree, never a realm or page script.
+        private static readonly Lazy<Prepared<Acornima.Ast.Script>> prepared =
+            new Lazy<Prepared<Acornima.Ast.Script>>(() => Jint.Engine.PrepareScript(bootstrap, options: preparation));
+
+        public Js(E engine, P page) : this(engine, page, null) { }
+
+        internal Js(E engine, P page, Func<Action<Options>, Jint.Engine> factory)
+        {
+            if (engine == null) throw new ArgumentNullException("engine");
+            if (page == null) throw new ArgumentNullException("page");
+            engine.Q(page, "body");
+            this.engine = engine;
+            this.page = page;
+            this.factory = factory;
+            bridge = new Ja(engine, page);
+            thread = Thread.CurrentThread.ManagedThreadId;
+            generation = engine.Jg;
+        }
+
+        public Jr At { get; private set; }
+        public int Td { get { CheckThread(); return disposed || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Timers.Td; } }
+        public int Tn { get { CheckThread(); return bridge.Timers.N; } }
+        public int Rd { get { CheckThread(); return disposed || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Frames.Rd; } }
+        public int Rn { get { CheckThread(); return bridge.Frames.N; } }
+        public double Nw { get { CheckThread(); if (disposed) throw new ObjectDisposedException("Js"); return bridge.Frames.Nw; } }
+        public double To { get { CheckThread(); if (disposed) throw new ObjectDisposedException("Js"); return bridge.Frames.To; } }
+
+        public Jr Ex(string code) { return Run(code, null, null); }
+        public Jr Tk() { return Run(null, null, null, true); }
+        public Jr Rf() { return Run(null, null, null, frame: true); }
+
+        public Jr Ev(N target, string type)
+        { Ja.EventType(type); return Run(null, target, type); }
+
+        private Jr Run(string code, N target, string type, bool timer = false, bool frame = false)
+        {
+            CheckThread();
+            if (disposed) throw new ObjectDisposedException("Js");
+            if (running) throw new InvalidOperationException("A Lea script is already running.");
+            bridge.Begin();
+            if (generation != engine.Jg) { Reset(); generation = engine.Jg; }
+            if (!engine.Je) { Reset(); return Result("off", "Scripting is disabled."); }
+            if ((timer || frame) && engine.At != page) { Reset(); return Result("stale", "The bound page is no longer active."); }
+            engine.Q(page, "body");
+            if (!timer && !frame && type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
+            if (type != null && target != null && !engine.Jn(page, target)) return Result("node", "Event target is not connected to the bound page.");
+            var token = timer ? bridge.Timers.Take() : 0;
+            if (timer && token == 0) return Result("ok", "");
+            var callbacks = frame ? bridge.Frames.Take() : null;
+            if (frame && callbacks == null) return Result("ok", "");
+            running = true;
+            var phase = "bootstrap";
+            try
+            {
+                if (vm == null) Start();
+                if (frame)
+                {
+                    phase = "frame";
+                    vm.Invoke(dispatch, Jint.Native.JsValue.Undefined,
+                        new[] { (Jint.Native.JsValue)"rf", Codec.Value(vm, callbacks), (Jint.Native.JsValue)bridge.Frames.Time });
+                    return Result("ok", "");
+                }
+                if (timer)
+                {
+                    phase = "timer";
+                    vm.Invoke(dispatch, Jint.Native.JsValue.Undefined,
+                        new[] { (Jint.Native.JsValue)"tm", Codec.Value(vm, new object[] { token }) });
+                    return Result("ok", "");
+                }
+                if (type == null)
+                {
+                    phase = "script";
+                    vm.Execute(code);
+                    phase = "checkpoint";
+                    vm.Invoke(dispatch, Jint.Native.JsValue.Undefined, new[] { (Jint.Native.JsValue)"mt", Codec.Value(vm, new object[0]) });
+                    return Result("ok", "");
+                }
+                phase = "event";
+                var result = vm.Invoke(dispatch, Jint.Native.JsValue.Undefined,
+                    new[] { (Jint.Native.JsValue)type, Codec.Value(vm, bridge.Path(target)) });
+                return Result("ok", "", result.AsBoolean());
+            }
+            catch (Exception error) when (error is JavaScriptException || error is JintException ||
+                error is Acornima.ParseErrorException || error is TimeoutException ||
+                error is Ja.LimitException || error is InvalidDataException)
+            {
+                var limited = error is TimeoutException || error is Ja.LimitException ||
+                    error is StatementsCountOverflowException || error is MemoryLimitExceededException ||
+                    error is RecursionDepthOverflowException;
+                var stage = phase == "bootstrap" ? startupStage : null;
+                Reset();
+                var message = limited ? "Script budget exceeded. phase=" + phase + "; reason=" + error.GetType().Name : error.Message;
+                if (limited && stage != null) message += "; stage=" + stage;
+                return Result(limited ? "limit" : "js", message.Length <= 512 ? message : message.Substring(0, 512));
+            }
+            finally { if (timer) bridge.Timers.End(); if (frame) bridge.Frames.End(); running = false; }
+        }
+
+        private void Start()
+        {
+            var profileClock = System.Diagnostics.Stopwatch.StartNew();
+            var profileProcess = System.Diagnostics.Process.GetCurrentProcess();
+            var profileCpu = profileProcess.TotalProcessorTime;
+            var profileGc = new[] { GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2) };
+            var profileRows = new System.Collections.Generic.List<string>();
+            Action<string> profileMark = label => profileRows.Add(label + " wall=" + profileClock.ElapsedTicks + " cpu=" + (profileProcess.TotalProcessorTime - profileCpu).Ticks + " gc0=" + (GC.CollectionCount(0) - profileGc[0]) + " gc1=" + (GC.CollectionCount(1) - profileGc[1]) + " gc2=" + (GC.CollectionCount(2) - profileGc[2]));
+            profileMark("enter");
+            try
+            {
+            var markers = new Bm();
+            startupStage = "configure";
+            var options = factory == null ? Vo.Of(1000) : null;
+            startupStage = factory == null ? "vm" : "factory";
+            profileMark("vm-begin");
+            vm = factory == null ? new Jint.Engine(options) :
+                factory(settings => Vo.At(settings, 1000));
+            profileMark("vm-end");
+            startupStage = "bridge";
+            vm.SetValue("__lea", (Jint.Native.JsValue)new ClrFunction(vm, "__lea", (_, args) =>
+                Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
+            vm.SetValue("__jobs", (Jint.Native.JsValue)new ClrFunction(vm, "__jobs", (_, args) =>
+            {
+                var stage = markers.Of(args);
+                if (stage == null) vm.Advanced.ProcessTasks();
+                else { startupStage = stage; profileMark("stage-" + stage); }
+                return Jint.Native.JsValue.Undefined;
+            }));
+            new Gd().Bind(vm);
+            new Dc().Bind(vm);
+            startupStage = "prepare";
+            profileMark("prepare-begin");
+            var syntax = prepared.Value;
+            profileMark("prepare-end");
+            startupStage = "evaluate";
+            profileMark("evaluate-begin");
+            try { dispatch = vm.Evaluate(syntax); }
+            finally { profileMark("evaluate-end"); }
+            startupStage = "checkpoints";
+            markers.End();
+            bridge.Begin();
+            startupStage = null;
+            profileMark("complete");
+            }
+            finally
+            {
+                try
+                {
+                    profileMark("end");
+                    foreach (var row in profileRows) Console.Error.WriteLine("LEA_TRUSTED_BOOT wallFrequency=" + System.Diagnostics.Stopwatch.Frequency + " cpuFrequency=" + TimeSpan.TicksPerSecond + " " + row);
+                }
+                finally { profileProcess.Dispose(); }
+            }
+        }
+
+        private Jr Result(string status, string message, bool prevented = false)
+        { return At = new Jr(status, bridge.Changes, message, prevented); }
+        private void Reset() { vm = null; dispatch = null; startupStage = null; bridge.Reset(); }
+        private void CheckThread()
+        {
+            if (Thread.CurrentThread.ManagedThreadId != thread)
+                throw new InvalidOperationException("Use this Lea script session on its owning thread.");
+        }
+
+        public void Dispose()
+        {
+            CheckThread();
+            if (running) throw new InvalidOperationException("A Lea script is running.");
+            disposed = true;
+            Reset();
+        }
+
+        private static string LoadBootstrap()
+        {
+            using (var source = typeof(Js).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
+            using (var reader = new StreamReader(source)) return reader.ReadToEnd();
+        }
+    }
+}

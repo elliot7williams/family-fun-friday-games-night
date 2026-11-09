@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "sourceProofSha256": "6E5B5FD89DCE987831D6BD0D190A27AC1EF76CE625537333F46BFC63579378E4",
+  "testSha256": "9A2DB6E79C00DAF2C9653FD7DA4F87FBB58C310D3AD771C5583697FE5824762C",
+  "cases": [
+    {
+      "file": "Dom.js",
+      "kind": "original",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.js",
+      "kind": "candidate",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.compact.js",
+      "kind": "original",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.compact.js",
+      "kind": "candidate",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    }
+  ],
+  "checks": 312,
+  "apiMetadataComparisons": 2,
+  "installerMockOnly": true,
+  "scope": "Existing312-check full-bootstrap behavior suite plus public metadata/hidden-helper equivalence for native window installer projection. Node mock only, not C# installer, Jint, sandbox or performance qualification."
+}

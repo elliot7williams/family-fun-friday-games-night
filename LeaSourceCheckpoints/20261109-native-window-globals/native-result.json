@@ -1,0 +1,1481 @@
+{
+  "runs": [
+    {
+      "unsafeToContinue": false,
+      "stdout": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\compile-current-profile.stdout.txt",
+      "timedOut": false,
+      "activeAfterRetirement": 0,
+      "started": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 0,
+      "captureOverflow": false,
+      "stdoutBytes": 87,
+      "outputDrained": true,
+      "exitObserved": true,
+      "ownedJob": true,
+      "name": "compile-current-profile",
+      "error": null,
+      "childRetirementIndependentlyAudited": true,
+      "parentBudgetMs": 120000,
+      "birthUtc": "2026-11-09T08:45:19.3374827Z",
+      "pid": 14252,
+      "startReturned": true,
+      "killRequested": false,
+      "passed": true,
+      "exitCode": 0,
+      "retirementAndDrainElapsedMs": 359,
+      "stdoutComplete": true,
+      "startUnknown": false,
+      "finishedUtc": "2026-11-09T08:45:24.4296329Z",
+      "originalHandleCaptured": true,
+      "stderr": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\compile-current-profile.stderr.txt",
+      "stderrBytes": 0,
+      "stdoutRetainedBytes": 87,
+      "retainedForOwner": false,
+      "elapsedMs": 4761,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "startAttempted": true
+    },
+    {
+      "unsafeToContinue": false,
+      "stdout": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\compile-current-profile-harness.stdout.txt",
+      "timedOut": false,
+      "activeAfterRetirement": 0,
+      "started": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 0,
+      "captureOverflow": false,
+      "stdoutBytes": 87,
+      "outputDrained": true,
+      "exitObserved": true,
+      "ownedJob": true,
+      "name": "compile-current-profile-harness",
+      "error": null,
+      "childRetirementIndependentlyAudited": true,
+      "parentBudgetMs": 120000,
+      "birthUtc": "2026-11-09T08:45:26.1996139Z",
+      "pid": 8292,
+      "startReturned": true,
+      "killRequested": false,
+      "passed": true,
+      "exitCode": 0,
+      "retirementAndDrainElapsedMs": 29,
+      "stdoutComplete": true,
+      "startUnknown": false,
+      "finishedUtc": "2026-11-09T08:45:28.9333907Z",
+      "originalHandleCaptured": true,
+      "stderr": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\compile-current-profile-harness.stderr.txt",
+      "stderrBytes": 0,
+      "stdoutRetainedBytes": 87,
+      "retainedForOwner": false,
+      "elapsedMs": 2707,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "startAttempted": true
+    },
+    {
+      "unsafeToContinue": false,
+      "stdout": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\compile-window-contract.stdout.txt",
+      "timedOut": false,
+      "activeAfterRetirement": 0,
+      "started": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 0,
+      "captureOverflow": false,
+      "stdoutBytes": 87,
+      "outputDrained": true,
+      "exitObserved": true,
+      "ownedJob": true,
+      "name": "compile-window-contract",
+      "error": null,
+      "childRetirementIndependentlyAudited": true,
+      "parentBudgetMs": 120000,
+      "birthUtc": "2026-11-09T08:45:29.0519385Z",
+      "pid": 1384,
+      "startReturned": true,
+      "killRequested": false,
+      "passed": true,
+      "exitCode": 0,
+      "retirementAndDrainElapsedMs": 37,
+      "stdoutComplete": true,
+      "startUnknown": false,
+      "finishedUtc": "2026-11-09T08:45:31.8782254Z",
+      "originalHandleCaptured": true,
+      "stderr": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\compile-window-contract.stderr.txt",
+      "stderrBytes": 0,
+      "stdoutRetainedBytes": 87,
+      "retainedForOwner": false,
+      "elapsedMs": 2790,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "startAttempted": true
+    },
+    {
+      "unsafeToContinue": false,
+      "stdout": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\window-globals-contract.stdout.txt",
+      "timedOut": false,
+      "activeAfterRetirement": 0,
+      "started": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 0,
+      "captureOverflow": false,
+      "stdoutBytes": 33,
+      "outputDrained": true,
+      "exitObserved": true,
+      "ownedJob": true,
+      "name": "window-globals-contract",
+      "error": null,
+      "childRetirementIndependentlyAudited": true,
+      "parentBudgetMs": 30000,
+      "birthUtc": "2026-11-09T08:45:32.5003533Z",
+      "pid": 16132,
+      "startReturned": true,
+      "killRequested": false,
+      "passed": true,
+      "exitCode": 0,
+      "retirementAndDrainElapsedMs": 91,
+      "stdoutComplete": true,
+      "startUnknown": false,
+      "finishedUtc": "2026-11-09T08:45:35.5497305Z",
+      "originalHandleCaptured": true,
+      "stderr": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\window-globals-contract.stderr.txt",
+      "stderrBytes": 0,
+      "stdoutRetainedBytes": 33,
+      "retainedForOwner": false,
+      "elapsedMs": 3098,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "startAttempted": true
+    },
+    {
+      "unsafeToContinue": false,
+      "stdout": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\baseline-1.stdout.txt",
+      "timedOut": false,
+      "activeAfterRetirement": 0,
+      "started": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 1759,
+      "captureOverflow": false,
+      "stdoutBytes": 97,
+      "outputDrained": true,
+      "exitObserved": true,
+      "ownedJob": true,
+      "name": "baseline-1",
+      "error": null,
+      "childRetirementIndependentlyAudited": true,
+      "parentBudgetMs": 30000,
+      "birthUtc": "2026-11-09T08:45:35.9769889Z",
+      "pid": 12920,
+      "startReturned": true,
+      "killRequested": false,
+      "passed": true,
+      "exitCode": 0,
+      "retirementAndDrainElapsedMs": 107,
+      "stdoutComplete": true,
+      "startUnknown": false,
+      "finishedUtc": "2026-11-09T08:45:39.1682560Z",
+      "originalHandleCaptured": true,
+      "stderr": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\baseline-1.stderr.txt",
+      "stderrBytes": 1759,
+      "stdoutRetainedBytes": 97,
+      "retainedForOwner": false,
+      "elapsedMs": 3086,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "startAttempted": true
+    },
+    {
+      "unsafeToContinue": false,
+      "stdout": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\native-2.stdout.txt",
+      "timedOut": false,
+      "activeAfterRetirement": 0,
+      "started": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 1753,
+      "captureOverflow": false,
+      "stdoutBytes": 98,
+      "outputDrained": true,
+      "exitObserved": true,
+      "ownedJob": true,
+      "name": "native-2",
+      "error": null,
+      "childRetirementIndependentlyAudited": true,
+      "parentBudgetMs": 30000,
+      "birthUtc": "2026-11-09T08:45:39.4256209Z",
+      "pid": 14044,
+      "startReturned": true,
+      "killRequested": false,
+      "passed": true,
+      "exitCode": 0,
+      "retirementAndDrainElapsedMs": 132,
+      "stdoutComplete": true,
+      "startUnknown": false,
+      "finishedUtc": "2026-11-09T08:45:43.1247896Z",
+      "originalHandleCaptured": true,
+      "stderr": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\native-2.stderr.txt",
+      "stderrBytes": 1753,
+      "stdoutRetainedBytes": 98,
+      "retainedForOwner": false,
+      "elapsedMs": 3636,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "startAttempted": true
+    },
+    {
+      "unsafeToContinue": false,
+      "stdout": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\native-3.stdout.txt",
+      "timedOut": false,
+      "activeAfterRetirement": 0,
+      "started": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 1725,
+      "captureOverflow": false,
+      "stdoutBytes": 96,
+      "outputDrained": true,
+      "exitObserved": true,
+      "ownedJob": true,
+      "name": "native-3",
+      "error": null,
+      "childRetirementIndependentlyAudited": true,
+      "parentBudgetMs": 30000,
+      "birthUtc": "2026-11-09T08:45:43.2341441Z",
+      "pid": 8384,
+      "startReturned": true,
+      "killRequested": false,
+      "passed": true,
+      "exitCode": 0,
+      "retirementAndDrainElapsedMs": 82,
+      "stdoutComplete": true,
+      "startUnknown": false,
+      "finishedUtc": "2026-11-09T08:45:46.1137300Z",
+      "originalHandleCaptured": true,
+      "stderr": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\native-3.stderr.txt",
+      "stderrBytes": 1725,
+      "stdoutRetainedBytes": 96,
+      "retainedForOwner": false,
+      "elapsedMs": 2801,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "startAttempted": true
+    },
+    {
+      "unsafeToContinue": false,
+      "stdout": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\baseline-4.stdout.txt",
+      "timedOut": false,
+      "activeAfterRetirement": 0,
+      "started": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 1750,
+      "captureOverflow": false,
+      "stdoutBytes": 97,
+      "outputDrained": true,
+      "exitObserved": true,
+      "ownedJob": true,
+      "name": "baseline-4",
+      "error": null,
+      "childRetirementIndependentlyAudited": true,
+      "parentBudgetMs": 30000,
+      "birthUtc": "2026-11-09T08:45:46.1859673Z",
+      "pid": 15196,
+      "startReturned": true,
+      "killRequested": false,
+      "passed": true,
+      "exitCode": 0,
+      "retirementAndDrainElapsedMs": 103,
+      "stdoutComplete": true,
+      "startUnknown": false,
+      "finishedUtc": "2026-11-09T08:45:48.8391995Z",
+      "originalHandleCaptured": true,
+      "stderr": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\baseline-4.stderr.txt",
+      "stderrBytes": 1750,
+      "stdoutRetainedBytes": 97,
+      "retainedForOwner": false,
+      "elapsedMs": 2551,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "startAttempted": true
+    }
+  ],
+  "passed": true,
+  "limitsChanged": false,
+  "nativeWindowGlobals": true,
+  "before": [
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Acornima.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Jint.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.CurrentBootstrap.Tests.exe",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "254ED9768D682201E3598E486A83D1D371A7188FF32CBAF330AA625181F30D03"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.CurrentBootstrap.Tests.exe.config",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "BBBBB19D16CE7AE2715A07FC065A55FAA0BB8DE5BC46E4F243D496320C9FC2EC"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.Engine.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "C5CC0B99CFA54C090C0E553B2C6080186E4E412BD254A533307860D5522C67E0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.Script.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "39595C95EC3D1226736AADF71F6E38327C0ECDF3451D57F327E099BBFD12D0A7"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.WindowGlobals.Tests.exe",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "CA6D6C6DECB05A2AFB5E4FC392B437877DA72D524604B5C1E6D2ADF597009123"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.WindowGlobals.Tests.exe.config",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "BBBBB19D16CE7AE2715A07FC065A55FAA0BB8DE5BC46E4F243D496320C9FC2EC"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\System.Buffers.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\System.Memory.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\System.Numerics.Vectors.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Acornima.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    },
+    {
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Jint.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    },
+    {
+      "sha256": "15A80133E150E1C5E8D487C4C21068200282E6C47096CC02164C4C19E998ECA8",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Lea.CurrentBootstrap.Tests.exe",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    },
+    {
+      "sha256": "BBBBB19D16CE7AE2715A07FC065A55FAA0BB8DE5BC46E4F243D496320C9FC2EC",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Lea.CurrentBootstrap.Tests.exe.config",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    },
+    {
+      "sha256": "C5CC0B99CFA54C090C0E553B2C6080186E4E412BD254A533307860D5522C67E0",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Lea.Engine.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    },
+    {
+      "sha256": "C56FB88B72F9D2492101B28B8E8B93FD6B82A94F95A7C1444F6D5E3E5112F21B",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Lea.Script.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    },
+    {
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\System.Buffers.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    },
+    {
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\System.Memory.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    },
+    {
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\System.Numerics.Vectors.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    },
+    {
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+    }
+  ],
+  "metadataReplacementExplicit": true,
+  "ownerAttention": false,
+  "nativeSourceProofSha256": "6E5B5FD89DCE987831D6BD0D190A27AC1EF76CE625537333F46BFC63579378E4",
+  "observations": [
+    {
+      "label": "baseline-1",
+      "report": {
+        "ok": true,
+        "status": "ok",
+        "message": "",
+        "elapsedMs": 2039,
+        "cpuMs": 156.25
+      },
+      "runPassed": true,
+      "profile": {
+        "rows": [
+          {
+            "gc1": 0,
+            "label": "enter",
+            "gc0": 0,
+            "wall": 13047,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "vm-begin",
+            "gc0": 0,
+            "wall": 66416,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "vm-end",
+            "gc0": 0,
+            "wall": 1920356,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "prepare-begin",
+            "gc0": 0,
+            "wall": 2519275,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "prepare-end",
+            "gc0": 1,
+            "wall": 10767100,
+            "gc2": 0,
+            "cpu": 781250
+          },
+          {
+            "gc1": 0,
+            "label": "evaluate-begin",
+            "gc0": 1,
+            "wall": 10768573,
+            "gc2": 0,
+            "cpu": 781250
+          },
+          {
+            "gc1": 0,
+            "label": "stage-declarations",
+            "gc0": 1,
+            "wall": 12314208,
+            "gc2": 0,
+            "cpu": 937500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-scope",
+            "gc0": 1,
+            "wall": 12967622,
+            "gc2": 0,
+            "cpu": 937500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-events",
+            "gc0": 1,
+            "wall": 15837127,
+            "gc2": 0,
+            "cpu": 1250000
+          },
+          {
+            "gc1": 0,
+            "label": "stage-interfaces",
+            "gc0": 1,
+            "wall": 17480153,
+            "gc2": 0,
+            "cpu": 1406250
+          },
+          {
+            "gc1": 0,
+            "label": "stage-elements",
+            "gc0": 1,
+            "wall": 17483249,
+            "gc2": 0,
+            "cpu": 1406250
+          },
+          {
+            "gc1": 0,
+            "label": "stage-document",
+            "gc0": 1,
+            "wall": 17673938,
+            "gc2": 0,
+            "cpu": 1406250
+          },
+          {
+            "gc1": 0,
+            "label": "evaluate-end",
+            "gc0": 1,
+            "wall": 17702670,
+            "gc2": 0,
+            "cpu": 1406250
+          },
+          {
+            "gc1": 0,
+            "label": "complete",
+            "gc0": 1,
+            "wall": 17706316,
+            "gc2": 0,
+            "cpu": 1406250
+          },
+          {
+            "gc1": 0,
+            "label": "end",
+            "gc0": 1,
+            "wall": 17706619,
+            "gc2": 0,
+            "cpu": 1406250
+          }
+        ],
+        "markers": 15,
+        "bootstrapSucceeded": true,
+        "intervals": [
+          {
+            "processCpuMs": 31.25,
+            "wallMs": 185.394,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "vm",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 0.0,
+            "wallMs": 59.8919,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "bridge",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 46.875,
+            "wallMs": 824.7825,
+            "gc0": 1,
+            "gc1": 0,
+            "phase": "prepare",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 62.5,
+            "wallMs": 693.4097,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "evaluate",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 31.25,
+            "wallMs": 286.9505,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "scope-to-events",
+            "gc2": 0
+          }
+        ],
+        "scope": "Single diagnostic process measurements; scope-to-events is nested in evaluate, do not sum all intervals. Wall/CPU gap is not causal attribution.",
+        "verified": true
+      }
+    },
+    {
+      "label": "native-2",
+      "report": {
+        "ok": true,
+        "status": "ok",
+        "message": "",
+        "elapsedMs": 2548,
+        "cpuMs": 328.125
+      },
+      "runPassed": true,
+      "profile": {
+        "rows": [
+          {
+            "gc1": 0,
+            "label": "enter",
+            "gc0": 0,
+            "wall": 19612,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "vm-begin",
+            "gc0": 0,
+            "wall": 93893,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "vm-end",
+            "gc0": 0,
+            "wall": 1782623,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "prepare-begin",
+            "gc0": 0,
+            "wall": 2496631,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "prepare-end",
+            "gc0": 1,
+            "wall": 12780755,
+            "gc2": 0,
+            "cpu": 1562500
+          },
+          {
+            "gc1": 0,
+            "label": "evaluate-begin",
+            "gc0": 1,
+            "wall": 12781614,
+            "gc2": 0,
+            "cpu": 1562500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-declarations",
+            "gc0": 1,
+            "wall": 14978508,
+            "gc2": 0,
+            "cpu": 1875000
+          },
+          {
+            "gc1": 0,
+            "label": "stage-scope",
+            "gc0": 1,
+            "wall": 15851637,
+            "gc2": 0,
+            "cpu": 1875000
+          },
+          {
+            "gc1": 0,
+            "label": "stage-events",
+            "gc0": 1,
+            "wall": 19996335,
+            "gc2": 0,
+            "cpu": 2187500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-interfaces",
+            "gc0": 1,
+            "wall": 21897424,
+            "gc2": 0,
+            "cpu": 2968750
+          },
+          {
+            "gc1": 0,
+            "label": "stage-elements",
+            "gc0": 1,
+            "wall": 21943102,
+            "gc2": 0,
+            "cpu": 2968750
+          },
+          {
+            "gc1": 0,
+            "label": "stage-document",
+            "gc0": 1,
+            "wall": 22229059,
+            "gc2": 0,
+            "cpu": 3125000
+          },
+          {
+            "gc1": 0,
+            "label": "evaluate-end",
+            "gc0": 1,
+            "wall": 22280888,
+            "gc2": 0,
+            "cpu": 3125000
+          },
+          {
+            "gc1": 0,
+            "label": "complete",
+            "gc0": 1,
+            "wall": 22286402,
+            "gc2": 0,
+            "cpu": 3125000
+          },
+          {
+            "gc1": 0,
+            "label": "end",
+            "gc0": 1,
+            "wall": 22287115,
+            "gc2": 0,
+            "cpu": 3125000
+          }
+        ],
+        "markers": 15,
+        "bootstrapSucceeded": true,
+        "intervals": [
+          {
+            "processCpuMs": 0.0,
+            "wallMs": 168.873,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "vm",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 0.0,
+            "wallMs": 71.4008,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "bridge",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 156.25,
+            "wallMs": 1028.4124,
+            "gc0": 1,
+            "gc1": 0,
+            "phase": "prepare",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 156.25,
+            "wallMs": 949.9274,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "evaluate",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 31.25,
+            "wallMs": 414.4698,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "scope-to-events",
+            "gc2": 0
+          }
+        ],
+        "scope": "Single diagnostic process measurements; scope-to-events is nested in evaluate, do not sum all intervals. Wall/CPU gap is not causal attribution.",
+        "verified": true
+      }
+    },
+    {
+      "label": "native-3",
+      "report": {
+        "ok": true,
+        "status": "ok",
+        "message": "",
+        "elapsedMs": 1776,
+        "cpuMs": 31.25
+      },
+      "runPassed": true,
+      "profile": {
+        "rows": [
+          {
+            "gc1": 0,
+            "label": "enter",
+            "gc0": 0,
+            "wall": 11624,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "vm-begin",
+            "gc0": 0,
+            "wall": 61512,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "vm-end",
+            "gc0": 0,
+            "wall": 1506938,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "prepare-begin",
+            "gc0": 0,
+            "wall": 2014022,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "prepare-end",
+            "gc0": 1,
+            "wall": 8677187,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "evaluate-begin",
+            "gc0": 1,
+            "wall": 8677871,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "stage-declarations",
+            "gc0": 1,
+            "wall": 10795189,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "stage-scope",
+            "gc0": 1,
+            "wall": 11565834,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-events",
+            "gc0": 1,
+            "wall": 14343936,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-interfaces",
+            "gc0": 1,
+            "wall": 15428919,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-elements",
+            "gc0": 1,
+            "wall": 15430671,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-document",
+            "gc0": 1,
+            "wall": 15596823,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "evaluate-end",
+            "gc0": 1,
+            "wall": 15622858,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "complete",
+            "gc0": 1,
+            "wall": 15625359,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "end",
+            "gc0": 1,
+            "wall": 15625759,
+            "gc2": 0,
+            "cpu": 312500
+          }
+        ],
+        "markers": 15,
+        "bootstrapSucceeded": true,
+        "intervals": [
+          {
+            "processCpuMs": 0.0,
+            "wallMs": 144.5426,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "vm",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 0.0,
+            "wallMs": 50.7084,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "bridge",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 0.0,
+            "wallMs": 666.3165,
+            "gc0": 1,
+            "gc1": 0,
+            "phase": "prepare",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 31.25,
+            "wallMs": 694.4987,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "evaluate",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 0.0,
+            "wallMs": 277.8102,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "scope-to-events",
+            "gc2": 0
+          }
+        ],
+        "scope": "Single diagnostic process measurements; scope-to-events is nested in evaluate, do not sum all intervals. Wall/CPU gap is not causal attribution.",
+        "verified": true
+      }
+    },
+    {
+      "label": "baseline-4",
+      "report": {
+        "ok": true,
+        "status": "ok",
+        "message": "",
+        "elapsedMs": 1756,
+        "cpuMs": 78.125
+      },
+      "runPassed": true,
+      "profile": {
+        "rows": [
+          {
+            "gc1": 0,
+            "label": "enter",
+            "gc0": 0,
+            "wall": 13963,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "vm-begin",
+            "gc0": 0,
+            "wall": 64467,
+            "gc2": 0,
+            "cpu": 0
+          },
+          {
+            "gc1": 0,
+            "label": "vm-end",
+            "gc0": 0,
+            "wall": 1635625,
+            "gc2": 0,
+            "cpu": 156250
+          },
+          {
+            "gc1": 0,
+            "label": "prepare-begin",
+            "gc0": 0,
+            "wall": 2218861,
+            "gc2": 0,
+            "cpu": 156250
+          },
+          {
+            "gc1": 0,
+            "label": "prepare-end",
+            "gc0": 1,
+            "wall": 9257614,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "evaluate-begin",
+            "gc0": 1,
+            "wall": 9258303,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-declarations",
+            "gc0": 1,
+            "wall": 10851333,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-scope",
+            "gc0": 1,
+            "wall": 11462958,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-events",
+            "gc0": 1,
+            "wall": 13815808,
+            "gc2": 0,
+            "cpu": 312500
+          },
+          {
+            "gc1": 0,
+            "label": "stage-interfaces",
+            "gc0": 1,
+            "wall": 15053682,
+            "gc2": 0,
+            "cpu": 468750
+          },
+          {
+            "gc1": 0,
+            "label": "stage-elements",
+            "gc0": 1,
+            "wall": 15057011,
+            "gc2": 0,
+            "cpu": 468750
+          },
+          {
+            "gc1": 0,
+            "label": "stage-document",
+            "gc0": 1,
+            "wall": 15222873,
+            "gc2": 0,
+            "cpu": 468750
+          },
+          {
+            "gc1": 0,
+            "label": "evaluate-end",
+            "gc0": 1,
+            "wall": 15249275,
+            "gc2": 0,
+            "cpu": 468750
+          },
+          {
+            "gc1": 0,
+            "label": "complete",
+            "gc0": 1,
+            "wall": 15251772,
+            "gc2": 0,
+            "cpu": 468750
+          },
+          {
+            "gc1": 0,
+            "label": "end",
+            "gc0": 1,
+            "wall": 15252035,
+            "gc2": 0,
+            "cpu": 468750
+          }
+        ],
+        "markers": 15,
+        "bootstrapSucceeded": true,
+        "intervals": [
+          {
+            "processCpuMs": 15.625,
+            "wallMs": 157.1158,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "vm",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 0.0,
+            "wallMs": 58.3236,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "bridge",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 15.625,
+            "wallMs": 703.8753,
+            "gc0": 1,
+            "gc1": 0,
+            "phase": "prepare",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 15.625,
+            "wallMs": 599.0972,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "evaluate",
+            "gc2": 0
+          },
+          {
+            "processCpuMs": 0.0,
+            "wallMs": 235.285,
+            "gc0": 0,
+            "gc1": 0,
+            "phase": "scope-to-events",
+            "gc2": 0
+          }
+        ],
+        "scope": "Single diagnostic process measurements; scope-to-events is nested in evaluate, do not sum all intervals. Wall/CPU gap is not causal attribution.",
+        "verified": true
+      }
+    }
+  ],
+  "hostAdopted": false,
+  "historicalMetadataRecovered": false,
+  "inputsUnchanged": true,
+  "measurementCaptured": true,
+  "runtimeQualified": false,
+  "speedImprovementProven": false,
+  "contractFooter": "WINDOW_GLOBALS_CONTRACT PASS 19",
+  "changedFiles": [],
+  "nativeContractPassed": true,
+  "diagnosticParentSha256": "39595C95EC3D1226736AADF71F6E38327C0ECDF3451D57F327E099BBFD12D0A7",
+  "diagnosticOnly": true,
+  "inputs": [
+    {
+      "sha256": "0BEF5ED7A94FE40D8DDC2E602E2D2E0F4E24233A6D89518487711168150D9351",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-CurrentTrustedBootstrap.ps1"
+    },
+    {
+      "sha256": "D74BB7C6812012197DFC11A803C13E493796D40685E953E1B6194ED9624F2968",
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-source-20261109-v1\\source.json"
+    },
+    {
+      "sha256": "622FB7A291C118D5D676C385C71BF0839E2DE7EF110FD35DC2AF38735E3D26ED",
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-source-20261109-v1\\8.cs"
+    },
+    {
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-source-20261109-v1\\Dom.compact.js"
+    },
+    {
+      "sha256": "6E5B5FD89DCE987831D6BD0D190A27AC1EF76CE625537333F46BFC63579378E4",
+      "path": "I:\\LeaBuildStorage\\native-window-globals-source-20261109-v1/source.json"
+    },
+    {
+      "sha256": "7D21DB5B7304E01A346B7D6D5E65BE737C60D7215B3FDB1008ECDE1DB9EA1A30",
+      "path": "I:\\LeaBuildStorage\\native-window-globals-source-20261109-v1\\Dom.js"
+    },
+    {
+      "sha256": "6832E5236CB533B8C3C8FDAEFAF27ACC2E4BDFF19FE2CD5E994BCA494E659E0D",
+      "path": "I:\\LeaBuildStorage\\native-window-globals-source-20261109-v1\\Dom.compact.js"
+    },
+    {
+      "sha256": "9301090325652675AD174705F4614CD9F3EF4C1E0A9D40B947001B404B1E4144",
+      "path": "I:/LeaBuildStorage/native-window-globals-source-20261109-v1/8.cs"
+    },
+    {
+      "sha256": "8E558F828FCF56488F5CEEC6740847AC4BEB718A7008BDF689DD439596F77F12",
+      "path": "I:/LeaBuildStorage/native-window-globals-source-20261109-v1/WindowGlobals.cs"
+    },
+    {
+      "sha256": "33905C1E52585A4A17CB7E718B5D89AF873215B26CAE02F217B990EA0B4A01E5",
+      "path": "I:\\LeaBuildStorage\\native-window-globals-source-20261109-v1/node-test.json"
+    },
+    {
+      "sha256": "E926C855BBAA2528E7FD113A2D1A337C616A1F0173C44B06B74C94EEA22D3B0F",
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-profile-run-20261109-v1/result.json"
+    },
+    {
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Acornima.dll"
+    },
+    {
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Jint.dll"
+    },
+    {
+      "sha256": "15A80133E150E1C5E8D487C4C21068200282E6C47096CC02164C4C19E998ECA8",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Lea.CurrentBootstrap.Tests.exe"
+    },
+    {
+      "sha256": "BBBBB19D16CE7AE2715A07FC065A55FAA0BB8DE5BC46E4F243D496320C9FC2EC",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Lea.CurrentBootstrap.Tests.exe.config"
+    },
+    {
+      "sha256": "C5CC0B99CFA54C090C0E553B2C6080186E4E412BD254A533307860D5522C67E0",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "C56FB88B72F9D2492101B28B8E8B93FD6B82A94F95A7C1444F6D5E3E5112F21B",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\Lea.Script.dll"
+    },
+    {
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\System.Buffers.dll"
+    },
+    {
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\System.Memory.dll"
+    },
+    {
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\System.Numerics.Vectors.dll"
+    },
+    {
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-bootstrap-profile-v1\\runtime\\System.Runtime.CompilerServices.Unsafe.dll"
+    },
+    {
+      "sha256": "D32732C0BF3B548DB649966100D4B074663E07544BC9C25A648A80D6723AB02C",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-build.json"
+    },
+    {
+      "sha256": "591FBFFC8D0A57136FEC81442A392BE1B8F14ABC9931D7DCC9E41FD14B3F7B5B",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\staging.json"
+    },
+    {
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Acornima.dll"
+    },
+    {
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Acornima.dll"
+    },
+    {
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Jint.dll"
+    },
+    {
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Jint.dll"
+    },
+    {
+      "sha256": "C5CC0B99CFA54C090C0E553B2C6080186E4E412BD254A533307860D5522C67E0",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "C5CC0B99CFA54C090C0E553B2C6080186E4E412BD254A533307860D5522C67E0",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Buffers.dll"
+    },
+    {
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\System.Buffers.dll"
+    },
+    {
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Memory.dll"
+    },
+    {
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\System.Memory.dll"
+    },
+    {
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Numerics.Vectors.dll"
+    },
+    {
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\System.Numerics.Vectors.dll"
+    },
+    {
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Runtime.CompilerServices.Unsafe.dll"
+    },
+    {
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\System.Runtime.CompilerServices.Unsafe.dll"
+    },
+    {
+      "sha256": "D553F33A48B9B7DD5CF97012E6974C4B4054C315B19FD0086C05543844242AFA",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\OwnedTestProcess.cs"
+    },
+    {
+      "sha256": "E5DD42C23546F58CEF425DE5602CC39D478409A824FDBB4C19F5CB454FC0FC00",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Invoke-OwnedTestRun.ps1"
+    },
+    {
+      "sha256": "A1EF87676086E14B67CC106C232B573C6BB70EBEACA41BF5C9155797022BC55F",
+      "path": "C:\\Program Files\\dotnet\\dotnet.exe"
+    },
+    {
+      "sha256": "FEE49445287D3C12E8ECC098544AA87F6710BF8CE5222A516485A7F839EF5C67",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\csc.dll"
+    },
+    {
+      "sha256": "0BE4BE860B146DB7CE8BFBB2085ECD78734739EA236A6DD75CC797526FE8F130",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\csc.deps.json"
+    },
+    {
+      "sha256": "F0A2BF4CBAD107BE70624C080E5A6F7776EF7BB0A300E25D810207EB0AC2BC4E",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\csc.runtimeconfig.json"
+    },
+    {
+      "sha256": "C8F219C56D4CB477A171A2FE0D3260508F883DD2AEFA587DE5C0A863C3067468",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\Microsoft.CodeAnalysis.dll"
+    },
+    {
+      "sha256": "67EB14B7A67D7A96DC02D88FB8A959574B53FD2C274FE6E706D1FA42D2A15DF4",
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\Microsoft.CodeAnalysis.CSharp.dll"
+    },
+    {
+      "sha256": "5DCF2B7B18483C094F206A6B93558692ABF1BEAF507AD8AA076040E98DE72B6C",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\mscorlib.dll"
+    },
+    {
+      "sha256": "C5E2E638FF819616C8B30DBA5927D60F4E0251B2CFA0E9C5A6D67C7898BCBC9F",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.dll"
+    },
+    {
+      "sha256": "860278D7437CAAA95C988ABC910A92DB130ED1EE88841747BFED974EF1C95CC1",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Core.dll"
+    },
+    {
+      "sha256": "5543CE5B5A2A9003E3930C29A134A955A188F8147A9786FDE93EAA23494FF0E8",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Drawing.dll"
+    },
+    {
+      "sha256": "50C095D710D00D971FA63AB9B88FAADCA5CCEE36C9B8CA8E911F8380E778BF6A",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Windows.Forms.dll"
+    },
+    {
+      "sha256": "36C6D1164F2E7B627F3D535D3229B9F918C5DD92FBC8FC5729D469E4D7273B2D",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Web.Extensions.dll"
+    },
+    {
+      "sha256": "4599255983EDE5199E561E2D41765FA9B08ED55A0853AF1795F87F6749DB2CE7",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Xml.dll"
+    },
+    {
+      "sha256": "53CD1F61F74B70F2CF44FDCDB68C392584AFF11EF19C34A4B1668EABFE5CACB6",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Runtime.Serialization.dll"
+    },
+    {
+      "sha256": "608A5B7ED3553710B39F1AF2BFB147812C274D18B9EF2CDBCCA642877EEF517B",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Security.dll"
+    },
+    {
+      "sha256": "DD00178E6032D311F09E6217FC07DC39667B638B9AD7C1339BDF0CD80CDD5679",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\netstandard.dll"
+    },
+    {
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\1.cs"
+    },
+    {
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\2.cs"
+    },
+    {
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\3.cs"
+    },
+    {
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\4.cs"
+    },
+    {
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\5.cs"
+    },
+    {
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\6.cs"
+    },
+    {
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\7.cs"
+    },
+    {
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\8.cs"
+    },
+    {
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\9.cs"
+    },
+    {
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\10.cs"
+    },
+    {
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\11.cs"
+    },
+    {
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\12.cs"
+    },
+    {
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\13.cs"
+    },
+    {
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11",
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\15.cs"
+    },
+    {
+      "sha256": "AA750629747FBBC8D2D33370CF01F634C87CBC0AB5A63164ED29D8E28F8FBD6C",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\DiagnosticScriptAssemblyInfo.cs"
+    },
+    {
+      "sha256": "2B0BF347EE54362462A136929C53A56E6DCA615956279E8F15BC05D1507E30B2",
+      "path": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\parent.rsp"
+    },
+    {
+      "sha256": "39595C95EC3D1226736AADF71F6E38327C0ECDF3451D57F327E099BBFD12D0A7",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.Script.dll"
+    },
+    {
+      "sha256": "1D1380E9B630B1D1C291BE4B581F68B42B37907B5DF0B53CFC57965D05CFB9F3",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\BootstrapComparisonMain.cs"
+    },
+    {
+      "sha256": "3DF0EFEC5971CD039843713AA361B1C1DA5462C8B34B6869AD72A93E19379034",
+      "path": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\harness.rsp"
+    },
+    {
+      "sha256": "BBBBB19D16CE7AE2715A07FC065A55FAA0BB8DE5BC46E4F243D496320C9FC2EC",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Lea.Script.Tests.exe.config"
+    },
+    {
+      "sha256": "BBBBB19D16CE7AE2715A07FC065A55FAA0BB8DE5BC46E4F243D496320C9FC2EC",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.CurrentBootstrap.Tests.exe.config"
+    },
+    {
+      "sha256": "26BFFFD7E9BCA06744E36A76BF24099B1E7C5B0106915BDA09B9B61F972D90E5",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\WindowGlobalsMain.cs"
+    },
+    {
+      "sha256": "6C53220C974F592D39772FFF66A4E061A0149ECC02B8C6C9B3B1F309CEF41669",
+      "path": "I:\\LeaBuildStorage\\native-window-globals-abba-20261109-v1\\contract.rsp"
+    },
+    {
+      "sha256": "CA6D6C6DECB05A2AFB5E4FC392B437877DA72D524604B5C1E6D2ADF597009123",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.WindowGlobals.Tests.exe"
+    },
+    {
+      "sha256": "BBBBB19D16CE7AE2715A07FC065A55FAA0BB8DE5BC46E4F243D496320C9FC2EC",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.WindowGlobals.Tests.exe.config"
+    },
+    {
+      "sha256": "D7FB5992087CD1FDC2529C5056D0FB6A15C1640A3B01AC8FE529D82A73D7F432",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\fixtures\\LeaForge\\test-pages\\javascript-contains.html"
+    },
+    {
+      "sha256": "254ED9768D682201E3598E486A83D1D371A7188FF32CBAF330AA625181F30D03",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-window-globals-v1\\runtime\\Lea.CurrentBootstrap.Tests.exe"
+    },
+    {
+      "sha256": "CD0A5702633982C137ECFA8D1EA148FAC1B58952894B21333E521BC066636A42",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Read-TrustedBootstrapProfile.ps1"
+    }
+  ]
+}

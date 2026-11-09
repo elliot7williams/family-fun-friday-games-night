@@ -1,0 +1,109 @@
+{
+  "verified": true,
+  "files": 20,
+  "adopted": false,
+  "productionRuntimeChanged": false,
+  "entries": [
+    {
+      "sha256": "C69CE9AEF4ED627F3E50B3BCC91117552969B237A4CD232D12C09BC534E5B669",
+      "bytes": 19642,
+      "path": "PROJECT_CONTEXT.md"
+    },
+    {
+      "sha256": "89D5B9E8E1B2D61FB490B96F3A868BACADF34326A157C1A3D6C9224A3935947C",
+      "bytes": 414479,
+      "path": "LeaForge/PROGRESS.md"
+    },
+    {
+      "sha256": "110C820C8E494A400861A950AAA5EFD4CFA52BFADDBB0E0D7E17F1A394119701",
+      "bytes": 3972,
+      "path": "LeaForge/NATIVE_WINDOW_GLOBALS.md"
+    },
+    {
+      "sha256": "8E558F828FCF56488F5CEEC6740847AC4BEB718A7008BDF689DD439596F77F12",
+      "bytes": 2009,
+      "path": "Lea.Build/WindowGlobals.cs"
+    },
+    {
+      "sha256": "2040562AF0DF2882D557017245717731CCB3FE78354CE539778BAEAD9CA4A35E",
+      "bytes": 7047,
+      "path": "Lea.Build/Prepare-NativeWindowGlobals.cjs"
+    },
+    {
+      "sha256": "0BEF5ED7A94FE40D8DDC2E602E2D2E0F4E24233A6D89518487711168150D9351",
+      "bytes": 17477,
+      "path": "Lea.Build/Test-CurrentTrustedBootstrap.ps1"
+    },
+    {
+      "sha256": "9862B9BAD1ADF995E19D69181A7D8F012D45062C136A6948E9FEA1DA393E6312",
+      "bytes": 6845,
+      "path": "Lea.Build/Audit-CurrentBootstrapFolding.ps1"
+    },
+    {
+      "sha256": "52669C56B40654642448A913BDCE52796312AFCC03B6C3B30065875C827FF403",
+      "bytes": 3891,
+      "path": "Lea.Tests/NativeWindowGlobals.test.cjs"
+    },
+    {
+      "sha256": "26BFFFD7E9BCA06744E36A76BF24099B1E7C5B0106915BDA09B9B61F972D90E5",
+      "bytes": 5649,
+      "path": "Lea.Tests/WindowGlobalsMain.cs"
+    },
+    {
+      "sha256": "6E5B5FD89DCE987831D6BD0D190A27AC1EF76CE625537333F46BFC63579378E4",
+      "bytes": 1938,
+      "path": "projected-source/source.json"
+    },
+    {
+      "sha256": "7D21DB5B7304E01A346B7D6D5E65BE737C60D7215B3FDB1008ECDE1DB9EA1A30",
+      "bytes": 37222,
+      "path": "projected-source/Dom.js"
+    },
+    {
+      "sha256": "6832E5236CB533B8C3C8FDAEFAF27ACC2E4BDFF19FE2CD5E994BCA494E659E0D",
+      "bytes": 20904,
+      "path": "projected-source/Dom.compact.js"
+    },
+    {
+      "sha256": "9301090325652675AD174705F4614CD9F3EF4C1E0A9D40B947001B404B1E4144",
+      "bytes": 10629,
+      "path": "projected-source/8.cs"
+    },
+    {
+      "sha256": "8E558F828FCF56488F5CEEC6740847AC4BEB718A7008BDF689DD439596F77F12",
+      "bytes": 2009,
+      "path": "projected-source/WindowGlobals.cs"
+    },
+    {
+      "sha256": "33905C1E52585A4A17CB7E718B5D89AF873215B26CAE02F217B990EA0B4A01E5",
+      "bytes": 1039,
+      "path": "node-test.json"
+    },
+    {
+      "sha256": "350F8F2F14AD50699BD4437098BE734E6717D766AD1CA7D114ABEB89E1AE9E1A",
+      "bytes": 63312,
+      "path": "native-result.json"
+    },
+    {
+      "sha256": "38C9699E0E47A9C9D3EE719A64A3B93E3ECF34D0D8BE8CB12152B99E5CB9D9DB",
+      "bytes": 7580,
+      "path": "native-audit.json"
+    },
+    {
+      "sha256": "0AAD5FB1C57B067B5B1C432A73E9010BADB5C5964C53D772D6B6837BE2E7445C",
+      "bytes": 33,
+      "path": "contract.stdout.txt"
+    },
+    {
+      "sha256": "3767A9BC76EE3315B3F936A951EB824AACCC933CA35C9A8BDC3B1FC8DB40125E",
+      "bytes": 4747603,
+      "path": "current-source147.zip"
+    },
+    {
+      "sha256": "B4C1108F0AA1F2F9A33EB261D992D412B7B5932117BB38E010324BCFD054B0D8",
+      "bytes": 296904,
+      "path": "source147-manifest.json"
+    }
+  ],
+  "sourceOnly": true
+}

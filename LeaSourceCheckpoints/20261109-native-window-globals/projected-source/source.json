@@ -1,0 +1,47 @@
+{
+  "verified": true,
+  "inverseVerified": true,
+  "negativeControls": 8,
+  "files": [
+    {
+      "name": "Dom.js",
+      "path": "I:\\LeaBuildStorage\\native-window-globals-source-20261109-v1\\Dom.js",
+      "sha256": "7D21DB5B7304E01A346B7D6D5E65BE737C60D7215B3FDB1008ECDE1DB9EA1A30",
+      "original": "I:\\LeaBuildStorage\\private-binding-full-assembly-20261103-v5-assets\\fixtures\\Lea.Script\\Dom.js",
+      "originalSha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A",
+      "savedBytes": 558
+    },
+    {
+      "name": "Dom.compact.js",
+      "path": "I:\\LeaBuildStorage\\native-window-globals-source-20261109-v1\\Dom.compact.js",
+      "sha256": "6832E5236CB533B8C3C8FDAEFAF27ACC2E4BDFF19FE2CD5E994BCA494E659E0D",
+      "original": "I:\\LeaBuildStorage\\private-binding-full-assembly-20261103-v5-assets\\fixtures\\Lea.Script\\Dom.compact.js",
+      "originalSha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+      "savedBytes": 438
+    }
+  ],
+  "host": {
+    "path": "I:/LeaBuildStorage/native-window-globals-source-20261109-v1/8.cs",
+    "sha256": "9301090325652675AD174705F4614CD9F3EF4C1E0A9D40B947001B404B1E4144",
+    "originalSha256": "622FB7A291C118D5D676C385C71BF0839E2DE7EF110FD35DC2AF38735E3D26ED"
+  },
+  "installer": {
+    "path": "I:/LeaBuildStorage/native-window-globals-source-20261109-v1/WindowGlobals.cs",
+    "sha256": "8E558F828FCF56488F5CEEC6740847AC4BEB718A7008BDF689DD439596F77F12"
+  },
+  "sourceOnly": true,
+  "nativeExecuted": false,
+  "policiesChanged": false,
+  "functionBodiesPreserved": true,
+  "globalOrder": [
+    "setTimeout",
+    "setInterval",
+    "clearTimeout",
+    "clearInterval",
+    "requestAnimationFrame",
+    "cancelAnimationFrame"
+  ],
+  "scriptSha256": "2040562AF0DF2882D557017245717731CCB3FE78354CE539778BAEAD9CA4A35E",
+  "parserVersion": "8.19.0",
+  "lockSha256": "472799AD49B9E74BB8348CC38E19E00CEDF9657C334AE1EFC1204754E84C13B3"
+}
