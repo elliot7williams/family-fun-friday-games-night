@@ -1,0 +1,155 @@
+{
+  "speedImprovementProven": false,
+  "diagnosticOnly": true,
+  "copies": [
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\8.fold.cs",
+      "sha256": "13D46D81C6E61E8EA3AC5C6BEE9D2F06FAE2D7AE71E834BC5EAA45BF561B1BDC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\baseline-1.result.json",
+      "sha256": "5EBFE561F77E270763B468D41C014BEDAC25BCD6CA6F19E5376BC2D6436BDE5C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\baseline-1.stderr.txt",
+      "sha256": "3A220276A0D5B9DB373E28B39A6DF0DD0365E459C7804715A8749BAE02FA0019"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\baseline-1.stdout.txt",
+      "sha256": "9EE34AAB28094DFDBCD9445062ED8E58387F83DF3F54E9EF9EEFE4AE6F6F7694"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\baseline-4.result.json",
+      "sha256": "65C5263A92DB669313DCB320FFA09D4836CFF2BE54344E8C8BF42D0B5595E036"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\baseline-4.stderr.txt",
+      "sha256": "596F06755B95805D51F77AF0F504F45D2ACDF59D04F39D3A91F1132DDAB7F8EA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\baseline-4.stdout.txt",
+      "sha256": "A688230E001F6F8C14C047226F68DE37CAF99F10637B8CCB99ED868A85E2853A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\compile-current-profile-harness.result.json",
+      "sha256": "20DC683692FD1E4676CA3F4748B6C5640AC735D978844095F513B87EBC1E8852"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\compile-current-profile-harness.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\compile-current-profile-harness.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\compile-current-profile.result.json",
+      "sha256": "03B68D4E1F319741E984322A8BBE7AF5C18BDCFCE4CE48B45FC8753CE92B0FAE"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\compile-current-profile.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\compile-current-profile.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\folded-2.result.json",
+      "sha256": "2C8D3A926F45443273EE9C4CED2A3EAB3046EEDAA090D3B6ABE39C1C9C8CEB8D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\folded-2.stderr.txt",
+      "sha256": "FF4D93C18E8C83770E45D2ADF89404D74391BA40816E9ECAED7908983C598159"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\folded-2.stdout.txt",
+      "sha256": "F891965D79D37BD97BD4C8C8B4586A5280536BCB92B731C5693B624872A74864"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\folded-3.result.json",
+      "sha256": "45ED600196A2394E401A9729772B22880473D4B5783DF6BEACDFD0C75CF8B0FA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\folded-3.stderr.txt",
+      "sha256": "DCE3E186E3E2F7F27BC5448E555025F6A47ABAD397720C1232AE82B34A11A782"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\folded-3.stdout.txt",
+      "sha256": "ECD50B06FC9735FFF6DD6B3BA47D432AF8BCFC4EC5A894249A822F2B8BAD9891"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\harness.rsp",
+      "sha256": "565319DDA9B73084A3ADE945985759356617EA8681F8287597046F0E3865790B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\parent.rsp",
+      "sha256": "4E67430C79BE33629185462B59863E7EEDA7AE6F4A6C3BA8F7BC48053E466488"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\current-bootstrap-fold-audit-20261109-v1\\result.json",
+      "sha256": "01984D30DCC0F2FE1824CA175372C040BA4BE12EC159659902D087A895DB0007"
+    }
+  ],
+  "timeoutFixed": false,
+  "summary": [
+    {
+      "group": "baseline",
+      "meanEvaluateMs": 876.16125,
+      "meanTotalMs": 2462.0,
+      "samples": 2,
+      "meanPrepareMs": 941.58555
+    },
+    {
+      "group": "folded",
+      "meanEvaluateMs": 816.7247500000001,
+      "meanTotalMs": 2837.0,
+      "samples": 2,
+      "meanPrepareMs": 1269.76615
+    }
+  ],
+  "adoptionRecommended": false,
+  "oneOptionInverseVerified": true,
+  "samples": [
+    {
+      "evaluateProcessCpuMs": 109.375,
+      "label": "baseline-1",
+      "evaluateMs": 1164.1493,
+      "prepareMs": 1225.893,
+      "markers": 15,
+      "group": "baseline",
+      "totalMs": 3261
+    },
+    {
+      "evaluateProcessCpuMs": 78.125,
+      "label": "folded-2",
+      "evaluateMs": 680.1266,
+      "prepareMs": 868.7835,
+      "markers": 15,
+      "group": "folded",
+      "totalMs": 2135
+    },
+    {
+      "evaluateProcessCpuMs": 78.125,
+      "label": "folded-3",
+      "evaluateMs": 953.3229,
+      "prepareMs": 1670.7488,
+      "markers": 15,
+      "group": "folded",
+      "totalMs": 3539
+    },
+    {
+      "evaluateProcessCpuMs": 31.25,
+      "label": "baseline-4",
+      "evaluateMs": 588.1732,
+      "prepareMs": 657.2781,
+      "markers": 15,
+      "group": "baseline",
+      "totalMs": 1663
+    }
+  ],
+  "runnerSha256": "EF1995ABF5BCB1947DD45EEFB0B7C36E18C69F876F44A3CCF5342B2F90D77C8B",
+  "productionRuntimeChanged": false,
+  "evidenceVerified": true,
+  "scope": "One fixed ABBA campaign, two fresh processes per arm, instrumented and explicit diagnostic metadata. No general speed/reliability or full-suite qualification."
+}

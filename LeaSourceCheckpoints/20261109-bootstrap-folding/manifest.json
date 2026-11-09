@@ -1,0 +1,74 @@
+{
+  "sourceOnly": true,
+  "files": 13,
+  "verified": true,
+  "entries": [
+    {
+      "sha256": "669B0E58E02F9320922B4342464DB0E8797D2225A1CC298B829AC89AE8071CFB",
+      "path": "PROJECT_CONTEXT.md",
+      "bytes": 18374
+    },
+    {
+      "sha256": "56E3D24A9F4E26369B06A538A0B5738CDF9833431AE1A382A59502AFF7206026",
+      "path": "LeaForge/PROGRESS.md",
+      "bytes": 413851
+    },
+    {
+      "sha256": "64303F14326DCB6E877828F4AE8D751C98570368B06FB810FDA76CF38CF2C17A",
+      "path": "LeaForge/CURRENT_BOOTSTRAP_PROFILE.md",
+      "bytes": 6301
+    },
+    {
+      "sha256": "32DBD5EC2870D45F537723F04F8F77AB4788D30A343348513D8769AC22937847",
+      "path": "Lea.Build/CurrentCpuPolicy.cs",
+      "bytes": 3731
+    },
+    {
+      "sha256": "9A8174106EC7C316D86032C387FBB159423BED55D36DC9A7CB9EFABCC376F656",
+      "path": "Lea.Tests/CpuPolicy.test.ps1",
+      "bytes": 1369
+    },
+    {
+      "sha256": "3990EDCAAFB0E75CF2E0C409EB8C058D57DCB9BA31232386020AE94574F7135E",
+      "path": "Lea.Build/Test-CurrentTrustedBootstrap.ps1",
+      "bytes": 13988
+    },
+    {
+      "sha256": "EF1995ABF5BCB1947DD45EEFB0B7C36E18C69F876F44A3CCF5342B2F90D77C8B",
+      "path": "Lea.Build/Audit-CurrentBootstrapFolding.ps1",
+      "bytes": 4967
+    },
+    {
+      "sha256": "8FC65AE3163DF975A6B63AF5D7E56749527ACD133E0A376765737438736116C4",
+      "path": "current-source146.zip",
+      "bytes": 4735479
+    },
+    {
+      "sha256": "404A3476D8FE8DF1220D4EAA5C80B192AC205785AA0FB6D1783571B335EA1303",
+      "path": "source146-manifest.json",
+      "bytes": 296036
+    },
+    {
+      "sha256": "01984D30DCC0F2FE1824CA175372C040BA4BE12EC159659902D087A895DB0007",
+      "path": "folding-result.json",
+      "bytes": 57359
+    },
+    {
+      "sha256": "7B8CEB47E9CEC7410874F274A69ABDA1C40362A8E07D1110CB2E09C0B6BC8319",
+      "path": "folding-audit.json",
+      "bytes": 6252
+    },
+    {
+      "sha256": "91E2B7E1DA97B4F7BF46F13F9E13645269766E8F8174351283A73898E07A5CB8",
+      "path": "cpu-policy-result.json",
+      "bytes": 623
+    },
+    {
+      "sha256": "13D46D81C6E61E8EA3AC5C6BEE9D2F06FAE2D7AE71E834BC5EAA45BF561B1BDC",
+      "path": "8.fold.cs",
+      "bytes": 10597
+    }
+  ],
+  "productionRuntimeChanged": false,
+  "experimentAdopted": false
+}

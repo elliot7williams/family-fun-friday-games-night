@@ -1,0 +1,20 @@
+{
+  "sourceSha256": "32DBD5EC2870D45F537723F04F8F77AB4788D30A343348513D8769AC22937847",
+  "snapshot": {
+    "ProcessId": 576,
+    "InJob": true,
+    "QuerySucceeded": true,
+    "QueryError": 0,
+    "RawFlags": 0,
+    "RawValue": 0,
+    "Mode": "disabled",
+    "Percent": null,
+    "Weight": null,
+    "MinimumRate": null,
+    "MaximumRate": null
+  },
+  "verified": true,
+  "testSha256": "9A8174106EC7C316D86032C387FBB159423BED55D36DC9A7CB9EFABCC376F656",
+  "controls": 13,
+  "scope": "Calling tool host immediate job only, not every ancestor or native test job. No scheduling/quota/priority changes."
+}
