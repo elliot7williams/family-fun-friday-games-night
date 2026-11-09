@@ -1,0 +1,40 @@
+/nologo
+/noconfig
+/nostdlib+
+/target:library
+/optimize+
+/langversion:12
+/out:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\detailed-bootstrap-profile-v1\runtime\Lea.Script.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\mscorlib.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Core.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Drawing.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Windows.Forms.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Web.Extensions.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Xml.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Runtime.Serialization.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Security.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\Facades\netstandard.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\detailed-bootstrap-profile-v1\runtime\Acornima.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\detailed-bootstrap-profile-v1\runtime\Jint.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\detailed-bootstrap-profile-v1\runtime\Lea.Engine.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\detailed-bootstrap-profile-v1\runtime\System.Buffers.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\detailed-bootstrap-profile-v1\runtime\System.Memory.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\detailed-bootstrap-profile-v1\runtime\System.Numerics.Vectors.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\detailed-bootstrap-profile-v1\runtime\System.Runtime.CompilerServices.Unsafe.dll"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\1.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\2.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\3.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\4.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\5.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\6.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\7.cs"
+"I:\LeaBuildStorage\detailed-bootstrap-profile-source-20261109-v1\8.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\9.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\10.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\11.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\12.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\13.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\14.cs"
+"I:\LeaBuildStorage\signed-font-startup-investigation-20261108-v1\parent-source\15.cs"
+/resource:"I:\LeaBuildStorage\detailed-bootstrap-profile-source-20261109-v1\Dom.compact.js",Lea.Script.Dom.js

@@ -1,0 +1,255 @@
+{
+  "scriptSHA256": "AA06F8C0152CEDB4B448F127F4B65A7614F004B9060FAEA200884F8EACBB1C71",
+  "failedProbeCleanupRequested": true,
+  "causeProven": false,
+  "negativeControls": 6,
+  "speedImprovementProven": false,
+  "historicalMetadataRecovered": true,
+  "evidenceVerified": true,
+  "markers": 20,
+  "intervals": [
+    {
+      "begin": "evaluate-begin",
+      "wallMs": 261.1675,
+      "end": "detail-script-entry",
+      "processCpuMs": 31.25
+    },
+    {
+      "begin": "stage-declarations",
+      "wallMs": 41.4945,
+      "end": "detail-block-entry",
+      "processCpuMs": 0.0
+    },
+    {
+      "begin": "detail-scope-ready",
+      "wallMs": 230.3511,
+      "end": "detail-timers-begin",
+      "processCpuMs": 0.0
+    },
+    {
+      "begin": "detail-timers-begin",
+      "wallMs": 60.9443,
+      "end": "detail-timers-end",
+      "processCpuMs": 0.0
+    },
+    {
+      "begin": "detail-timers-end",
+      "wallMs": 229.2102,
+      "end": "detail-events-ready",
+      "processCpuMs": 31.25
+    },
+    {
+      "begin": "stage-events",
+      "wallMs": 285.3952,
+      "end": "detail-interfaces-ready",
+      "processCpuMs": 31.25
+    }
+  ],
+  "copies": [
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\cold-current-profile.result.json",
+      "sha256": "0B7F036DFEF9A81DD38FB9656B8831C2906EAED9FF8895484E91E3895E575561"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\cold-current-profile.stderr.txt",
+      "sha256": "0B8A1914599E13FE213835BACAEAAB540DE2E2B03780F8A6DC8772BC383265E1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\cold-current-profile.stdout.txt",
+      "sha256": "6ECA9F4C202DAFE10EC4880C76267F07D47CA0F26044C64986DA78518DBF3A1C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\compile-current-profile-harness.result.json",
+      "sha256": "DFC886F0B10642A6AD4A4BF0A8ACCB04D8AC9E8E16975EBFB0F2A93C9C2145B1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\compile-current-profile-harness.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\compile-current-profile-harness.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\compile-current-profile.result.json",
+      "sha256": "185CF8A94F5B5BC896741D41B3600F2B338FC49D0F70AC6E7715C7BAA2007552"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\compile-current-profile.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\compile-current-profile.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\harness.rsp",
+      "sha256": "119EF5B2B2B9E53C683989DC8E543B28774A16ECE5166930747960FDF4E549FB"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\parent.rsp",
+      "sha256": "902FEF9FEED3667FD9D286BE1DC279991148571D87E64ABCA7D50F03F7921C2B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-audit-20261109-v1\\result.json",
+      "sha256": "6365D0C5C5E0C526B29BA7A3A4EF1C5455C2471F55E09B8815D7B4ED59B67C6D"
+    }
+  ],
+  "startupPassed": false,
+  "scope": "One instrumented diagnostic failure. Includes observer costs and setup; intervals do not prove causality. Original runtime binaries unchanged.",
+  "timeoutFixed": false,
+  "originalProfile": {
+    "markers": 13,
+    "bootstrapSucceeded": false,
+    "scope": "Single diagnostic process measurements; scope-to-events is nested in evaluate, do not sum all intervals. Wall/CPU gap is not causal attribution.",
+    "rows": [
+      {
+        "label": "enter",
+        "wall": 37744,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 0,
+        "gc0": 0
+      },
+      {
+        "label": "vm-begin",
+        "wall": 129056,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 0,
+        "gc0": 0
+      },
+      {
+        "label": "vm-end",
+        "wall": 2997005,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 0,
+        "gc0": 0
+      },
+      {
+        "label": "prepare-begin",
+        "wall": 4132685,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 0,
+        "gc0": 0
+      },
+      {
+        "label": "prepare-end",
+        "wall": 18048485,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 1250000,
+        "gc0": 1
+      },
+      {
+        "label": "evaluate-begin",
+        "wall": 18049198,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 1250000,
+        "gc0": 1
+      },
+      {
+        "label": "stage-declarations",
+        "wall": 20748101,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 1562500,
+        "gc0": 1
+      },
+      {
+        "label": "stage-scope",
+        "wall": 21498020,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 1562500,
+        "gc0": 1
+      },
+      {
+        "label": "stage-events",
+        "wall": 26704891,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 1875000,
+        "gc0": 1
+      },
+      {
+        "label": "stage-interfaces",
+        "wall": 29559956,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 2187500,
+        "gc0": 1
+      },
+      {
+        "label": "stage-elements",
+        "wall": 29581494,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 2187500,
+        "gc0": 1
+      },
+      {
+        "label": "evaluate-end",
+        "wall": 30528315,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 2343750,
+        "gc0": 1
+      },
+      {
+        "label": "end",
+        "wall": 30529226,
+        "gc1": 0,
+        "gc2": 0,
+        "cpu": 2343750,
+        "gc0": 1
+      }
+    ],
+    "intervals": [
+      {
+        "phase": "vm",
+        "gc1": 0,
+        "processCpuMs": 0.0,
+        "wallMs": 286.7949,
+        "gc2": 0,
+        "gc0": 0
+      },
+      {
+        "phase": "bridge",
+        "gc1": 0,
+        "processCpuMs": 0.0,
+        "wallMs": 113.568,
+        "gc2": 0,
+        "gc0": 0
+      },
+      {
+        "phase": "prepare",
+        "gc1": 0,
+        "processCpuMs": 125.0,
+        "wallMs": 1391.58,
+        "gc2": 0,
+        "gc0": 1
+      },
+      {
+        "phase": "evaluate",
+        "gc1": 0,
+        "processCpuMs": 109.375,
+        "wallMs": 1247.9117,
+        "gc2": 0,
+        "gc0": 0
+      },
+      {
+        "phase": "scope-to-events",
+        "gc1": 0,
+        "processCpuMs": 31.25,
+        "wallMs": 520.6871,
+        "gc2": 0,
+        "gc0": 0
+      }
+    ],
+    "verified": true
+  }
+}

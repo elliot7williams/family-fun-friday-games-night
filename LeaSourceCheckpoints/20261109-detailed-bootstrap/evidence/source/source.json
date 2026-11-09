@@ -1,0 +1,36 @@
+{
+  "verified": true,
+  "inverseVerified": true,
+  "criticalOperationsVerified": true,
+  "negativeControls": 4,
+  "budgetsChanged": false,
+  "files": [
+    {
+      "name": "8.cs",
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-source-20261109-v1\\8.cs",
+      "sha256": "C302E83E05B51D33291AB800D97AF43A31FF0AA317D1F2D5EB3285C730D82D83"
+    },
+    {
+      "name": "Dom.compact.js",
+      "path": "I:\\LeaBuildStorage\\detailed-bootstrap-profile-source-20261109-v1\\Dom.compact.js",
+      "sha256": "3964A349A7781F27C71E6411F4C49A5359D22D62D78A840FFA8E3C412951E7D9"
+    }
+  ],
+  "labels": [
+    "script-entry",
+    "block-entry",
+    "scope-ready",
+    "timers-begin",
+    "timers-end",
+    "events-ready",
+    "interfaces-ready",
+    "bootstrap-done"
+  ],
+  "originalResourceSHA256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+  "originalHostSHA256": "622FB7A291C118D5D676C385C71BF0839E2DE7EF110FD35DC2AF38735E3D26ED",
+  "scriptSHA256": "7CDF9457779D5DAF2B2CE6D95C3C9130BD0BDA8DA66439DC274F451668C58DA8",
+  "parserVersion": "8.19.0",
+  "lockSHA256": "472799AD49B9E74BB8348CC38E19E00CEDF9657C334AE1EFC1204754E84C13B3",
+  "nativeExecuted": false,
+  "diagnosticOnly": true
+}
