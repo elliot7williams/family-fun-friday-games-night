@@ -1,0 +1,6 @@
+{
+  "prepared": false,
+  "nativeLaunched": false,
+  "error": "Generated current plan had no existing scope property; strict property assignment failed before source.json was written.",
+  "scriptSHA256": "30D500F6256CA0659EBB56495B742395A3EF5209D0876BC330022CAB08B17C4B"
+}

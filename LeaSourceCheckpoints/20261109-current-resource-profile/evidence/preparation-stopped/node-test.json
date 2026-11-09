@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "sourceProofSha256": "BFBEEF565BE2EEEE0683C8A729E754DEDB17B49C458BA3C7782CED5C33C6926F",
+  "testSha256": "15BACA57F805C6DC275EB3F03DCF1DBCB3BCC06DA363F4EC6B6F2FF008246C1D",
+  "cases": [
+    {
+      "file": "Dom.compact.js",
+      "kind": "original",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.compact.js",
+      "kind": "candidate",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    }
+  ],
+  "checks": 156,
+  "detailSequenceVerified": true,
+  "hiddenHelperRemoved": true,
+  "scope": "Compact resource original/candidate mock behavior equivalence only. Not native/Jint, sandbox, timing or release qualification."
+}

@@ -1,0 +1,25 @@
+/nologo
+/noconfig
+/nostdlib+
+/target:exe
+/optimize+
+/out:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-resource-bootstrap-v1\runtime\Lea.CurrentBootstrap.Tests.exe"
+"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\Lea.Tests\BootstrapComparisonMain.cs"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-resource-bootstrap-v1\runtime\Lea.Script.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\mscorlib.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Core.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Drawing.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Windows.Forms.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Web.Extensions.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Xml.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Runtime.Serialization.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Security.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\Facades\netstandard.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-resource-bootstrap-v1\runtime\Acornima.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-resource-bootstrap-v1\runtime\Jint.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-resource-bootstrap-v1\runtime\Lea.Engine.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-resource-bootstrap-v1\runtime\System.Buffers.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-resource-bootstrap-v1\runtime\System.Memory.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-resource-bootstrap-v1\runtime\System.Numerics.Vectors.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-resource-bootstrap-v1\runtime\System.Runtime.CompilerServices.Unsafe.dll"

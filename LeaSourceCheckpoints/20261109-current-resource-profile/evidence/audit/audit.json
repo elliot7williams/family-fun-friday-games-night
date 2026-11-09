@@ -1,0 +1,239 @@
+{
+  "originalProfile": {
+    "intervals": [
+      {
+        "gc1": 0,
+        "phase": "vm",
+        "gc0": 0,
+        "gc2": 0,
+        "processCpuMs": 62.5,
+        "wallMs": 287.1183
+      },
+      {
+        "gc1": 0,
+        "phase": "bridge",
+        "gc0": 0,
+        "gc2": 0,
+        "processCpuMs": 0.0,
+        "wallMs": 93.5787
+      },
+      {
+        "gc1": 0,
+        "phase": "prepare",
+        "gc0": 1,
+        "gc2": 0,
+        "processCpuMs": 93.75,
+        "wallMs": 1361.8867
+      },
+      {
+        "gc1": 0,
+        "phase": "evaluate",
+        "gc0": 0,
+        "gc2": 0,
+        "processCpuMs": 46.875,
+        "wallMs": 941.4753
+      },
+      {
+        "gc1": 0,
+        "phase": "scope-to-events",
+        "gc0": 0,
+        "gc2": 0,
+        "processCpuMs": 15.625,
+        "wallMs": 367.7907
+      }
+    ],
+    "verified": true,
+    "markers": 15,
+    "rows": [
+      {
+        "gc1": 0,
+        "label": "enter",
+        "wall": 26253,
+        "gc2": 0,
+        "cpu": 0,
+        "gc0": 0
+      },
+      {
+        "gc1": 0,
+        "label": "vm-begin",
+        "wall": 201751,
+        "gc2": 0,
+        "cpu": 0,
+        "gc0": 0
+      },
+      {
+        "gc1": 0,
+        "label": "vm-end",
+        "wall": 3072934,
+        "gc2": 0,
+        "cpu": 625000,
+        "gc0": 0
+      },
+      {
+        "gc1": 0,
+        "label": "prepare-begin",
+        "wall": 4008721,
+        "gc2": 0,
+        "cpu": 625000,
+        "gc0": 0
+      },
+      {
+        "gc1": 0,
+        "label": "prepare-end",
+        "wall": 17627588,
+        "gc2": 0,
+        "cpu": 1562500,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "evaluate-begin",
+        "wall": 17628836,
+        "gc2": 0,
+        "cpu": 1562500,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-declarations",
+        "wall": 20509900,
+        "gc2": 0,
+        "cpu": 1875000,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-scope",
+        "wall": 21259784,
+        "gc2": 0,
+        "cpu": 1875000,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-events",
+        "wall": 24937691,
+        "gc2": 0,
+        "cpu": 2031250,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-interfaces",
+        "wall": 26767664,
+        "gc2": 0,
+        "cpu": 2031250,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-elements",
+        "wall": 26770314,
+        "gc2": 0,
+        "cpu": 2031250,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "stage-document",
+        "wall": 27006420,
+        "gc2": 0,
+        "cpu": 2031250,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "evaluate-end",
+        "wall": 27043589,
+        "gc2": 0,
+        "cpu": 2031250,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "complete",
+        "wall": 27047556,
+        "gc2": 0,
+        "cpu": 2031250,
+        "gc0": 1
+      },
+      {
+        "gc1": 0,
+        "label": "end",
+        "wall": 27048091,
+        "gc2": 0,
+        "cpu": 2031250,
+        "gc0": 1
+      }
+    ],
+    "scope": "Single diagnostic process measurements; scope-to-events is nested in evaluate, do not sum all intervals. Wall/CPU gap is not causal attribution.",
+    "bootstrapSucceeded": true
+  },
+  "parserSHA256": "6C61917A1A3C6D9E3629180613A2789D695026FAFF8EA5A210441A8ADAFC1064",
+  "scriptSHA256": "5DD314E7A40D4F3EC4AA5C1E6F5C7AB59B165E4B277598143E7CC6BA58CED2B6",
+  "testSHA256": "54404F9944EAB4B02BF74BDD1A3251F2495A99EA059A522834DC2F965C7AEE0D",
+  "verified": true,
+  "resourceThreadId": 13844,
+  "historicalMetadataRecovered": true,
+  "allThreeOwnedRunsRetired": true,
+  "pairedMarkers": 23,
+  "diagnosticOnly": true,
+  "speedImprovementProven": false,
+  "inputsAndRuntimeStable": true,
+  "startupFixed": false,
+  "copies": [
+    {
+      "sha256": "94ED190C002C1A0A487CEEDD6900805B38E6C32C2C37455712726AA86F7CA6BE",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\cold-current-profile.result.json"
+    },
+    {
+      "sha256": "01CC2B23DEAC7D8723096DEA6FBB41CE10635B8121C5FD66E80A791A63206247",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\cold-current-profile.stderr.txt"
+    },
+    {
+      "sha256": "AAFDF7B935E859174A37494C5F75AA0ABB5F2AEEC5897FAA668CCA710D8C5537",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\cold-current-profile.stdout.txt"
+    },
+    {
+      "sha256": "4E58E46C780AD6EA2A4F9DDE1B09D9F4802D0298AEE1914DDD6FAECC55F0991F",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\compile-current-profile-harness.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\compile-current-profile-harness.stderr.txt"
+    },
+    {
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\compile-current-profile-harness.stdout.txt"
+    },
+    {
+      "sha256": "D9EC0B260F7D430A016A5ADD6E4A4F844800651E55FAF8E2BC0CD44BCB508305",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\compile-current-profile.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\compile-current-profile.stderr.txt"
+    },
+    {
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\compile-current-profile.stdout.txt"
+    },
+    {
+      "sha256": "1A8AB13AAFEAA0C34CFF3F723624E88CF500E0FB3E030B94CAB706873006BFAB",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\harness.rsp"
+    },
+    {
+      "sha256": "28DE1FD740D5A2DA19E8AFF2AD58949B820776729468CDF091A09D0D1EC8A4E2",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\parent.rsp"
+    },
+    {
+      "sha256": "4BDFDE9812B653099F478C5B9B37B0D68DDBA95B8A5DF0B40EF0CE6F2FF5AF07",
+      "path": "I:\\LeaBuildStorage\\current-resource-bootstrap-audit-20261109-v1\\result.json"
+    }
+  ],
+  "parserControls": 9,
+  "causeProven": false,
+  "scope": "One instrumented successful probe on current diagnostic sources. Sequential, non-atomic snapshots; aggregate/adjacent intervals overlap. Not uninstrumented startup or sandbox qualification.",
+  "hostAdopted": false,
+  "resourcesSHA256": "8FF8D047A13597C85329E84B065FF144D6CA01F82BD33927ECD5A67C7B6C27B0"
+}
