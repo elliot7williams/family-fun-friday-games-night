@@ -1,0 +1,38 @@
+{
+  "retirementMs": 109,
+  "compileMs": 7383,
+  "archiveEntries": 19,
+  "sourceArchiveSha256": "D759DFFA618D37A31943DD80733C9A96DF6C057B2B6016B33AA390A57282D793",
+  "copies": [
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-package-audit-20261109-v1\\result.json",
+      "sha256": "7ED30B07F6974F515218343F484D4B774FAC6834931BC670EA7B4426E140D487"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-package-audit-20261109-v1\\rebuild-recovered-parent.stdout.txt",
+      "sha256": "AD23DAF6D646DE62AC6C9220364264F1C038467746F146B62919E83EB66D9BDB"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-package-audit-20261109-v1\\rebuild-recovered-parent.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-package-audit-20261109-v1\\rebuild-recovered-parent.result.json",
+      "sha256": "208F13B1347735CF2626D5AE0424D7D06B695C47C64AE39C01FE8B41FB6A65F9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\recovered-script-parent-package-audit-20261109-v1\\build.ps1",
+      "sha256": "5E430B870A1122C5DA686EDB7460128B7CA908A246F74FA378B42D639C8C441C"
+    }
+  ],
+  "verified": true,
+  "hostAdopted": false,
+  "literalByteComparisonVerified": true,
+  "startupFixed": false,
+  "bytes": 101376,
+  "originalParentSourceFiles": 15,
+  "binarySha256": "406C5634638D75C66892BD95429760CB4A5C74C94277913D1DF467147E30E75F",
+  "fullEngineSdkQualified": false,
+  "recipeSha256": "5E430B870A1122C5DA686EDB7460128B7CA908A246F74FA378B42D639C8C441C",
+  "freshSourceArchiveRebuildVerified": true
+}

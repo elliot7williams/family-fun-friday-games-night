@@ -1,0 +1,661 @@
+{
+  "verified": true,
+  "negativeControls": 5,
+  "syntheticChecks": 5,
+  "reports": [
+    {
+      "name": "Dom.js",
+      "sourceSHA256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A",
+      "checkpointName": "checkpoint",
+      "blockEntry": 38,
+      "firstMarker": 89,
+      "directFunctionDeclarations": [
+        {
+          "name": "microtaskErrors",
+          "start": 147,
+          "end": 315,
+          "bytes": 168
+        },
+        {
+          "name": "reportMicrotaskFailure",
+          "start": 387,
+          "end": 490,
+          "bytes": 103
+        },
+        {
+          "name": "schedule",
+          "start": 1210,
+          "end": 2075,
+          "bytes": 865
+        },
+        {
+          "name": "clear",
+          "start": 2080,
+          "end": 2228,
+          "bytes": 148
+        },
+        {
+          "name": "frameWindow",
+          "start": 2278,
+          "end": 2438,
+          "bytes": 160
+        },
+        {
+          "name": "eventType",
+          "start": 4039,
+          "end": 4228,
+          "bytes": 189
+        },
+        {
+          "name": "eventOptions",
+          "start": 4448,
+          "end": 4602,
+          "bytes": 154
+        },
+        {
+          "name": "remove",
+          "start": 4607,
+          "end": 4813,
+          "bytes": 206
+        },
+        {
+          "name": "eventState",
+          "start": 4818,
+          "end": 5064,
+          "bytes": 246
+        },
+        {
+          "name": "handlerProperty",
+          "start": 7199,
+          "end": 7717,
+          "bytes": 518
+        },
+        {
+          "name": "eventTarget",
+          "start": 8226,
+          "end": 8493,
+          "bytes": 267
+        },
+        {
+          "name": "syncHandler",
+          "start": 8498,
+          "end": 9185,
+          "bytes": 687
+        },
+        {
+          "name": "handler",
+          "start": 9190,
+          "end": 9879,
+          "bytes": 689
+        },
+        {
+          "name": "str",
+          "start": 9884,
+          "end": 10039,
+          "bytes": 155
+        },
+        {
+          "name": "Performance",
+          "start": 10993,
+          "end": 11063,
+          "bytes": 70
+        },
+        {
+          "name": "timingReceiver",
+          "start": 11122,
+          "end": 11243,
+          "bytes": 121
+        },
+        {
+          "name": "exceptionState",
+          "start": 13491,
+          "end": 13685,
+          "bytes": 194
+        },
+        {
+          "name": "DOMException",
+          "start": 13690,
+          "end": 14031,
+          "bytes": 341
+        },
+        {
+          "name": "DOMTokenList",
+          "start": 14940,
+          "end": 15011,
+          "bytes": 71
+        },
+        {
+          "name": "listState",
+          "start": 15016,
+          "end": 15360,
+          "bytes": 344
+        },
+        {
+          "name": "space",
+          "start": 15365,
+          "end": 15468,
+          "bytes": 103
+        },
+        {
+          "name": "position",
+          "start": 15473,
+          "end": 15564,
+          "bytes": 91
+        },
+        {
+          "name": "words",
+          "start": 15569,
+          "end": 16094,
+          "bytes": 525
+        },
+        {
+          "name": "listData",
+          "start": 16099,
+          "end": 16231,
+          "bytes": 132
+        },
+        {
+          "name": "validWord",
+          "start": 16236,
+          "end": 16551,
+          "bytes": 315
+        },
+        {
+          "name": "listArguments",
+          "start": 16556,
+          "end": 16796,
+          "bytes": 240
+        },
+        {
+          "name": "writeList",
+          "start": 16801,
+          "end": 17056,
+          "bytes": 255
+        },
+        {
+          "name": "listIndex",
+          "start": 20802,
+          "end": 21021,
+          "bytes": 219
+        },
+        {
+          "name": "makeList",
+          "start": 21026,
+          "end": 23093,
+          "bytes": 2067
+        },
+        {
+          "name": "put",
+          "start": 23098,
+          "end": 23234,
+          "bytes": 136
+        },
+        {
+          "name": "select",
+          "start": 23239,
+          "end": 23937,
+          "bytes": 698
+        },
+        {
+          "name": "relative",
+          "start": 23942,
+          "end": 24310,
+          "bytes": 368
+        },
+        {
+          "name": "nodeKey",
+          "start": 25162,
+          "end": 25287,
+          "bytes": 125
+        },
+        {
+          "name": "elementState",
+          "start": 25869,
+          "end": 26226,
+          "bytes": 357
+        },
+        {
+          "name": "query",
+          "start": 26281,
+          "end": 26790,
+          "bytes": 509
+        },
+        {
+          "name": "makeStyle",
+          "start": 29523,
+          "end": 29836,
+          "bytes": 313
+        },
+        {
+          "name": "wrap",
+          "start": 29841,
+          "end": 31568,
+          "bytes": 1727
+        }
+      ],
+      "phases": [
+        {
+          "label": "scope",
+          "start": 109,
+          "end": 10044,
+          "bytes": 9935,
+          "directStatements": 32,
+          "directFunctions": [
+            "microtaskErrors",
+            "reportMicrotaskFailure",
+            "schedule",
+            "clear",
+            "frameWindow",
+            "eventType",
+            "eventOptions",
+            "remove",
+            "eventState",
+            "handlerProperty",
+            "eventTarget",
+            "syncHandler",
+            "handler",
+            "str"
+          ],
+          "nestedFunctionNodes": 12,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        },
+        {
+          "label": "events",
+          "start": 10065,
+          "end": 20772,
+          "bytes": 10707,
+          "directStatements": 44,
+          "directFunctions": [
+            "Performance",
+            "timingReceiver",
+            "exceptionState",
+            "DOMException",
+            "DOMTokenList",
+            "listState",
+            "space",
+            "position",
+            "words",
+            "listData",
+            "validWord",
+            "listArguments",
+            "writeList"
+          ],
+          "nestedFunctionNodes": 20,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        },
+        {
+          "label": "interfaces",
+          "start": 20797,
+          "end": 31573,
+          "bytes": 10776,
+          "directStatements": 16,
+          "directFunctions": [
+            "listIndex",
+            "makeList",
+            "put",
+            "select",
+            "relative",
+            "nodeKey",
+            "elementState",
+            "query",
+            "makeStyle",
+            "wrap"
+          ],
+          "nestedFunctionNodes": 40,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        },
+        {
+          "label": "elements",
+          "start": 31596,
+          "end": 33221,
+          "bytes": 1625,
+          "directStatements": 5,
+          "directFunctions": [],
+          "nestedFunctionNodes": 11,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        },
+        {
+          "label": "document",
+          "start": 33244,
+          "end": 37778,
+          "bytes": 4534,
+          "directStatements": 3,
+          "directFunctions": [],
+          "nestedFunctionNodes": 8,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        }
+      ],
+      "sourceBytes": 37780
+    },
+    {
+      "name": "Dom.compact.js",
+      "sourceSHA256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+      "checkpointName": "t",
+      "blockEntry": 36,
+      "firstMarker": 60,
+      "directFunctionDeclarations": [
+        {
+          "name": "microtaskErrors",
+          "start": 85,
+          "end": 163,
+          "bytes": 78
+        },
+        {
+          "name": "reportMicrotaskFailure",
+          "start": 191,
+          "end": 245,
+          "bytes": 54
+        },
+        {
+          "name": "schedule",
+          "start": 675,
+          "end": 1192,
+          "bytes": 517
+        },
+        {
+          "name": "clear",
+          "start": 1192,
+          "end": 1265,
+          "bytes": 73
+        },
+        {
+          "name": "frameWindow",
+          "start": 1287,
+          "end": 1387,
+          "bytes": 100
+        },
+        {
+          "name": "eventType",
+          "start": 2467,
+          "end": 2585,
+          "bytes": 118
+        },
+        {
+          "name": "eventOptions",
+          "start": 2724,
+          "end": 2818,
+          "bytes": 94
+        },
+        {
+          "name": "remove",
+          "start": 2818,
+          "end": 2923,
+          "bytes": 105
+        },
+        {
+          "name": "eventState",
+          "start": 2923,
+          "end": 3050,
+          "bytes": 127
+        },
+        {
+          "name": "handlerProperty",
+          "start": 4243,
+          "end": 4509,
+          "bytes": 266
+        },
+        {
+          "name": "eventTarget",
+          "start": 4857,
+          "end": 5011,
+          "bytes": 154
+        },
+        {
+          "name": "syncHandler",
+          "start": 5011,
+          "end": 5359,
+          "bytes": 348
+        },
+        {
+          "name": "handler",
+          "start": 5359,
+          "end": 5774,
+          "bytes": 415
+        },
+        {
+          "name": "str",
+          "start": 5774,
+          "end": 5872,
+          "bytes": 98
+        },
+        {
+          "name": "Performance",
+          "start": 6463,
+          "end": 6521,
+          "bytes": 58
+        },
+        {
+          "name": "timingReceiver",
+          "start": 6554,
+          "end": 6634,
+          "bytes": 80
+        },
+        {
+          "name": "exceptionState",
+          "start": 8163,
+          "end": 8269,
+          "bytes": 106
+        },
+        {
+          "name": "DOMException",
+          "start": 8269,
+          "end": 8447,
+          "bytes": 178
+        },
+        {
+          "name": "DOMTokenList",
+          "start": 9088,
+          "end": 9147,
+          "bytes": 59
+        },
+        {
+          "name": "listState",
+          "start": 9147,
+          "end": 9333,
+          "bytes": 186
+        },
+        {
+          "name": "space",
+          "start": 9333,
+          "end": 9396,
+          "bytes": 63
+        },
+        {
+          "name": "position",
+          "start": 9396,
+          "end": 9437,
+          "bytes": 41
+        },
+        {
+          "name": "words",
+          "start": 9437,
+          "end": 9634,
+          "bytes": 197
+        },
+        {
+          "name": "listData",
+          "start": 9634,
+          "end": 9717,
+          "bytes": 83
+        },
+        {
+          "name": "validWord",
+          "start": 9717,
+          "end": 9956,
+          "bytes": 239
+        },
+        {
+          "name": "listArguments",
+          "start": 9956,
+          "end": 10087,
+          "bytes": 131
+        },
+        {
+          "name": "writeList",
+          "start": 10087,
+          "end": 10238,
+          "bytes": 151
+        },
+        {
+          "name": "listIndex",
+          "start": 12338,
+          "end": 12457,
+          "bytes": 119
+        },
+        {
+          "name": "makeList",
+          "start": 12457,
+          "end": 13340,
+          "bytes": 883
+        },
+        {
+          "name": "put",
+          "start": 13340,
+          "end": 13424,
+          "bytes": 84
+        },
+        {
+          "name": "select",
+          "start": 13424,
+          "end": 13832,
+          "bytes": 408
+        },
+        {
+          "name": "relative",
+          "start": 13832,
+          "end": 14018,
+          "bytes": 186
+        },
+        {
+          "name": "nodeKey",
+          "start": 14692,
+          "end": 14761,
+          "bytes": 69
+        },
+        {
+          "name": "elementState",
+          "start": 15128,
+          "end": 15324,
+          "bytes": 196
+        },
+        {
+          "name": "query",
+          "start": 15350,
+          "end": 15650,
+          "bytes": 300
+        },
+        {
+          "name": "makeStyle",
+          "start": 17260,
+          "end": 17390,
+          "bytes": 130
+        },
+        {
+          "name": "wrap",
+          "start": 17390,
+          "end": 18270,
+          "bytes": 880
+        }
+      ],
+      "phases": [
+        {
+          "label": "scope",
+          "start": 71,
+          "end": 5872,
+          "bytes": 5801,
+          "directStatements": 32,
+          "directFunctions": [
+            "microtaskErrors",
+            "reportMicrotaskFailure",
+            "schedule",
+            "clear",
+            "frameWindow",
+            "eventType",
+            "eventOptions",
+            "remove",
+            "eventState",
+            "handlerProperty",
+            "eventTarget",
+            "syncHandler",
+            "handler",
+            "str"
+          ],
+          "nestedFunctionNodes": 12,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        },
+        {
+          "label": "events",
+          "start": 5884,
+          "end": 12322,
+          "bytes": 6438,
+          "directStatements": 44,
+          "directFunctions": [
+            "Performance",
+            "timingReceiver",
+            "exceptionState",
+            "DOMException",
+            "DOMTokenList",
+            "listState",
+            "space",
+            "position",
+            "words",
+            "listData",
+            "validWord",
+            "listArguments",
+            "writeList"
+          ],
+          "nestedFunctionNodes": 20,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        },
+        {
+          "label": "interfaces",
+          "start": 12338,
+          "end": 18270,
+          "bytes": 5932,
+          "directStatements": 16,
+          "directFunctions": [
+            "listIndex",
+            "makeList",
+            "put",
+            "select",
+            "relative",
+            "nodeKey",
+            "elementState",
+            "query",
+            "makeStyle",
+            "wrap"
+          ],
+          "nestedFunctionNodes": 40,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        },
+        {
+          "label": "elements",
+          "start": 18284,
+          "end": 19275,
+          "bytes": 991,
+          "directStatements": 5,
+          "directFunctions": [],
+          "nestedFunctionNodes": 11,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        },
+        {
+          "label": "document",
+          "start": 19289,
+          "end": 21341,
+          "bytes": 2052,
+          "directStatements": 3,
+          "directFunctions": [],
+          "nestedFunctionNodes": 8,
+          "note": "Lexical function declarations may be instantiated at block entry, not in this textual span. Nested bodies are not necessarily executed here."
+        }
+      ],
+      "sourceBytes": 21342
+    }
+  ],
+  "parserVersion": "8.19.0",
+  "toolSHA256": "089B6DC6647034C1F52F4B38B0AA0A169075F3795574C64F3B921CB36DCA592C",
+  "testSHA256": "2A2A74DB46B624DCB6A4F20AFCA03C65A1D7F935A454BC081C75C00BF9234552",
+  "sourceUnchanged": true,
+  "nativeExecuted": false,
+  "scope": "Static AST inventory only. No timing attribution, startup fix, runtime or security qualification."
+}
