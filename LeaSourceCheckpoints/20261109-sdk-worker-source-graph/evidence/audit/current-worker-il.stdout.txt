@@ -1,0 +1,3 @@
+  Determining projects to restore...
+  Restored I:\LeaBuildStorage\sdk-worker-source-graph-20261109-v1\source\Lea.Script.Worker\Lea.Script.Worker.csproj (in 309 ms).
+  Lea.Script.Worker -> I:\LeaBuildStorage\sdk-worker-source-graph-20261109-v1\source\worker-il\Release\Lea.Script.Worker.dll

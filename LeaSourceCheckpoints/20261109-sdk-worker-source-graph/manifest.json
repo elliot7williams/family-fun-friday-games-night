@@ -1,0 +1,992 @@
+{
+  "files": [
+    {
+      "path": "framework-source/Build-NativeWorker.ps1",
+      "bytes": 8975,
+      "sha256": "F699F8B355FD5E7342655C5C0C85F4D0EAB104F4096D01BB3680AC61FDAB5F47"
+    },
+    {
+      "path": "framework-source/Directory.Build.targets",
+      "bytes": 248,
+      "sha256": "9396191B864CAADBFF92390701601747C841F1429A26FB63285848C43744BC65"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Ar.cs",
+      "bytes": 489,
+      "sha256": "7FE2BD81D76572A04402D28F5B71DCA6EE7311521643ACD042F99B67906CE792"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Ax.cs",
+      "bytes": 3072,
+      "sha256": "A1EE186005F2F5690D540ACEFC54BE8EACF5923F09E4EE22572B0C2B95F80BB9"
+    },
+    {
+      "path": "framework-source/Lea.Engine/B.cs",
+      "bytes": 1136,
+      "sha256": "05F9457B7B44B00B743D80157941935E462D8BBC9F321E0EB20645713A12D3F0"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Bi.cs",
+      "bytes": 1388,
+      "sha256": "CAB89D042708F64784F94B77B8C3120B291B6476E0F698549DD070F1FD4A5CFA"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Cz.cs",
+      "bytes": 410,
+      "sha256": "D41C1021D3CE916C7EB3D3ABC46E95AFC13DC5AD67F5B29EB66E119474AD4BC6"
+    },
+    {
+      "path": "framework-source/Lea.Engine/D.cs",
+      "bytes": 458,
+      "sha256": "F8378792AD26648ABDF6622D7626CD8BD6DECA7FB68E059E7AA87FFEECFDE686"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Dv.cs",
+      "bytes": 693,
+      "sha256": "21D557385B8AC64B990BE70FC01330C53888BCE1C4B000BFA64CEEE511A89B60"
+    },
+    {
+      "path": "framework-source/Lea.Engine/E.cs",
+      "bytes": 675336,
+      "sha256": "4375F4D7018BB8D1ED7467F455FDA3A81E59C2511AC4289F04A2B665E131F052"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Er.cs",
+      "bytes": 596,
+      "sha256": "2DA1764948302D718644F991D292F30B940C3F1BB8C176C6AA25C926337B0774"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Fi.cs",
+      "bytes": 1912,
+      "sha256": "8A7764CDFE4A6A267D8C103E9982B6426B4B85CCA81617DBBB9E4DAA9B42C875"
+    },
+    {
+      "path": "framework-source/Lea.Engine/FontShorthand.cs",
+      "bytes": 5851,
+      "sha256": "04EEE4E4695710EA3E96F60AD8BF6E1F03A56F585239D3D938ABBBA006974766"
+    },
+    {
+      "path": "framework-source/Lea.Engine/G.cs",
+      "bytes": 2443,
+      "sha256": "BBFE4C98181F7BC0844EFBA215E976A60734047052498E505C6964BE89E3AA3E"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Gi.cs",
+      "bytes": 846,
+      "sha256": "A4AE0FB794F41E493D8E7BF09D0B254AC2B78B23AA55D79657269FB1E85346A9"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Hc.cs",
+      "bytes": 2999,
+      "sha256": "BFE89C49863A0A50B527A16E0DF64857C4EA7CEC29EE9FD1CE441902048D3357"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Hn.cs",
+      "bytes": 1679,
+      "sha256": "1EA35B87389F1B5B05CBA00BB17E52424F692C52C56749322AA8569511E87212"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Hn.Data.cs",
+      "bytes": 41679,
+      "sha256": "2522F0F4945EE135BD80F3EC43DB834944A0A8CEC06727AE13282E60B29FC954"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Ir.cs",
+      "bytes": 463,
+      "sha256": "E432E4B968AB4E2447F727A1EF4DD55C1FE78E06B30EFA4BFA6D7C69A6E04265"
+    },
+    {
+      "path": "framework-source/Lea.Engine/J.cs",
+      "bytes": 75291,
+      "sha256": "E91CDCF3F517FA8AEC18C9C09657531297B29FFAD72E6018860524A5A1CAFB62"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Lea.Engine.csproj",
+      "bytes": 1099,
+      "sha256": "9E0DC5E3B7666AD65D3EB9534F1CCB7E62128FD50078014A6EC38BCFD430E010"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Ln.cs",
+      "bytes": 180,
+      "sha256": "F53BED93A4F80353CC6DDB07EA05F9EE6EE983DE2EB6673C2B8BA286CCD9594F"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Mp.cs",
+      "bytes": 372,
+      "sha256": "45E9BE193E334B27DB61F1CFE0B063F78CE11BDF98496FB6B63D6E973A952421"
+    },
+    {
+      "path": "framework-source/Lea.Engine/N.cs",
+      "bytes": 2409,
+      "sha256": "F5194006EB436D4D26E96594CAD1AFB16240BDF38F325A4EA30BB4AA11872B9B"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Net48TargetFramework.cs",
+      "bytes": 137,
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "framework-source/Lea.Engine/O.cs",
+      "bytes": 252,
+      "sha256": "E9049C8CE791A87B2E0F832FE42821F279A1079E58D70B64098994DBF8514F4C"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Og.cs",
+      "bytes": 3257,
+      "sha256": "8D596BE99A59E2016D61FBE81E77E4E15DDCE7BA27AC1286EAE4BEC56052F220"
+    },
+    {
+      "path": "framework-source/Lea.Engine/P.cs",
+      "bytes": 3166,
+      "sha256": "ACDA9A49BDC171C4414F85C503DDE2812AC56C4E0F8C1E33AEB3264E482027DD"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Pc.cs",
+      "bytes": 16438,
+      "sha256": "651416A2889EF51B6D4732A5CFA307722D117ED0775E1D346EB575285423A1BA"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Ri.cs",
+      "bytes": 4766,
+      "sha256": "DC726E564E0DF04AB3CE6928E3955B68DD8FDB688E3850AAD77EC02F03FB7C92"
+    },
+    {
+      "path": "framework-source/Lea.Engine/S.cs",
+      "bytes": 22858,
+      "sha256": "3679DEC3DB439624C1D9780A6EACD951A2E8CF90C271EBF46A5FC2377CA3B34C"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Sw.cs",
+      "bytes": 440,
+      "sha256": "56419432F7767A1C25C04242A59683C958FD24B512FB5289B8A5230CA429F73E"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Tb.cs",
+      "bytes": 394,
+      "sha256": "CD726A8695A3D55B2C1DD02394D8E4D267B3D0F01F6439EFB0219FB9BCD5DBF8"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Tc.cs",
+      "bytes": 502,
+      "sha256": "3113F2F86C41A094883C4EB3EE3DB8E7BDE27F2313732BD250A99DE306854431"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Tr.cs",
+      "bytes": 276,
+      "sha256": "129A8BAE08342524B38D4EB7D2DD164728806830EEB746A0F5D8398F8C9AEDBD"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Vg.cs",
+      "bytes": 944,
+      "sha256": "AD5F16EA44466A062010B5EEBC03309BB41AF1DC7F55002F074E42B7F1B23249"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Vm.cs",
+      "bytes": 602,
+      "sha256": "48ACA2338653F918C03694E55B03E541A700BDDFD347804CD5253DE14FD199D1"
+    },
+    {
+      "path": "framework-source/Lea.Engine/Vs.cs",
+      "bytes": 4406,
+      "sha256": "D79771205EE69C10892534961B2117AB1F7B92AA42261FE809A7BA40A5D04F22"
+    },
+    {
+      "path": "framework-source/Lea.Image/Lea.Image.csproj",
+      "bytes": 903,
+      "sha256": "174D908B8B1F22E28532F0B38AE5B093130C3B05BE2434F9D75464C6743CEF0B"
+    },
+    {
+      "path": "framework-source/Lea.Image/Mg.cs",
+      "bytes": 1556,
+      "sha256": "CDF6E334CF99742BC9F3427ECE57B14AB39A5433141040ED42120F43B7FA83F1"
+    },
+    {
+      "path": "framework-source/Lea.Image/Program.cs",
+      "bytes": 7463,
+      "sha256": "4B0EBB73E7ED355373DD75D45A83B6D160900F0BCB93F79536F4E7C5BC83DA44"
+    },
+    {
+      "path": "framework-source/Lea.Print/Ci.cs",
+      "bytes": 1983,
+      "sha256": "950CBB2F6A4E8F5227E292D8EDB505A7A73B95C0D0375E5E832F111A55F4A61D"
+    },
+    {
+      "path": "framework-source/Lea.Print/Ds.cs",
+      "bytes": 1294,
+      "sha256": "0FD2C0882F9B9DD3135B0CE66BE4742A8F98F2208E7D0B985A16A2C88A4DB32F"
+    },
+    {
+      "path": "framework-source/Lea.Print/Ht.cs",
+      "bytes": 9485,
+      "sha256": "0D96883A2C98CAB99CBAAFEA504E44237B59E3E522634967B2E30329F2CFC28F"
+    },
+    {
+      "path": "framework-source/Lea.Print/Lea.Print.csproj",
+      "bytes": 4036,
+      "sha256": "087317288FDB9C641073627482C8C524D6954C64D88524DE3A445357389C69CA"
+    },
+    {
+      "path": "framework-source/Lea.Print/Mi.cs",
+      "bytes": 905,
+      "sha256": "5E4809382975570453FC452F31142403C6CCD20103D78872DA43C6D5D1E25BBB"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pc.cs",
+      "bytes": 2328,
+      "sha256": "C5C96EDDEA6E9B97522DAD63B7D4D51412E402BDA5E25C6DA05C44F0C50D4B9D"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pd.cs",
+      "bytes": 1178,
+      "sha256": "FDBB49F92A38B5C16B99924C23540C750E83C8BB5EF61DC6DF7D220F35D262A5"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pf.cs",
+      "bytes": 3763,
+      "sha256": "BC04FB6A092DFD116668B5FE79B6AF417C4EE16A348A5284E0E42C7F4121062A"
+    },
+    {
+      "path": "framework-source/Lea.Print/Ph.cs",
+      "bytes": 1841,
+      "sha256": "296DABAD05BDA5865D78E9A7B7CB5F828ABAB42F7A618EBA13BE17BA69D5BB52"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pi.cs",
+      "bytes": 2874,
+      "sha256": "1C5C031A2A6D86103FD818FF97F4C85BD5F85FA0F6A0FC0947B14704C02C6A28"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pj.cs",
+      "bytes": 3073,
+      "sha256": "0589D2FD101F8C9C24296D3F58420A8B1E16ABB1C55EA198644AD95C1A13E92A"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pk.cs",
+      "bytes": 8919,
+      "sha256": "F5F4E12B53A321568A00BFEDC1A315A1F5906A0A4B731376C70F267666EC8C2E"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pm.cs",
+      "bytes": 15785,
+      "sha256": "94941C6901F1C29520A3A92F9AC721D886C065D5F5B7D095CC27401A1294F2CE"
+    },
+    {
+      "path": "framework-source/Lea.Print/Po.cs",
+      "bytes": 4345,
+      "sha256": "B7D05F56907E0731048849CDD12D483477F905F3B1084DB6F771BD5B1B36BD82"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pp.cs",
+      "bytes": 2052,
+      "sha256": "046D0F0979767A9312C119ED51FD381E8CB04F28988ECAC3AD8F6C1156C365D6"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pr.cs",
+      "bytes": 1849,
+      "sha256": "81450349F6C59446B1FF31584ABC9D41272264F8F6958C2937AF1ED9DDED210A"
+    },
+    {
+      "path": "framework-source/Lea.Print/Ps.cs",
+      "bytes": 9653,
+      "sha256": "537F8AD41A6C53CFF93EBC449C3A0A1BB96FA88B4641F4D56AEB29EC25619BC1"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pt.cs",
+      "bytes": 5120,
+      "sha256": "648009A06FD98FF29D9539E189BC1BDF4E0711935F74E658E233E7CA1F19B0DF"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pv.cs",
+      "bytes": 6465,
+      "sha256": "1AD702218E1562B1AA45723CFD9FC8EDEB103452A3EF38393906E954ADE687BC"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pw.cs",
+      "bytes": 7843,
+      "sha256": "7F93E7E2D54DCD2C721BD5230C35CC50DD5C52ED4C9EEA0EA69DD93DFDA05F70"
+    },
+    {
+      "path": "framework-source/Lea.Print/Px.cs",
+      "bytes": 2699,
+      "sha256": "5D5BA8D2140BE5AB395F9E011E7F460453D4D3178603BB7F0BACE28B2E5076A0"
+    },
+    {
+      "path": "framework-source/Lea.Print/Py.cs",
+      "bytes": 1671,
+      "sha256": "17682A1416EB64019DFDADE1B5847F518CE6DDC185194FB1DD4DDCCD775DBD29"
+    },
+    {
+      "path": "framework-source/Lea.Print/Pz.cs",
+      "bytes": 6565,
+      "sha256": "528D684F5FA674BF757950A35C4A3B4A8C3C5EB6AD3873E662B8213C9E794363"
+    },
+    {
+      "path": "framework-source/Lea.Script.Win/AssemblyInfo.cs",
+      "bytes": 514,
+      "sha256": "E1AED7A86015A517767EEF367D87E70BD60DB37F34209C6CA623B785D6D55F42"
+    },
+    {
+      "path": "framework-source/Lea.Script.Win/Lea.Script.Win.csproj",
+      "bytes": 2397,
+      "sha256": "B1ED51BACAB7FA947B7307D92E04B58459107E3948D79EEB3ED2A8B2AB6EC448"
+    },
+    {
+      "path": "framework-source/Lea.Script.Win/W.cs",
+      "bytes": 6542,
+      "sha256": "197F77D2A0085A0D00AE2B912E1C3ED06EC373B538392A81E3CBEB1B088B7509"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Bm.cs",
+      "bytes": 967,
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Codec.cs",
+      "bytes": 2394,
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Dc.cs",
+      "bytes": 2954,
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Dom.compact.js",
+      "bytes": 21342,
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/JavaScriptObjectDeserializer.cs",
+      "bytes": 15890,
+      "sha256": "ED07B2EB993C92B5D890EEBD88C8ACA5E84F2656414AC54C74DA040B0325C057"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/JavaScriptString.cs",
+      "bytes": 2381,
+      "sha256": "A3492991CDF11629849BF71BC3596F675B72D00E726356B47AE3B06D343019DB"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Json8.cs",
+      "bytes": 656,
+      "sha256": "940B7D6962C984C7FAB573D2FBA20C30350C57D74D787EC6B2A1397954578F49"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Lea.Script.Worker.csproj",
+      "bytes": 2219,
+      "sha256": "E2E1C94A57FA293FF8D8545A58625CBCEF07454451185DE01BE952055B71C924"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Mg.cs",
+      "bytes": 1556,
+      "sha256": "CDF6E334CF99742BC9F3427ECE57B14AB39A5433141040ED42120F43B7FA83F1"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Modern.AssemblyInfo.cs",
+      "bytes": 606,
+      "sha256": "6D0A32A84A8649A72CD695E5B8B6154010930F12B0BCA9F8CDDBDF8C871154AF"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/NetworkProbe.cs",
+      "bytes": 1690,
+      "sha256": "7011B263EEF665CDF6447B52B558CDA499773B6EE59CAA9825EA7CEC20BEA274"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/NuGet.Config",
+      "bytes": 113,
+      "sha256": "2142CFB2DFA2C7FEEFBE40FABCC68B0DFECADAFA99A1DB9B70239D977CF2A7EF"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Program.cs",
+      "bytes": 12498,
+      "sha256": "B0F59364D7A25AF09E4424C4D2FA794BFCA7A5CE13959B42E9BE21714ACA1921"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/ReferenceSupport.cs",
+      "bytes": 3584,
+      "sha256": "0080F8E1F5DF49ED66749414DC42DE40824A61E0EA11591125C09042203999C4"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Resources.cs",
+      "bytes": 879,
+      "sha256": "AC9F0FFEBE2A498B48574A5E3B4A74B3B205E29ECA8A4ECE9291E92F769776E4"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Utf16StringValidator.cs",
+      "bytes": 3017,
+      "sha256": "C839201419996306CA4FDC871D9B541DEE776F3CBF49CAF6D3DAEE08D928BD81"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Vo.cs",
+      "bytes": 1164,
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Wire.Modern.cs",
+      "bytes": 8663,
+      "sha256": "1E9357F0B610513BE002D8B576E4D35BBE478469AC1C199188EB88E16CE719E5"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/Writer.cs",
+      "bytes": 16357,
+      "sha256": "52A26D9FD0DE41AF862A36B570324D7AB4BA8BC98680FA3D3F9B78563F3167C9"
+    },
+    {
+      "path": "framework-source/Lea.Script.Worker/WriterResources.cs",
+      "bytes": 462,
+      "sha256": "760904D050BCBBF484440672FD08C3C8E892E605BF2CB71C0D80A81472FE5347"
+    },
+    {
+      "path": "framework-source/Lea.Script/1.cs",
+      "bytes": 94,
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2"
+    },
+    {
+      "path": "framework-source/Lea.Script/10.cs",
+      "bytes": 1164,
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF"
+    },
+    {
+      "path": "framework-source/Lea.Script/11.cs",
+      "bytes": 8733,
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0"
+    },
+    {
+      "path": "framework-source/Lea.Script/12.cs",
+      "bytes": 7357,
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "framework-source/Lea.Script/13.cs",
+      "bytes": 40103,
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6"
+    },
+    {
+      "path": "framework-source/Lea.Script/14.cs",
+      "bytes": 597,
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8"
+    },
+    {
+      "path": "framework-source/Lea.Script/15.cs",
+      "bytes": 2954,
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11"
+    },
+    {
+      "path": "framework-source/Lea.Script/2.cs",
+      "bytes": 967,
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "path": "framework-source/Lea.Script/3.cs",
+      "bytes": 2394,
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC"
+    },
+    {
+      "path": "framework-source/Lea.Script/4.cs",
+      "bytes": 2504,
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5"
+    },
+    {
+      "path": "framework-source/Lea.Script/5.cs",
+      "bytes": 11210,
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5"
+    },
+    {
+      "path": "framework-source/Lea.Script/6.cs",
+      "bytes": 26495,
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC"
+    },
+    {
+      "path": "framework-source/Lea.Script/7.cs",
+      "bytes": 460,
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683"
+    },
+    {
+      "path": "framework-source/Lea.Script/8.cs",
+      "bytes": 9047,
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E"
+    },
+    {
+      "path": "framework-source/Lea.Script/9.cs",
+      "bytes": 2939,
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12"
+    },
+    {
+      "path": "framework-source/Lea.Script/Dom.compact.js",
+      "bytes": 21342,
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3"
+    },
+    {
+      "path": "framework-source/Lea.Script/Dom.js",
+      "bytes": 37780,
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A"
+    },
+    {
+      "path": "framework-source/Lea.Script/Lea.Script.csproj",
+      "bytes": 3347,
+      "sha256": "418BAD1BC9DA3598EEC5E12DFEFFE2E84D6C6B9CFC6DC138866E9A979BEB2F6A"
+    },
+    {
+      "path": "framework-source/Lea.Win/Di.cs",
+      "bytes": 24099,
+      "sha256": "41457ADEE41DF2BF2898286CA492BAAE34A768F5A7D45C183CDDAB5D437BF856"
+    },
+    {
+      "path": "framework-source/Lea.Win/DocumentSelection.cs",
+      "bytes": 14271,
+      "sha256": "DEE10AB64B227ABBADC7BD1B72E0A504F6D788750C49C5EA3D3CD80004254662"
+    },
+    {
+      "path": "framework-source/Lea.Win/DocumentSelectionAutomation.cs",
+      "bytes": 5981,
+      "sha256": "5697AA7B65C474236FA18076F0899F65C648708DF7A7F1E763D353E5A3C5880B"
+    },
+    {
+      "path": "framework-source/Lea.Win/Jb.cs",
+      "bytes": 7357,
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "framework-source/Lea.Win/Lea.Win.csproj",
+      "bytes": 1528,
+      "sha256": "80508040B077724635A8EDAB871ABA3EF038C0D8CA7187011953E0B0AF5F76B0"
+    },
+    {
+      "path": "framework-source/Lea.Win/Net48TargetFramework.cs",
+      "bytes": 137,
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "framework-source/Lea.Win/Pi.cs",
+      "bytes": 14538,
+      "sha256": "A79E8CCB48BECC64BFAD8590A3609840199ADE97EF49B841C1E86431DBBB209E"
+    },
+    {
+      "path": "framework-source/Lea.Win/PrintImages.cs",
+      "bytes": 2262,
+      "sha256": "68E7CD7CAD09E7EA1283DC557BC1A3C4BA3B380884CCD7D448FFF58685C597D9"
+    },
+    {
+      "path": "framework-source/Lea.Win/Rp.cs",
+      "bytes": 39521,
+      "sha256": "482F990F4D51D809B47338CE475D2CD19A6C6AC28268946FBE24F8DD95E22841"
+    },
+    {
+      "path": "framework-source/Lea.Win/V.cs",
+      "bytes": 499499,
+      "sha256": "952585156E3A8D8800398116B12D1132D754CFBD4249E216C1D05DE6394A368F"
+    },
+    {
+      "path": "framework-source/Lea.Win/Xs.cs",
+      "bytes": 15266,
+      "sha256": "1C2D3CA0BF9B7995F7BB435807CEFC07CBB99D8A43CBE3CC4F3AEF970AE28810"
+    },
+    {
+      "path": "framework-source/NativeWorker.Tools.cs",
+      "bytes": 685,
+      "sha256": "CB610911F3AB9F8AE0134CEADC053AEE57927FC30C7B82B1587F141CD156CD72"
+    },
+    {
+      "path": "framework-source/New-NativeToolchain.ps1",
+      "bytes": 2567,
+      "sha256": "AF0FD015AAC83273A57B28E5020BE709D69897E0BD70F40D899A2B76E849BCC5"
+    },
+    {
+      "path": "framework-source/Sample/embedding.html",
+      "bytes": 237,
+      "sha256": "1D37D1F627EFC746EDC4EE3B0E1E8EED732E4456A88E2F5A5185AB5960272472"
+    },
+    {
+      "path": "framework-source/Sample/EmbeddingSample.cs",
+      "bytes": 4350,
+      "sha256": "1071B44E06DF3E18F9697895777002EF7AFEF339FF8596E495BDA93A1D130F7C"
+    },
+    {
+      "path": "framework-source/Sample/EmbeddingSample.csproj",
+      "bytes": 2605,
+      "sha256": "36BA09164984840751A059996AF1AC39C799FC459D9B0E16B4F0615AE21675C4"
+    },
+    {
+      "path": "framework-source/ScriptSample/script-embedding.html",
+      "bytes": 482,
+      "sha256": "413FA4422A648F52E4B1828C8A18F366E4656ABE01F2945280F36386273A396A"
+    },
+    {
+      "path": "framework-source/ScriptSample/ScriptEmbeddingSample.cs",
+      "bytes": 8247,
+      "sha256": "7EEEB731847DAF7A7274765711F6144AC0AA1292AEE70A634188CD3945CF445C"
+    },
+    {
+      "path": "framework-source/ScriptSample/ScriptEmbeddingSample.csproj",
+      "bytes": 1859,
+      "sha256": "0D3D35B98CB8B1DF3BF9313D4473287E3FDFCE8DE498F550EC43BD694EF5B5CD"
+    },
+    {
+      "path": "framework-source/ScriptSample/ScriptHost.config",
+      "bytes": 531,
+      "sha256": "0FEE6F9BF31A290EDFCA53CB30B47EAE0994F204CF5E8C4EBDDD8F080AF49681"
+    },
+    {
+      "path": "framework-source/SDK_FULL.md",
+      "bytes": 5654,
+      "sha256": "55D590B8785259F169DF7BFA74015931A4810597976186ACA448CD9D363B2731"
+    },
+    {
+      "path": "framework-source/SDK.Build.proj",
+      "bytes": 2820,
+      "sha256": "82AE2C2D13AC764078B70CD06CA9E9AE9799FCD33466A3F8AC62CEE13C2F7720"
+    },
+    {
+      "path": "framework-source/SOURCE_GRAPH.md",
+      "bytes": 5763,
+      "sha256": "EDBD0E5CBA9E8765E39F40201C3E66B2918D0ADEFBC4A7ED7F0E4CF6373D0644"
+    },
+    {
+      "path": "PROJECT_CONTEXT.md",
+      "bytes": 29391,
+      "sha256": "5937ACEC9EA1F4A7E9B209E4BC2346B0158BA498737F8F1884F8C9560B051A1F"
+    },
+    {
+      "path": "Lea.Sdk/EmbeddingSample.csproj",
+      "bytes": 2605,
+      "sha256": "36BA09164984840751A059996AF1AC39C799FC459D9B0E16B4F0615AE21675C4"
+    },
+    {
+      "path": "Lea.Sdk/Lea.Image.csproj",
+      "bytes": 903,
+      "sha256": "174D908B8B1F22E28532F0B38AE5B093130C3B05BE2434F9D75464C6743CEF0B"
+    },
+    {
+      "path": "Lea.Sdk/SOURCE_GRAPH.md",
+      "bytes": 5763,
+      "sha256": "EDBD0E5CBA9E8765E39F40201C3E66B2918D0ADEFBC4A7ED7F0E4CF6373D0644"
+    },
+    {
+      "path": "Lea.Sdk/SDK_FULL.md",
+      "bytes": 5654,
+      "sha256": "55D590B8785259F169DF7BFA74015931A4810597976186ACA448CD9D363B2731"
+    },
+    {
+      "path": "Lea.Build/Test-SdkImageSourceGraph.ps1",
+      "bytes": 12724,
+      "sha256": "74108F81F5D3587B014CA54F2330937F93D09D4821C4425385298DE5BE9866D9"
+    },
+    {
+      "path": "Lea.Build/Test-DecoderRetirement.ps1",
+      "bytes": 15601,
+      "sha256": "91171997691CB24833622914E604CD37A9D8FBA83C52CD65EACA91F744885DFD"
+    },
+    {
+      "path": "Lea.Build/Audit-SdkImageSourceGraph.ps1",
+      "bytes": 7163,
+      "sha256": "8AF8A0146CA56F9CB45BB40567E4419732FCDFC389488E55B20FDE0694AE7F6A"
+    },
+    {
+      "path": "Lea.Build/Publish-SdkImageSourceCheckpoint.ps1",
+      "bytes": 9462,
+      "sha256": "7D8ED98B51BB4B0FE6CEB599AB64617EDDD56B0C7AF08F76B66C942DFB071750"
+    },
+    {
+      "path": "Lea.Tests/SdkImageViewMain.cs",
+      "bytes": 4558,
+      "sha256": "75750CB949936E0D20C980E822CAE1F313F82A3EB580F186980A701916687405"
+    },
+    {
+      "path": "Lea.Tests/DecoderRetirementMain.cs",
+      "bytes": 23192,
+      "sha256": "AAF21189D72DE01B7C46D74B4812CDA868019E3E6780E3F8428617152B14AD11"
+    },
+    {
+      "path": "LeaForge/SDK_IMAGE_WORKER.md",
+      "bytes": 5962,
+      "sha256": "F9DC6EA97E5DF22A1B945ABFEF717B57BAEEE6D50BD38892046FABC9A2F8CD6A"
+    },
+    {
+      "path": "LeaForge/SDK_SOURCE_GRAPH.md",
+      "bytes": 6437,
+      "sha256": "D5A49B3B7E7EE90B24B294E3DEC0045D2B91CE983209BD5ADBA8598D76468534"
+    },
+    {
+      "path": "LeaForge/PROGRESS.md",
+      "bytes": 419701,
+      "sha256": "CF76F4B8A50E92BEA83C9D9452741C79E93909B841E00B4F77E77A9953836E10"
+    },
+    {
+      "path": "LeaForge/SOURCE_BACKUPS.md",
+      "bytes": 17212,
+      "sha256": "E1ED9A20F0684E0A159B9470AA1654E98DC7D189C5C1E0284103334E2F7AE151"
+    },
+    {
+      "path": "Lea.Sdk/Lea.Print.csproj",
+      "bytes": 4036,
+      "sha256": "087317288FDB9C641073627482C8C524D6954C64D88524DE3A445357389C69CA"
+    },
+    {
+      "path": "Lea.Print/README.md",
+      "bytes": 10565,
+      "sha256": "DCAF33523756735F099562F65B713D0A559E828A78C5CEDA88293F54F8E22A2B"
+    },
+    {
+      "path": "Lea.Build/Test-SdkPrintSourceGraph.ps1",
+      "bytes": 13250,
+      "sha256": "DE0FD8F61D67C6D87F34E4C10CF7FB49D6732BDE4274D96252B7BB4D1B81CA9A"
+    },
+    {
+      "path": "Lea.Build/Audit-SdkPrintSourceGraph.ps1",
+      "bytes": 6717,
+      "sha256": "16F70076F2123E9CAFFB25D18376D517FE4A5DEC9879011663A1A6CCA97EF701"
+    },
+    {
+      "path": "LeaForge/SDK_PRINT.md",
+      "bytes": 15341,
+      "sha256": "E00758904A71B3BCE1C54DA28CAF33AF67614D3F3F50429B72DD1D0EC3FA4C4D"
+    },
+    {
+      "path": "Lea.Build/Prepare-CurrentSdk.ps1",
+      "bytes": 5735,
+      "sha256": "8D2CE7367624E7AA80DF5F3D965DD3C5A5694DDFE9C7A7C6975E46A6D1B1AF73"
+    },
+    {
+      "path": "Lea.Build/Test-CurrentSdkWorker.ps1",
+      "bytes": 12900,
+      "sha256": "71770E309E23BC8BC360CFB8531AE04E298935A8AF401508C7E59D287F39172A"
+    },
+    {
+      "path": "Lea.Build/Audit-CurrentSdkWorker.ps1",
+      "bytes": 8615,
+      "sha256": "F8561FDDF76095C0C6A7AA64C36F7FB840647EC94E834789711398D2E978173E"
+    },
+    {
+      "path": "Lea.Sdk/CURRENT_BUILD.md",
+      "bytes": 4265,
+      "sha256": "0E5324ED5127FA18661798AC50C398FFCBCA8AF1E42089CEA2643A6A74A8625D"
+    },
+    {
+      "path": "Lea.Sdk/README.md",
+      "bytes": 5388,
+      "sha256": "3BEE1EEEA30087D0D181D286ACC0FADB3437C49BDB165E8CAD8C5C7F6DAFBFA9"
+    },
+    {
+      "path": "LeaForge/SDK_CURRENT_SOURCE.md",
+      "bytes": 3693,
+      "sha256": "4C4A61C2FE1D456AEC5D2474845AA39FA6663215B89B5116EE6E2FB66308F35A"
+    },
+    {
+      "path": "LeaForge/SDK_FULL.md",
+      "bytes": 20192,
+      "sha256": "D19D0ADC5BFBEFDED5C45A15A5A76AFCF2A3511B6CD18A18432305980B772590"
+    },
+    {
+      "path": "Lea.Tests/SdkScriptWorkerMain.cs",
+      "bytes": 6048,
+      "sha256": "AF25D23A29AD2902D42EC0310A23C805CE605D98755E96B911FB7A665E86F95A"
+    },
+    {
+      "path": "evidence/native-build.json",
+      "bytes": 44268,
+      "sha256": "17599A152C65F24AD140D6B6C87754A12C9CBC247322D1AD3CD92B5846E96605"
+    },
+    {
+      "path": "evidence/audit/audit.json",
+      "bytes": 11936,
+      "sha256": "BBE9F917F32EE3B2B5162B1644FA157B1735BA343F5A943168358D7600D522E7"
+    },
+    {
+      "path": "evidence/audit/compile-current-worker-gate.result.json",
+      "bytes": 1147,
+      "sha256": "FCAD58CA46597759E278FD3F1063704CC4BF5D8D161CF32A14440C7AE37919F3"
+    },
+    {
+      "path": "evidence/audit/compile-current-worker-gate.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/compile-current-worker-gate.stdout.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/current-consumer-samples.result.json",
+      "bytes": 1144,
+      "sha256": "008589A047A01C6016621540B3845D8DB659542CCE53D5881C78DB0110D92BBB"
+    },
+    {
+      "path": "evidence/audit/current-consumer-samples.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/current-consumer-samples.stdout.txt",
+      "bytes": 582,
+      "sha256": "C8B7161BC337C2522C2B4719F09E896E631A3B4AB1CC80C577FB19626466B098"
+    },
+    {
+      "path": "evidence/audit/current-framework-libraries.result.json",
+      "bytes": 1153,
+      "sha256": "1DAF690D5DCB0686B1739D5D99DDE2934DDB60AC0D2781C4407169B7D7DDD9AD"
+    },
+    {
+      "path": "evidence/audit/current-framework-libraries.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/current-framework-libraries.stdout.txt",
+      "bytes": 634,
+      "sha256": "E7F93A788E74264770EDF557D0045F0D445A3C92B53388D6FD198C8638B72C0A"
+    },
+    {
+      "path": "evidence/audit/current-isolated-worker-gate.result.json",
+      "bytes": 1157,
+      "sha256": "C2A78C46BEDAEE334E4A8F847FB629B425CC52E15AD91EFBB380F6FB0303AB7E"
+    },
+    {
+      "path": "evidence/audit/current-isolated-worker-gate.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/current-isolated-worker-gate.stdout.txt",
+      "bytes": 1519,
+      "sha256": "6F0875FA825ADE05C7142E27C3E738B208D5FA2D442CE237A0C8FECBC90E2496"
+    },
+    {
+      "path": "evidence/audit/current-script-consumer.result.json",
+      "bytes": 1139,
+      "sha256": "AE57027A0C98FB7470282C5EDFF0076C3E0FD97418A3D5C0C9CB96BA47E8A6B2"
+    },
+    {
+      "path": "evidence/audit/current-script-consumer.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/current-script-consumer.stdout.txt",
+      "bytes": 983,
+      "sha256": "BD53BF8EABB22A87F944D7E4C3A255C10CF74051C7FB229A1AF21AE4077BB4CD"
+    },
+    {
+      "path": "evidence/audit/current-text-consumer.result.json",
+      "bytes": 1130,
+      "sha256": "7C4B38436F4C11ED487E4ED8AE31C1ACFA47D6AE9F7356E555B536BBE6F29159"
+    },
+    {
+      "path": "evidence/audit/current-text-consumer.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/current-text-consumer.stdout.txt",
+      "bytes": 27,
+      "sha256": "3199BBACBABFB0C2167629DA5B19150E388685B70F28305EE1DF35B5C707BC96"
+    },
+    {
+      "path": "evidence/audit/current-worker-il.result.json",
+      "bytes": 1123,
+      "sha256": "9DB6052FB8EE22E30C435F40FA97BC418D7838AAFB76F13006B4755918DD5292"
+    },
+    {
+      "path": "evidence/audit/current-worker-il.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/current-worker-il.stdout.txt",
+      "bytes": 294,
+      "sha256": "B9DD9DF659B3C674E154628547F3C6B2F5C4105F7327BE74A4988B3E249C628F"
+    },
+    {
+      "path": "evidence/audit/current-worker-native.result.json",
+      "bytes": 1135,
+      "sha256": "8BBEBA5F65A27EB9047C82BCFFC810070020071152E17FD2EE3A2DFCB52F008F"
+    },
+    {
+      "path": "evidence/audit/current-worker-native.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/current-worker-native.stdout.txt",
+      "bytes": 199,
+      "sha256": "93FC6AB970BBF88CBE5C9AC687782810D1CA8120FF3C5B2B8D54534439D77B03"
+    },
+    {
+      "path": "evidence/audit/record-native-toolchain.result.json",
+      "bytes": 1140,
+      "sha256": "A0E435ECF10650B60F7571988D7D2A5232F3B2029C82EA08BE5055640567429D"
+    },
+    {
+      "path": "evidence/audit/record-native-toolchain.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "evidence/audit/record-native-toolchain.stdout.txt",
+      "bytes": 311,
+      "sha256": "4485E3D43298C302D59540FD3E44BCC3BF79B8DB51F1628BA3F83E5CA10D1462"
+    },
+    {
+      "path": "evidence/audit/result.json",
+      "bytes": 125783,
+      "sha256": "2A2A5DEC3B9919B235CDD1223447B99B60C85C585FFCBC43D40529F34D66BCA2"
+    },
+    {
+      "path": "evidence/audit/SdkScriptWorkerMain.cs",
+      "bytes": 6048,
+      "sha256": "AF25D23A29AD2902D42EC0310A23C805CE605D98755E96B911FB7A665E86F95A"
+    },
+    {
+      "path": "evidence/audit/source.json",
+      "bytes": 69391,
+      "sha256": "51A823667E96D3ED4C3EC526E0747B8C19B1EBBE59A8A05324503DBEB4FED9C9"
+    },
+    {
+      "path": "evidence/audit/test.ps1",
+      "bytes": 12900,
+      "sha256": "71770E309E23BC8BC360CFB8531AE04E298935A8AF401508C7E59D287F39172A"
+    },
+    {
+      "path": "evidence/audit/toolchain.json",
+      "bytes": 28209,
+      "sha256": "3E6C84D1C6FECB63FC76BF964A9660D19A746AA42228CD5F4B9638D44BA75F8F"
+    },
+    {
+      "path": "evidence/artifacts/embedding-360-selected.png",
+      "bytes": 4795,
+      "sha256": "B73119733354443429FC3C3E82AEE6304033F1E62CB64BCE0A4E17F2A4F58BE0"
+    },
+    {
+      "path": "evidence/artifacts/embedding-360.png",
+      "bytes": 4439,
+      "sha256": "B35EDC110659CD3411D751A597746BE49EB9AB3165DC47B9CAD2CD84D5E45A8C"
+    },
+    {
+      "path": "evidence/artifacts/embedding-720-selected.png",
+      "bytes": 5178,
+      "sha256": "1CC479D180D8FFF77EA98BD1C2B04D9C12D7FD1E27C30813083158B8AF4A4544"
+    },
+    {
+      "path": "evidence/artifacts/embedding-720.png",
+      "bytes": 4670,
+      "sha256": "6C3D296638933AC03BBE11616D5F381363F43927719B6000CDB748FEEDF3F97D"
+    },
+    {
+      "path": "evidence/artifacts/script-sample-window.png",
+      "bytes": 16289,
+      "sha256": "23F22C2C98C89076BF3B284D497E5EE09A2D26AB1EE5CA59A71B685F7EC00747"
+    },
+    {
+      "path": "evidence/artifacts/script-sample.png",
+      "bytes": 5423,
+      "sha256": "54EA2C1F6ACA592F81509C68D09DBCB8C7703FFB8B363AE93657CBBB8192E7B0"
+    }
+  ],
+  "ownedRuns": 9,
+  "focusedChecks": 56,
+  "auditSha256": "BBE9F917F32EE3B2B5162B1644FA157B1735BA343F5A943168358D7600D522E7",
+  "date": "2026-11-09",
+  "capturePassed": false,
+  "thirdPartyBinariesIncluded": false,
+  "frameworkSourceMembers": 128,
+  "release": false
+}

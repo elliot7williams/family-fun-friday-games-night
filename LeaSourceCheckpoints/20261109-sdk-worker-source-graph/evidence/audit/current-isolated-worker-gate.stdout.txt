@@ -1,0 +1,53 @@
+PASS worker page has no automatic execution
+WORKER_START ok; ; phase=ready; launch=210; probe=196; wall=1455; cpu=140 ms; startup entry
+startup guards
+startup init
+startup canary
+startup network
+startup wire
+startup options
+startup configured
+startup vm
+startup bridge
+startup source
+startup evaluate
+startup debugger
+startup subscribed
+startup parsed
+startup declarations
+startup scope
+startup events
+startup interfaces
+startup elements
+startup document
+startup dom
+startup probes
+startup closed
+startup hello
+startup ready
+
+PASS cold isolated execution
+PASS completed execution retains no owned parent I/O dispatcher
+PASS worker computed title
+PASS worker DOM mutation
+PASS worker separate process
+PASS worker reported isolation and probe flags
+PASS original worker budgets
+PASS worker persistent realm
+PASS later execution retains realm without idle parent I/O dispatcher
+PASS worker no CLR or network API
+PASS worker session SID recorded
+PASS worker exact file session grants
+PASS worker no folder or parent grant
+PASS worker runtime bytes locked
+PASS original worker handle retained alive
+PASS worker source size bound
+PASS worker thread affinity
+PASS original handle observes stopped worker exit
+PASS stopped timer drains endpoint and clears process
+PASS worker stop removes session grants
+PASS stopped frames cannot launch worker
+PASS worker retirement is not pending
+PASS disposed worker session rejected
+PASS worker ACL exact restoration
+PASS SDK WORKER 25

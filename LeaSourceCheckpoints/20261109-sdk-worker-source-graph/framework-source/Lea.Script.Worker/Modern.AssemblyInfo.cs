@@ -1,0 +1,8 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v8.0", FrameworkDisplayName=".NET 8.0")]
+[assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+[assembly: System.Reflection.AssemblyFileVersion("1.0.0.0")]
+[assembly: System.Reflection.AssemblyCompany("Lea.Script.Worker")]
+[assembly: System.Reflection.AssemblyProduct("Lea.Script.Worker")]
+[assembly: System.Reflection.AssemblyTitle("Lea.Script.Worker")]
+[assembly: System.Reflection.AssemblyConfiguration("Release")]
+[assembly: System.Reflection.AssemblyInformationalVersion("1.0.0+157cae4.event-route-candidate-experimental")]

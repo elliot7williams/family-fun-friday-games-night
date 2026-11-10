@@ -1,0 +1,2 @@
+  Emitting R2R PE file: I:\LeaBuildStorage\sdk-worker-source-graph-20261109-v1\source\bin\Release\.lea-native-2d6637c0ba0a4933801fa79dba67aa1d\ScriptWorker\Lea.Script.Worker.dll
+  LEA_NATIVE_BUILT

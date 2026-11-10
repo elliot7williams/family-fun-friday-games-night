@@ -1,0 +1,234 @@
+{
+  "dependencyMembers": 8,
+  "nativeProducts": [
+    {
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821",
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\ScriptWorker\\Acornima.dll",
+      "bytes": 942080
+    },
+    {
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D",
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\ScriptWorker\\Jint.dll",
+      "bytes": 7946240
+    },
+    {
+      "sha256": "5EA5A12AF460F1221290A3031D6D4478A03903CE1F9C54D8D663AF8FB27F929A",
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\ScriptWorker\\Lea.Script.Worker.deps.json",
+      "bytes": 1204
+    },
+    {
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0",
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\ScriptWorker\\Lea.Script.Worker.dll",
+      "bytes": 135168
+    },
+    {
+      "sha256": "B867A3C0EBBEFD300EA67F6FA30A3DA8C26ED19C657F26A3EE4DAEB055A43EF6",
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\ScriptWorker\\Lea.Script.Worker.exe",
+      "bytes": 151552
+    },
+    {
+      "sha256": "D091805CC8FE421027B4F66A2E37957738D3F738B609C62897E834DBF9182CA0",
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\ScriptWorker\\Lea.Script.Worker.runtimeconfig.json",
+      "bytes": 372
+    }
+  ],
+  "sourceReceiptSha256": "51A823667E96D3ED4C3EC526E0747B8C19B1EBBE59A8A05324503DBEB4FED9C9",
+  "copies": [
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\compile-current-worker-gate.result.json",
+      "sha256": "FCAD58CA46597759E278FD3F1063704CC4BF5D8D161CF32A14440C7AE37919F3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\compile-current-worker-gate.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\compile-current-worker-gate.stdout.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-consumer-samples.result.json",
+      "sha256": "008589A047A01C6016621540B3845D8DB659542CCE53D5881C78DB0110D92BBB"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-consumer-samples.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-consumer-samples.stdout.txt",
+      "sha256": "C8B7161BC337C2522C2B4719F09E896E631A3B4AB1CC80C577FB19626466B098"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-framework-libraries.result.json",
+      "sha256": "1DAF690D5DCB0686B1739D5D99DDE2934DDB60AC0D2781C4407169B7D7DDD9AD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-framework-libraries.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-framework-libraries.stdout.txt",
+      "sha256": "E7F93A788E74264770EDF557D0045F0D445A3C92B53388D6FD198C8638B72C0A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-isolated-worker-gate.result.json",
+      "sha256": "C2A78C46BEDAEE334E4A8F847FB629B425CC52E15AD91EFBB380F6FB0303AB7E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-isolated-worker-gate.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-isolated-worker-gate.stdout.txt",
+      "sha256": "6F0875FA825ADE05C7142E27C3E738B208D5FA2D442CE237A0C8FECBC90E2496"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-script-consumer.result.json",
+      "sha256": "AE57027A0C98FB7470282C5EDFF0076C3E0FD97418A3D5C0C9CB96BA47E8A6B2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-script-consumer.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-script-consumer.stdout.txt",
+      "sha256": "BD53BF8EABB22A87F944D7E4C3A255C10CF74051C7FB229A1AF21AE4077BB4CD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-text-consumer.result.json",
+      "sha256": "7C4B38436F4C11ED487E4ED8AE31C1ACFA47D6AE9F7356E555B536BBE6F29159"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-text-consumer.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-text-consumer.stdout.txt",
+      "sha256": "3199BBACBABFB0C2167629DA5B19150E388685B70F28305EE1DF35B5C707BC96"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-worker-il.result.json",
+      "sha256": "9DB6052FB8EE22E30C435F40FA97BC418D7838AAFB76F13006B4755918DD5292"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-worker-il.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-worker-il.stdout.txt",
+      "sha256": "B9DD9DF659B3C674E154628547F3C6B2F5C4105F7327BE74A4988B3E249C628F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-worker-native.result.json",
+      "sha256": "8BBEBA5F65A27EB9047C82BCFFC810070020071152E17FD2EE3A2DFCB52F008F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-worker-native.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\current-worker-native.stdout.txt",
+      "sha256": "93FC6AB970BBF88CBE5C9AC687782810D1CA8120FF3C5B2B8D54534439D77B03"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\record-native-toolchain.result.json",
+      "sha256": "A0E435ECF10650B60F7571988D7D2A5232F3B2029C82EA08BE5055640567429D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\record-native-toolchain.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\record-native-toolchain.stdout.txt",
+      "sha256": "4485E3D43298C302D59540FD3E44BCC3BF79B8DB51F1628BA3F83E5CA10D1462"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\result.json",
+      "sha256": "2A2A5DEC3B9919B235CDD1223447B99B60C85C585FFCBC43D40529F34D66BCA2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\SdkScriptWorkerMain.cs",
+      "sha256": "AF25D23A29AD2902D42EC0310A23C805CE605D98755E96B911FB7A665E86F95A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\source.json",
+      "sha256": "51A823667E96D3ED4C3EC526E0747B8C19B1EBBE59A8A05324503DBEB4FED9C9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\test.ps1",
+      "sha256": "71770E309E23BC8BC360CFB8531AE04E298935A8AF401508C7E59D287F39172A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\toolchain.json",
+      "sha256": "3E6C84D1C6FECB63FC76BF964A9660D19A746AA42228CD5F4B9638D44BA75F8F"
+    }
+  ],
+  "verified": true,
+  "pictures": [
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\text\\embedding-360-selected.png",
+      "sha256": "B73119733354443429FC3C3E82AEE6304033F1E62CB64BCE0A4E17F2A4F58BE0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\text\\embedding-360.png",
+      "sha256": "B35EDC110659CD3411D751A597746BE49EB9AB3165DC47B9CAD2CD84D5E45A8C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\text\\embedding-720-selected.png",
+      "sha256": "1CC479D180D8FFF77EA98BD1C2B04D9C12D7FD1E27C30813083158B8AF4A4544"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\text\\embedding-720.png",
+      "sha256": "6C3D296638933AC03BBE11616D5F381363F43927719B6000CDB748FEEDF3F97D"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-worker-source-graph-v1\\script\\script-sample-window.png",
+      "sha256": "23F22C2C98C89076BF3B284D497E5EE09A2D26AB1EE5CA59A71B685F7EC00747"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-worker-source-graph-v1\\script\\script-sample.png",
+      "sha256": "54EA2C1F6ACA592F81509C68D09DBCB8C7703FFB8B363AE93657CBBB8192E7B0"
+    }
+  ],
+  "textChecks": 14,
+  "ownedRuns": 9,
+  "scope": "Current unified source builds and bounded consumer/isolated-worker fixtures, not full scripting/reliability/site/security or browser release.",
+  "fullScriptSuiteQualified": false,
+  "runtimeFiles": 28,
+  "globalSecurityQualified": false,
+  "nativeBuildReceiptSha256": "17599A152C65F24AD140D6B6C87754A12C9CBC247322D1AD3CD92B5846E96605",
+  "libraryProducts": [
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Engine.dll",
+      "sha256": "11B154A135F6A1B455080A384AF281759EF09DB18347C15C805149153A8C362A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Win.dll",
+      "sha256": "61DA2736DB46AE97B2D2D42DD141AEF2A691693CEE7013547BEFCEDD7562813F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Image.exe",
+      "sha256": "DA3BFA671C54EEFD78092A9B91CB080189D8681BF6433C2F9C75AC40118D4E91"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Print.dll",
+      "sha256": "414E1CD817F060758978C049595CC7E7BB15EF5270DC4053B40AFCCC2D47923B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Script.dll",
+      "sha256": "406C5634638D75C66892BD95429760CB4A5C74C94277913D1DF467147E30E75F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Script.Win.dll",
+      "sha256": "58E4D8D8D2CB32A0A5791198FD7635554A579A5625A10AF3D542A51513268FDA"
+    }
+  ],
+  "workerChecks": 25,
+  "receiptSha256": "2A2A5DEC3B9919B235CDD1223447B99B60C85C585FFCBC43D40529F34D66BCA2",
+  "sourceMembers": 128,
+  "scriptChecks": 17,
+  "startupFixed": false,
+  "scriptSha256": "F8561FDDF76095C0C6A7AA64C36F7FB840647EC94E834789711398D2E978173E",
+  "hostAdopted": false,
+  "completeSdk": false
+}
