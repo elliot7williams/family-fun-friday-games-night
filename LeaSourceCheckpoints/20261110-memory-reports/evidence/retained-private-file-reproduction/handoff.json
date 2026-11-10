@@ -1,0 +1,26 @@
+[
+  {
+    "sha256": "047BC27FE71118FC75FF24BAC2481FB7E48007A2F03A90FC32930F216AC10194",
+    "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\PROJECT_CONTEXT.md"
+  },
+  {
+    "sha256": "A37D44298425436CD9BFA4D989C90389F5905DF60B5347767A6C8F7817FC6ED3",
+    "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\HOST_LEGACY_ROUTES.md"
+  },
+  {
+    "sha256": "DB66C1D0180261F0A7391DA5DC82554706917AA1545E827528A450473D1A15F6",
+    "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\PROGRESS.md"
+  },
+  {
+    "sha256": "F62EF081CB2F0B94E79737DEF95F0D7016B654DD6BD5AA38DD5DFB0FCC664362",
+    "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\AccessibilityHostCase.cs"
+  },
+  {
+    "sha256": "F90A7FA44F505D798A0019C10627169676B844870E155076010FA8B6BDFC4A91",
+    "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\Test-OwnedAccessibilityHost.ps1"
+  },
+  {
+    "sha256": "F5ED9D7EDE21CE7FE738EE2435831366346CF819D8C05FA1F2A9E2648395DFAC",
+    "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\Audit-AccessibilityHostUi.ps1"
+  }
+]

@@ -1,0 +1,3 @@
+FAIL Lea boot navigation: System.InvalidOperationException: report summary missing
+   at Lea.Firespider.Boot.CheckAccessibilityReport(Form form, ApplicationSettingsBase settings, String root)
+   at Lea.Firespider.Boot.Run(String[] args)

@@ -1,0 +1,2893 @@
+{
+  "sourceSdkMembers": 128,
+  "hostSourceMembers": 87,
+  "workflowAuditSha256": "26806608D4BED93F2688B4C7993EC776BFE28A2AFD3E658ADCCECE079FD60253",
+  "smokeCases": 3,
+  "date": "2026-11-10",
+  "workflowCases": 15,
+  "release": false,
+  "files": [
+    {
+      "sha256": "F699F8B355FD5E7342655C5C0C85F4D0EAB104F4096D01BB3680AC61FDAB5F47",
+      "path": "sdk-source/Build-NativeWorker.ps1",
+      "bytes": 8975
+    },
+    {
+      "sha256": "9396191B864CAADBFF92390701601747C841F1429A26FB63285848C43744BC65",
+      "path": "sdk-source/Directory.Build.targets",
+      "bytes": 248
+    },
+    {
+      "sha256": "7FE2BD81D76572A04402D28F5B71DCA6EE7311521643ACD042F99B67906CE792",
+      "path": "sdk-source/Lea.Engine/Ar.cs",
+      "bytes": 489
+    },
+    {
+      "sha256": "A1EE186005F2F5690D540ACEFC54BE8EACF5923F09E4EE22572B0C2B95F80BB9",
+      "path": "sdk-source/Lea.Engine/Ax.cs",
+      "bytes": 3072
+    },
+    {
+      "sha256": "05F9457B7B44B00B743D80157941935E462D8BBC9F321E0EB20645713A12D3F0",
+      "path": "sdk-source/Lea.Engine/B.cs",
+      "bytes": 1136
+    },
+    {
+      "sha256": "CAB89D042708F64784F94B77B8C3120B291B6476E0F698549DD070F1FD4A5CFA",
+      "path": "sdk-source/Lea.Engine/Bi.cs",
+      "bytes": 1388
+    },
+    {
+      "sha256": "D41C1021D3CE916C7EB3D3ABC46E95AFC13DC5AD67F5B29EB66E119474AD4BC6",
+      "path": "sdk-source/Lea.Engine/Cz.cs",
+      "bytes": 410
+    },
+    {
+      "sha256": "F8378792AD26648ABDF6622D7626CD8BD6DECA7FB68E059E7AA87FFEECFDE686",
+      "path": "sdk-source/Lea.Engine/D.cs",
+      "bytes": 458
+    },
+    {
+      "sha256": "21D557385B8AC64B990BE70FC01330C53888BCE1C4B000BFA64CEEE511A89B60",
+      "path": "sdk-source/Lea.Engine/Dv.cs",
+      "bytes": 693
+    },
+    {
+      "sha256": "4375F4D7018BB8D1ED7467F455FDA3A81E59C2511AC4289F04A2B665E131F052",
+      "path": "sdk-source/Lea.Engine/E.cs",
+      "bytes": 675336
+    },
+    {
+      "sha256": "2DA1764948302D718644F991D292F30B940C3F1BB8C176C6AA25C926337B0774",
+      "path": "sdk-source/Lea.Engine/Er.cs",
+      "bytes": 596
+    },
+    {
+      "sha256": "8A7764CDFE4A6A267D8C103E9982B6426B4B85CCA81617DBBB9E4DAA9B42C875",
+      "path": "sdk-source/Lea.Engine/Fi.cs",
+      "bytes": 1912
+    },
+    {
+      "sha256": "04EEE4E4695710EA3E96F60AD8BF6E1F03A56F585239D3D938ABBBA006974766",
+      "path": "sdk-source/Lea.Engine/FontShorthand.cs",
+      "bytes": 5851
+    },
+    {
+      "sha256": "BBFE4C98181F7BC0844EFBA215E976A60734047052498E505C6964BE89E3AA3E",
+      "path": "sdk-source/Lea.Engine/G.cs",
+      "bytes": 2443
+    },
+    {
+      "sha256": "A4AE0FB794F41E493D8E7BF09D0B254AC2B78B23AA55D79657269FB1E85346A9",
+      "path": "sdk-source/Lea.Engine/Gi.cs",
+      "bytes": 846
+    },
+    {
+      "sha256": "BFE89C49863A0A50B527A16E0DF64857C4EA7CEC29EE9FD1CE441902048D3357",
+      "path": "sdk-source/Lea.Engine/Hc.cs",
+      "bytes": 2999
+    },
+    {
+      "sha256": "1EA35B87389F1B5B05CBA00BB17E52424F692C52C56749322AA8569511E87212",
+      "path": "sdk-source/Lea.Engine/Hn.cs",
+      "bytes": 1679
+    },
+    {
+      "sha256": "2522F0F4945EE135BD80F3EC43DB834944A0A8CEC06727AE13282E60B29FC954",
+      "path": "sdk-source/Lea.Engine/Hn.Data.cs",
+      "bytes": 41679
+    },
+    {
+      "sha256": "E432E4B968AB4E2447F727A1EF4DD55C1FE78E06B30EFA4BFA6D7C69A6E04265",
+      "path": "sdk-source/Lea.Engine/Ir.cs",
+      "bytes": 463
+    },
+    {
+      "sha256": "E91CDCF3F517FA8AEC18C9C09657531297B29FFAD72E6018860524A5A1CAFB62",
+      "path": "sdk-source/Lea.Engine/J.cs",
+      "bytes": 75291
+    },
+    {
+      "sha256": "9E0DC5E3B7666AD65D3EB9534F1CCB7E62128FD50078014A6EC38BCFD430E010",
+      "path": "sdk-source/Lea.Engine/Lea.Engine.csproj",
+      "bytes": 1099
+    },
+    {
+      "sha256": "F53BED93A4F80353CC6DDB07EA05F9EE6EE983DE2EB6673C2B8BA286CCD9594F",
+      "path": "sdk-source/Lea.Engine/Ln.cs",
+      "bytes": 180
+    },
+    {
+      "sha256": "45E9BE193E334B27DB61F1CFE0B063F78CE11BDF98496FB6B63D6E973A952421",
+      "path": "sdk-source/Lea.Engine/Mp.cs",
+      "bytes": 372
+    },
+    {
+      "sha256": "F5194006EB436D4D26E96594CAD1AFB16240BDF38F325A4EA30BB4AA11872B9B",
+      "path": "sdk-source/Lea.Engine/N.cs",
+      "bytes": 2409
+    },
+    {
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3",
+      "path": "sdk-source/Lea.Engine/Net48TargetFramework.cs",
+      "bytes": 137
+    },
+    {
+      "sha256": "E9049C8CE791A87B2E0F832FE42821F279A1079E58D70B64098994DBF8514F4C",
+      "path": "sdk-source/Lea.Engine/O.cs",
+      "bytes": 252
+    },
+    {
+      "sha256": "8D596BE99A59E2016D61FBE81E77E4E15DDCE7BA27AC1286EAE4BEC56052F220",
+      "path": "sdk-source/Lea.Engine/Og.cs",
+      "bytes": 3257
+    },
+    {
+      "sha256": "ACDA9A49BDC171C4414F85C503DDE2812AC56C4E0F8C1E33AEB3264E482027DD",
+      "path": "sdk-source/Lea.Engine/P.cs",
+      "bytes": 3166
+    },
+    {
+      "sha256": "651416A2889EF51B6D4732A5CFA307722D117ED0775E1D346EB575285423A1BA",
+      "path": "sdk-source/Lea.Engine/Pc.cs",
+      "bytes": 16438
+    },
+    {
+      "sha256": "DC726E564E0DF04AB3CE6928E3955B68DD8FDB688E3850AAD77EC02F03FB7C92",
+      "path": "sdk-source/Lea.Engine/Ri.cs",
+      "bytes": 4766
+    },
+    {
+      "sha256": "3679DEC3DB439624C1D9780A6EACD951A2E8CF90C271EBF46A5FC2377CA3B34C",
+      "path": "sdk-source/Lea.Engine/S.cs",
+      "bytes": 22858
+    },
+    {
+      "sha256": "56419432F7767A1C25C04242A59683C958FD24B512FB5289B8A5230CA429F73E",
+      "path": "sdk-source/Lea.Engine/Sw.cs",
+      "bytes": 440
+    },
+    {
+      "sha256": "CD726A8695A3D55B2C1DD02394D8E4D267B3D0F01F6439EFB0219FB9BCD5DBF8",
+      "path": "sdk-source/Lea.Engine/Tb.cs",
+      "bytes": 394
+    },
+    {
+      "sha256": "3113F2F86C41A094883C4EB3EE3DB8E7BDE27F2313732BD250A99DE306854431",
+      "path": "sdk-source/Lea.Engine/Tc.cs",
+      "bytes": 502
+    },
+    {
+      "sha256": "129A8BAE08342524B38D4EB7D2DD164728806830EEB746A0F5D8398F8C9AEDBD",
+      "path": "sdk-source/Lea.Engine/Tr.cs",
+      "bytes": 276
+    },
+    {
+      "sha256": "AD5F16EA44466A062010B5EEBC03309BB41AF1DC7F55002F074E42B7F1B23249",
+      "path": "sdk-source/Lea.Engine/Vg.cs",
+      "bytes": 944
+    },
+    {
+      "sha256": "48ACA2338653F918C03694E55B03E541A700BDDFD347804CD5253DE14FD199D1",
+      "path": "sdk-source/Lea.Engine/Vm.cs",
+      "bytes": 602
+    },
+    {
+      "sha256": "D79771205EE69C10892534961B2117AB1F7B92AA42261FE809A7BA40A5D04F22",
+      "path": "sdk-source/Lea.Engine/Vs.cs",
+      "bytes": 4406
+    },
+    {
+      "sha256": "174D908B8B1F22E28532F0B38AE5B093130C3B05BE2434F9D75464C6743CEF0B",
+      "path": "sdk-source/Lea.Image/Lea.Image.csproj",
+      "bytes": 903
+    },
+    {
+      "sha256": "CDF6E334CF99742BC9F3427ECE57B14AB39A5433141040ED42120F43B7FA83F1",
+      "path": "sdk-source/Lea.Image/Mg.cs",
+      "bytes": 1556
+    },
+    {
+      "sha256": "4B0EBB73E7ED355373DD75D45A83B6D160900F0BCB93F79536F4E7C5BC83DA44",
+      "path": "sdk-source/Lea.Image/Program.cs",
+      "bytes": 7463
+    },
+    {
+      "sha256": "950CBB2F6A4E8F5227E292D8EDB505A7A73B95C0D0375E5E832F111A55F4A61D",
+      "path": "sdk-source/Lea.Print/Ci.cs",
+      "bytes": 1983
+    },
+    {
+      "sha256": "0FD2C0882F9B9DD3135B0CE66BE4742A8F98F2208E7D0B985A16A2C88A4DB32F",
+      "path": "sdk-source/Lea.Print/Ds.cs",
+      "bytes": 1294
+    },
+    {
+      "sha256": "0D96883A2C98CAB99CBAAFEA504E44237B59E3E522634967B2E30329F2CFC28F",
+      "path": "sdk-source/Lea.Print/Ht.cs",
+      "bytes": 9485
+    },
+    {
+      "sha256": "087317288FDB9C641073627482C8C524D6954C64D88524DE3A445357389C69CA",
+      "path": "sdk-source/Lea.Print/Lea.Print.csproj",
+      "bytes": 4036
+    },
+    {
+      "sha256": "5E4809382975570453FC452F31142403C6CCD20103D78872DA43C6D5D1E25BBB",
+      "path": "sdk-source/Lea.Print/Mi.cs",
+      "bytes": 905
+    },
+    {
+      "sha256": "C5C96EDDEA6E9B97522DAD63B7D4D51412E402BDA5E25C6DA05C44F0C50D4B9D",
+      "path": "sdk-source/Lea.Print/Pc.cs",
+      "bytes": 2328
+    },
+    {
+      "sha256": "FDBB49F92A38B5C16B99924C23540C750E83C8BB5EF61DC6DF7D220F35D262A5",
+      "path": "sdk-source/Lea.Print/Pd.cs",
+      "bytes": 1178
+    },
+    {
+      "sha256": "BC04FB6A092DFD116668B5FE79B6AF417C4EE16A348A5284E0E42C7F4121062A",
+      "path": "sdk-source/Lea.Print/Pf.cs",
+      "bytes": 3763
+    },
+    {
+      "sha256": "296DABAD05BDA5865D78E9A7B7CB5F828ABAB42F7A618EBA13BE17BA69D5BB52",
+      "path": "sdk-source/Lea.Print/Ph.cs",
+      "bytes": 1841
+    },
+    {
+      "sha256": "1C5C031A2A6D86103FD818FF97F4C85BD5F85FA0F6A0FC0947B14704C02C6A28",
+      "path": "sdk-source/Lea.Print/Pi.cs",
+      "bytes": 2874
+    },
+    {
+      "sha256": "0589D2FD101F8C9C24296D3F58420A8B1E16ABB1C55EA198644AD95C1A13E92A",
+      "path": "sdk-source/Lea.Print/Pj.cs",
+      "bytes": 3073
+    },
+    {
+      "sha256": "F5F4E12B53A321568A00BFEDC1A315A1F5906A0A4B731376C70F267666EC8C2E",
+      "path": "sdk-source/Lea.Print/Pk.cs",
+      "bytes": 8919
+    },
+    {
+      "sha256": "94941C6901F1C29520A3A92F9AC721D886C065D5F5B7D095CC27401A1294F2CE",
+      "path": "sdk-source/Lea.Print/Pm.cs",
+      "bytes": 15785
+    },
+    {
+      "sha256": "B7D05F56907E0731048849CDD12D483477F905F3B1084DB6F771BD5B1B36BD82",
+      "path": "sdk-source/Lea.Print/Po.cs",
+      "bytes": 4345
+    },
+    {
+      "sha256": "046D0F0979767A9312C119ED51FD381E8CB04F28988ECAC3AD8F6C1156C365D6",
+      "path": "sdk-source/Lea.Print/Pp.cs",
+      "bytes": 2052
+    },
+    {
+      "sha256": "81450349F6C59446B1FF31584ABC9D41272264F8F6958C2937AF1ED9DDED210A",
+      "path": "sdk-source/Lea.Print/Pr.cs",
+      "bytes": 1849
+    },
+    {
+      "sha256": "537F8AD41A6C53CFF93EBC449C3A0A1BB96FA88B4641F4D56AEB29EC25619BC1",
+      "path": "sdk-source/Lea.Print/Ps.cs",
+      "bytes": 9653
+    },
+    {
+      "sha256": "648009A06FD98FF29D9539E189BC1BDF4E0711935F74E658E233E7CA1F19B0DF",
+      "path": "sdk-source/Lea.Print/Pt.cs",
+      "bytes": 5120
+    },
+    {
+      "sha256": "1AD702218E1562B1AA45723CFD9FC8EDEB103452A3EF38393906E954ADE687BC",
+      "path": "sdk-source/Lea.Print/Pv.cs",
+      "bytes": 6465
+    },
+    {
+      "sha256": "7F93E7E2D54DCD2C721BD5230C35CC50DD5C52ED4C9EEA0EA69DD93DFDA05F70",
+      "path": "sdk-source/Lea.Print/Pw.cs",
+      "bytes": 7843
+    },
+    {
+      "sha256": "5D5BA8D2140BE5AB395F9E011E7F460453D4D3178603BB7F0BACE28B2E5076A0",
+      "path": "sdk-source/Lea.Print/Px.cs",
+      "bytes": 2699
+    },
+    {
+      "sha256": "17682A1416EB64019DFDADE1B5847F518CE6DDC185194FB1DD4DDCCD775DBD29",
+      "path": "sdk-source/Lea.Print/Py.cs",
+      "bytes": 1671
+    },
+    {
+      "sha256": "528D684F5FA674BF757950A35C4A3B4A8C3C5EB6AD3873E662B8213C9E794363",
+      "path": "sdk-source/Lea.Print/Pz.cs",
+      "bytes": 6565
+    },
+    {
+      "sha256": "E1AED7A86015A517767EEF367D87E70BD60DB37F34209C6CA623B785D6D55F42",
+      "path": "sdk-source/Lea.Script.Win/AssemblyInfo.cs",
+      "bytes": 514
+    },
+    {
+      "sha256": "B1ED51BACAB7FA947B7307D92E04B58459107E3948D79EEB3ED2A8B2AB6EC448",
+      "path": "sdk-source/Lea.Script.Win/Lea.Script.Win.csproj",
+      "bytes": 2397
+    },
+    {
+      "sha256": "197F77D2A0085A0D00AE2B912E1C3ED06EC373B538392A81E3CBEB1B088B7509",
+      "path": "sdk-source/Lea.Script.Win/W.cs",
+      "bytes": 6542
+    },
+    {
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9",
+      "path": "sdk-source/Lea.Script.Worker/Bm.cs",
+      "bytes": 967
+    },
+    {
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC",
+      "path": "sdk-source/Lea.Script.Worker/Codec.cs",
+      "bytes": 2394
+    },
+    {
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11",
+      "path": "sdk-source/Lea.Script.Worker/Dc.cs",
+      "bytes": 2954
+    },
+    {
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+      "path": "sdk-source/Lea.Script.Worker/Dom.compact.js",
+      "bytes": 21342
+    },
+    {
+      "sha256": "ED07B2EB993C92B5D890EEBD88C8ACA5E84F2656414AC54C74DA040B0325C057",
+      "path": "sdk-source/Lea.Script.Worker/JavaScriptObjectDeserializer.cs",
+      "bytes": 15890
+    },
+    {
+      "sha256": "A3492991CDF11629849BF71BC3596F675B72D00E726356B47AE3B06D343019DB",
+      "path": "sdk-source/Lea.Script.Worker/JavaScriptString.cs",
+      "bytes": 2381
+    },
+    {
+      "sha256": "940B7D6962C984C7FAB573D2FBA20C30350C57D74D787EC6B2A1397954578F49",
+      "path": "sdk-source/Lea.Script.Worker/Json8.cs",
+      "bytes": 656
+    },
+    {
+      "sha256": "E2E1C94A57FA293FF8D8545A58625CBCEF07454451185DE01BE952055B71C924",
+      "path": "sdk-source/Lea.Script.Worker/Lea.Script.Worker.csproj",
+      "bytes": 2219
+    },
+    {
+      "sha256": "CDF6E334CF99742BC9F3427ECE57B14AB39A5433141040ED42120F43B7FA83F1",
+      "path": "sdk-source/Lea.Script.Worker/Mg.cs",
+      "bytes": 1556
+    },
+    {
+      "sha256": "6D0A32A84A8649A72CD695E5B8B6154010930F12B0BCA9F8CDDBDF8C871154AF",
+      "path": "sdk-source/Lea.Script.Worker/Modern.AssemblyInfo.cs",
+      "bytes": 606
+    },
+    {
+      "sha256": "7011B263EEF665CDF6447B52B558CDA499773B6EE59CAA9825EA7CEC20BEA274",
+      "path": "sdk-source/Lea.Script.Worker/NetworkProbe.cs",
+      "bytes": 1690
+    },
+    {
+      "sha256": "2142CFB2DFA2C7FEEFBE40FABCC68B0DFECADAFA99A1DB9B70239D977CF2A7EF",
+      "path": "sdk-source/Lea.Script.Worker/NuGet.Config",
+      "bytes": 113
+    },
+    {
+      "sha256": "B0F59364D7A25AF09E4424C4D2FA794BFCA7A5CE13959B42E9BE21714ACA1921",
+      "path": "sdk-source/Lea.Script.Worker/Program.cs",
+      "bytes": 12498
+    },
+    {
+      "sha256": "0080F8E1F5DF49ED66749414DC42DE40824A61E0EA11591125C09042203999C4",
+      "path": "sdk-source/Lea.Script.Worker/ReferenceSupport.cs",
+      "bytes": 3584
+    },
+    {
+      "sha256": "AC9F0FFEBE2A498B48574A5E3B4A74B3B205E29ECA8A4ECE9291E92F769776E4",
+      "path": "sdk-source/Lea.Script.Worker/Resources.cs",
+      "bytes": 879
+    },
+    {
+      "sha256": "C839201419996306CA4FDC871D9B541DEE776F3CBF49CAF6D3DAEE08D928BD81",
+      "path": "sdk-source/Lea.Script.Worker/Utf16StringValidator.cs",
+      "bytes": 3017
+    },
+    {
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF",
+      "path": "sdk-source/Lea.Script.Worker/Vo.cs",
+      "bytes": 1164
+    },
+    {
+      "sha256": "1E9357F0B610513BE002D8B576E4D35BBE478469AC1C199188EB88E16CE719E5",
+      "path": "sdk-source/Lea.Script.Worker/Wire.Modern.cs",
+      "bytes": 8663
+    },
+    {
+      "sha256": "52A26D9FD0DE41AF862A36B570324D7AB4BA8BC98680FA3D3F9B78563F3167C9",
+      "path": "sdk-source/Lea.Script.Worker/Writer.cs",
+      "bytes": 16357
+    },
+    {
+      "sha256": "760904D050BCBBF484440672FD08C3C8E892E605BF2CB71C0D80A81472FE5347",
+      "path": "sdk-source/Lea.Script.Worker/WriterResources.cs",
+      "bytes": 462
+    },
+    {
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2",
+      "path": "sdk-source/Lea.Script/1.cs",
+      "bytes": 94
+    },
+    {
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF",
+      "path": "sdk-source/Lea.Script/10.cs",
+      "bytes": 1164
+    },
+    {
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0",
+      "path": "sdk-source/Lea.Script/11.cs",
+      "bytes": 8733
+    },
+    {
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5",
+      "path": "sdk-source/Lea.Script/12.cs",
+      "bytes": 7357
+    },
+    {
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6",
+      "path": "sdk-source/Lea.Script/13.cs",
+      "bytes": 40103
+    },
+    {
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8",
+      "path": "sdk-source/Lea.Script/14.cs",
+      "bytes": 597
+    },
+    {
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11",
+      "path": "sdk-source/Lea.Script/15.cs",
+      "bytes": 2954
+    },
+    {
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9",
+      "path": "sdk-source/Lea.Script/2.cs",
+      "bytes": 967
+    },
+    {
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC",
+      "path": "sdk-source/Lea.Script/3.cs",
+      "bytes": 2394
+    },
+    {
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5",
+      "path": "sdk-source/Lea.Script/4.cs",
+      "bytes": 2504
+    },
+    {
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5",
+      "path": "sdk-source/Lea.Script/5.cs",
+      "bytes": 11210
+    },
+    {
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC",
+      "path": "sdk-source/Lea.Script/6.cs",
+      "bytes": 26495
+    },
+    {
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683",
+      "path": "sdk-source/Lea.Script/7.cs",
+      "bytes": 460
+    },
+    {
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E",
+      "path": "sdk-source/Lea.Script/8.cs",
+      "bytes": 9047
+    },
+    {
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12",
+      "path": "sdk-source/Lea.Script/9.cs",
+      "bytes": 2939
+    },
+    {
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3",
+      "path": "sdk-source/Lea.Script/Dom.compact.js",
+      "bytes": 21342
+    },
+    {
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A",
+      "path": "sdk-source/Lea.Script/Dom.js",
+      "bytes": 37780
+    },
+    {
+      "sha256": "418BAD1BC9DA3598EEC5E12DFEFFE2E84D6C6B9CFC6DC138866E9A979BEB2F6A",
+      "path": "sdk-source/Lea.Script/Lea.Script.csproj",
+      "bytes": 3347
+    },
+    {
+      "sha256": "41457ADEE41DF2BF2898286CA492BAAE34A768F5A7D45C183CDDAB5D437BF856",
+      "path": "sdk-source/Lea.Win/Di.cs",
+      "bytes": 24099
+    },
+    {
+      "sha256": "DEE10AB64B227ABBADC7BD1B72E0A504F6D788750C49C5EA3D3CD80004254662",
+      "path": "sdk-source/Lea.Win/DocumentSelection.cs",
+      "bytes": 14271
+    },
+    {
+      "sha256": "5697AA7B65C474236FA18076F0899F65C648708DF7A7F1E763D353E5A3C5880B",
+      "path": "sdk-source/Lea.Win/DocumentSelectionAutomation.cs",
+      "bytes": 5981
+    },
+    {
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5",
+      "path": "sdk-source/Lea.Win/Jb.cs",
+      "bytes": 7357
+    },
+    {
+      "sha256": "80508040B077724635A8EDAB871ABA3EF038C0D8CA7187011953E0B0AF5F76B0",
+      "path": "sdk-source/Lea.Win/Lea.Win.csproj",
+      "bytes": 1528
+    },
+    {
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3",
+      "path": "sdk-source/Lea.Win/Net48TargetFramework.cs",
+      "bytes": 137
+    },
+    {
+      "sha256": "A79E8CCB48BECC64BFAD8590A3609840199ADE97EF49B841C1E86431DBBB209E",
+      "path": "sdk-source/Lea.Win/Pi.cs",
+      "bytes": 14538
+    },
+    {
+      "sha256": "68E7CD7CAD09E7EA1283DC557BC1A3C4BA3B380884CCD7D448FFF58685C597D9",
+      "path": "sdk-source/Lea.Win/PrintImages.cs",
+      "bytes": 2262
+    },
+    {
+      "sha256": "482F990F4D51D809B47338CE475D2CD19A6C6AC28268946FBE24F8DD95E22841",
+      "path": "sdk-source/Lea.Win/Rp.cs",
+      "bytes": 39521
+    },
+    {
+      "sha256": "952585156E3A8D8800398116B12D1132D754CFBD4249E216C1D05DE6394A368F",
+      "path": "sdk-source/Lea.Win/V.cs",
+      "bytes": 499499
+    },
+    {
+      "sha256": "1C2D3CA0BF9B7995F7BB435807CEFC07CBB99D8A43CBE3CC4F3AEF970AE28810",
+      "path": "sdk-source/Lea.Win/Xs.cs",
+      "bytes": 15266
+    },
+    {
+      "sha256": "CB610911F3AB9F8AE0134CEADC053AEE57927FC30C7B82B1587F141CD156CD72",
+      "path": "sdk-source/NativeWorker.Tools.cs",
+      "bytes": 685
+    },
+    {
+      "sha256": "AF0FD015AAC83273A57B28E5020BE709D69897E0BD70F40D899A2B76E849BCC5",
+      "path": "sdk-source/New-NativeToolchain.ps1",
+      "bytes": 2567
+    },
+    {
+      "sha256": "1D37D1F627EFC746EDC4EE3B0E1E8EED732E4456A88E2F5A5185AB5960272472",
+      "path": "sdk-source/Sample/embedding.html",
+      "bytes": 237
+    },
+    {
+      "sha256": "1071B44E06DF3E18F9697895777002EF7AFEF339FF8596E495BDA93A1D130F7C",
+      "path": "sdk-source/Sample/EmbeddingSample.cs",
+      "bytes": 4350
+    },
+    {
+      "sha256": "36BA09164984840751A059996AF1AC39C799FC459D9B0E16B4F0615AE21675C4",
+      "path": "sdk-source/Sample/EmbeddingSample.csproj",
+      "bytes": 2605
+    },
+    {
+      "sha256": "413FA4422A648F52E4B1828C8A18F366E4656ABE01F2945280F36386273A396A",
+      "path": "sdk-source/ScriptSample/script-embedding.html",
+      "bytes": 482
+    },
+    {
+      "sha256": "7EEEB731847DAF7A7274765711F6144AC0AA1292AEE70A634188CD3945CF445C",
+      "path": "sdk-source/ScriptSample/ScriptEmbeddingSample.cs",
+      "bytes": 8247
+    },
+    {
+      "sha256": "0D3D35B98CB8B1DF3BF9313D4473287E3FDFCE8DE498F550EC43BD694EF5B5CD",
+      "path": "sdk-source/ScriptSample/ScriptEmbeddingSample.csproj",
+      "bytes": 1859
+    },
+    {
+      "sha256": "0FEE6F9BF31A290EDFCA53CB30B47EAE0994F204CF5E8C4EBDDD8F080AF49681",
+      "path": "sdk-source/ScriptSample/ScriptHost.config",
+      "bytes": 531
+    },
+    {
+      "sha256": "55D590B8785259F169DF7BFA74015931A4810597976186ACA448CD9D363B2731",
+      "path": "sdk-source/SDK_FULL.md",
+      "bytes": 5654
+    },
+    {
+      "sha256": "82AE2C2D13AC764078B70CD06CA9E9AE9799FCD33466A3F8AC62CEE13C2F7720",
+      "path": "sdk-source/SDK.Build.proj",
+      "bytes": 2820
+    },
+    {
+      "sha256": "EDBD0E5CBA9E8765E39F40201C3E66B2918D0ADEFBC4A7ED7F0E4CF6373D0644",
+      "path": "sdk-source/SOURCE_GRAPH.md",
+      "bytes": 5763
+    },
+    {
+      "sha256": "FC0BF17DA980918F79535B91C9EE9CA14834500212255BDACBBC8836E6DED300",
+      "path": "firespider-source/1.Designer.vb",
+      "bytes": 46270
+    },
+    {
+      "sha256": "8983D7D159A826441106FEFE698B6CF1A7D8929FDE39A4F561F99AC867549B06",
+      "path": "firespider-source/1.resx",
+      "bytes": 124483
+    },
+    {
+      "sha256": "476CC8879FFC2F5A2DFED60910207430A942021974F41B68C6CB22E564BA5B77",
+      "path": "firespider-source/1.vb",
+      "bytes": 663127
+    },
+    {
+      "sha256": "6D10BAEDCB47535A181AAA17A818A9AF0113BE338AA40A237635D36DC0BACAC2",
+      "path": "firespider-source/2.Designer.vb",
+      "bytes": 11098
+    },
+    {
+      "sha256": "7A4A98004F09A26680B7E3454F99068C6D5901D3E88C27B572D7C37FD443B18D",
+      "path": "firespider-source/2.resx",
+      "bytes": 33448
+    },
+    {
+      "sha256": "239E7F5068C283197C81DB32750AD4061CE43608D4E099F1AFA5C3EAE3E5B810",
+      "path": "firespider-source/2.vb",
+      "bytes": 2369
+    },
+    {
+      "sha256": "2A6572ED795F8B356272B1A6A3D92C0DAD538D3637A2B84E410884D5C8CE694C",
+      "path": "firespider-source/3.Designer.vb",
+      "bytes": 2717
+    },
+    {
+      "sha256": "6A71FE315F6CBD46B927EBDCC0B7EFF63349A01F6AC0401D35DD8F32802D0275",
+      "path": "firespider-source/3.resx",
+      "bytes": 31895
+    },
+    {
+      "sha256": "1610890569D34ADD62903FFC262B4FE928E974163342B978A1E4218C5557307B",
+      "path": "firespider-source/3.vb",
+      "bytes": 126
+    },
+    {
+      "sha256": "88F36D4E53011DA059D26E3B3B1A336C444D5F4FC29A0449078C345185E99718",
+      "path": "firespider-source/4.Designer.vb",
+      "bytes": 16588
+    },
+    {
+      "sha256": "1C91AD30BEA84A7E9E0001F878438A37A3D719F92E21875AAD694F92205395DB",
+      "path": "firespider-source/4.resx",
+      "bytes": 35146
+    },
+    {
+      "sha256": "D26A124AFBB7FE6F077D9813965BF9D98C7D6B3491566AEC0B6B064AF41C0765",
+      "path": "firespider-source/4.vb",
+      "bytes": 11049
+    },
+    {
+      "sha256": "235492F9C24366D7D71A53D7D1195FC1CFE7ABCC40E6191A1ACAB8F8514CD028",
+      "path": "firespider-source/6.Designer.vb",
+      "bytes": 5112
+    },
+    {
+      "sha256": "1AC5760FC96A2B92A927D0DFC77E600899169422B16CC6D3C92BB89627CD1C0D",
+      "path": "firespider-source/6.resx",
+      "bytes": 32233
+    },
+    {
+      "sha256": "1FECCC5CD8791E5C9A0617E99031EEA21A8E857921EC5D2A990A5FD0C685A2D7",
+      "path": "firespider-source/6.vb",
+      "bytes": 949
+    },
+    {
+      "sha256": "0BB4DC083ED9AB8CD9B6902E3A12302DC66BD622241BC7F207788879A7C613C4",
+      "path": "firespider-source/7.Designer.vb",
+      "bytes": 4726
+    },
+    {
+      "sha256": "3EAB205B42050F3B6BD21C4FB12C1530EC1DE3B68BD5AF8057D8C5C7DB84F7C7",
+      "path": "firespider-source/7.resx",
+      "bytes": 32404
+    },
+    {
+      "sha256": "9CDB2673FACDEFA0AAADB45D7A5F01354D8FBF4B670D31319142AD533FBEC9C1",
+      "path": "firespider-source/7.vb",
+      "bytes": 1910
+    },
+    {
+      "sha256": "E91AC2CC41148E4F9F2FA181E5B17C8A4A35E07A56055A9BA6567A6EEC92BFAF",
+      "path": "firespider-source/app.config",
+      "bytes": 16049
+    },
+    {
+      "sha256": "7366C737C5FB2A839D74148B81DF0656F821F6FC3C63122D6FF10ECC891A01CE",
+      "path": "firespider-source/BrowserFeatures.vb",
+      "bytes": 63285
+    },
+    {
+      "sha256": "C060199180F8D753CDE7E50E2ED4D1FF6D7C78A70A74ED63422F2593DE46FC05",
+      "path": "firespider-source/BrowserFeatures10.vb",
+      "bytes": 16443
+    },
+    {
+      "sha256": "3AE0D54C32412356DC52DE2A7F3A800190CE8FEE953B84893489E07540204482",
+      "path": "firespider-source/BrowserFeatures2.vb",
+      "bytes": 46587
+    },
+    {
+      "sha256": "9752A2F4341A70EB62EEFB7DA1958DA53E841C7E6DB75C3619FE23B24B57E1C0",
+      "path": "firespider-source/BrowserFeatures3.vb",
+      "bytes": 54002
+    },
+    {
+      "sha256": "C21DF6EC50A6F48FC91F90B692EF3AA5638ED9B83358C45FA348BFD1BA0E0753",
+      "path": "firespider-source/BrowserFeatures4.vb",
+      "bytes": 63933
+    },
+    {
+      "sha256": "E3B2E2230F3A95BA2332CF53FCDE86BE4EF1312DED35C10C51AA6DABFEA51FB3",
+      "path": "firespider-source/BrowserFeatures5.vb",
+      "bytes": 16287
+    },
+    {
+      "sha256": "7C97C89F68AE7D4278674BC411601133F620A22F9AB50FEB8B85452C7D5CB77F",
+      "path": "firespider-source/BrowserFeatures6.vb",
+      "bytes": 32207
+    },
+    {
+      "sha256": "EC7CD5DB9EFAF6F7655BC51F5ACD2769417AA7AD155BD057A79F12C011937C7B",
+      "path": "firespider-source/BrowserFeatures7.vb",
+      "bytes": 33538
+    },
+    {
+      "sha256": "291E00F72681C177FEC354BEED880C522377B0804F629239AA23800D9D2C2E37",
+      "path": "firespider-source/BrowserFeatures8.vb",
+      "bytes": 79016
+    },
+    {
+      "sha256": "A50C2E122F780E81F73204CD9311567F024D8E0745BF2042A0C1D825AEF21AF0",
+      "path": "firespider-source/BrowserFeatures9.vb",
+      "bytes": 69244
+    },
+    {
+      "sha256": "8DD1B020E35B423A2F5A940E7584BD7F9D6B06BE52900BBAA83A09E9999A45F8",
+      "path": "firespider-source/Firespider Internet.vbproj",
+      "bytes": 14281
+    },
+    {
+      "sha256": "ED6DD32F2F9AD3D752C37762A7FFE0B2F83A439ADE05C8F33278F553F8F9B262",
+      "path": "firespider-source/FirespiderLea.vb",
+      "bytes": 87115
+    },
+    {
+      "sha256": "94274F7A0336E5140F3986E8C97370EDCA1F2F7532E2403B6CBE6E3CFF9B8AAB",
+      "path": "firespider-source/FirespiderSplit.vb",
+      "bytes": 18789
+    },
+    {
+      "sha256": "57B6877B04AF39BCEEFBEE78B94F0B25687C623BF80EF184ACB0102DD59ECA39",
+      "path": "firespider-source/Icon.ico",
+      "bytes": 4518
+    },
+    {
+      "sha256": "7AED1102E230DF80D111E0B52D8CA355D34F755AE1B64A52175D49B8BBFC2164",
+      "path": "firespider-source/Lea/FirespiderLea.targets",
+      "bytes": 3396
+    },
+    {
+      "sha256": "DD1D8ABB38C1051FA28FE953C6C27978E332C7AE37CB10C2286C0581E4A59FFA",
+      "path": "firespider-source/Lea/start.html",
+      "bytes": 637
+    },
+    {
+      "sha256": "F1FE31F9A4F8222579BE2D1F7F39A21C96665AC13679A41F5501840A08D39B32",
+      "path": "firespider-source/licenses/Acornima-BSD-3-Clause.txt",
+      "bytes": 1566
+    },
+    {
+      "sha256": "8626F0B8F39A9AE2BFD4ACA1DA667076A781E4AE07312BC2F880ACCCB57ABDF4",
+      "path": "firespider-source/licenses/Jint-BSD-2-Clause.txt",
+      "bytes": 1324
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "firespider-source/licenses/Microsoft-MIT.txt",
+      "bytes": 1139
+    },
+    {
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "path": "firespider-source/licenses/Microsoft-Third-Party-Notices.txt",
+      "bytes": 15835
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "firespider-source/licenses/system.buffers/LICENSE.TXT",
+      "bytes": 1139
+    },
+    {
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "path": "firespider-source/licenses/system.buffers/THIRD-PARTY-NOTICES.TXT",
+      "bytes": 15835
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "firespider-source/licenses/system.memory/LICENSE.TXT",
+      "bytes": 1139
+    },
+    {
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "path": "firespider-source/licenses/system.memory/THIRD-PARTY-NOTICES.TXT",
+      "bytes": 15835
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "firespider-source/licenses/system.numerics.vectors/LICENSE.TXT",
+      "bytes": 1139
+    },
+    {
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "path": "firespider-source/licenses/system.numerics.vectors/THIRD-PARTY-NOTICES.TXT",
+      "bytes": 15835
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "firespider-source/licenses/system.runtime.compilerservices.unsafe/LICENSE.TXT",
+      "bytes": 1139
+    },
+    {
+      "sha256": "A6344BFB229BC08D1071CEC400EEA216E307439F961C5943EC1B56D2245ACB95",
+      "path": "firespider-source/licenses/system.runtime.compilerservices.unsafe/THIRD-PARTY-NOTICES.TXT",
+      "bytes": 46990
+    },
+    {
+      "sha256": "5CD2CC77D4EB0AC729AD9982D659829739BF85DC5CB0D67B151C1132B30CDABB",
+      "path": "firespider-source/My Project/app.manifest",
+      "bytes": 653
+    },
+    {
+      "sha256": "1C81642C36F9A96A423B5CA1E4EC1ED7E78378E220DA0E218A7182D61371BEF6",
+      "path": "firespider-source/My Project/Application.Designer.vb",
+      "bytes": 1518
+    },
+    {
+      "sha256": "67C1D2051EE1B353232961DBAFEE0F1E3B5E4C41AB098D29A17190A18D58D2FB",
+      "path": "firespider-source/My Project/Application.myapp",
+      "bytes": 464
+    },
+    {
+      "sha256": "8F860F02036A940152EC19E9C93828CF26708F43DA25999930C9B2B77B3D67FA",
+      "path": "firespider-source/My Project/AssemblyInfo.vb",
+      "bytes": 1327
+    },
+    {
+      "sha256": "72493DE3F146097C0B568EB3C4A77827A7B053B42093807301ADC0709FE20FC8",
+      "path": "firespider-source/My Project/Resources.Designer.vb",
+      "bytes": 12124
+    },
+    {
+      "sha256": "4A2DBBA95331DBDA5C21E7A4A8D5B85C2E3C80C5C11A9616C7F3D81D1482D09A",
+      "path": "firespider-source/My Project/Resources.resx",
+      "bytes": 12023
+    },
+    {
+      "sha256": "C6780CF3926D9F02C3790AF1531E7127832290D30BBED976AB514C892AC1D310",
+      "path": "firespider-source/My Project/Settings.Designer.vb",
+      "bytes": 56530
+    },
+    {
+      "sha256": "7E1347EE465153D5606013514C5E26869932379AF363E968086EF2E34954AE45",
+      "path": "firespider-source/My Project/Settings.settings",
+      "bytes": 19793
+    },
+    {
+      "sha256": "097FC97125068D6233CAFF6269E559CD56F6D0C7E8D20296E069FB8A05509C58",
+      "path": "firespider-source/package-manifest.json",
+      "bytes": 16618
+    },
+    {
+      "sha256": "861E9D9CEF0A4D2A9ECD08AE7860317D845189E2CB94009024F10FEC05F6BFB6",
+      "path": "firespider-source/PrintCommand.vb",
+      "bytes": 2889
+    },
+    {
+      "sha256": "DB9BE51E2CB2E024B0FCACBEE7BCBEE8B451F43D2344E1F0FB9666C14A90EAAE",
+      "path": "firespider-source/PrintPreview.vb",
+      "bytes": 2030
+    },
+    {
+      "sha256": "CE31FB01D05FAA128DFA9520C674C0574404A21691F531329D8A78FB5331796A",
+      "path": "firespider-source/Res/F0.png",
+      "bytes": 201
+    },
+    {
+      "sha256": "74893715C0663C27776282C67E9325431711279FAFE7EA5E8DBC8B5F860DD0CB",
+      "path": "firespider-source/Res/F1.png",
+      "bytes": 112
+    },
+    {
+      "sha256": "55FCDAE30217F319D3BE58AF2FF344E6CAE85AFEE46803DF79FF166F315BD9EB",
+      "path": "firespider-source/Res/F2.png",
+      "bytes": 77
+    },
+    {
+      "sha256": "56BC22913B8287F1A48C6EE733B5FA4ED534A5A672A2CE7620B23718799BEB11",
+      "path": "firespider-source/Res/F3.png",
+      "bytes": 206
+    },
+    {
+      "sha256": "4596DDA389D78E35E8B6826760E86B947FFEE9A8F1F396CAE008FD0D1406C5EA",
+      "path": "firespider-source/Res/F4.png",
+      "bytes": 207
+    },
+    {
+      "sha256": "2975277265EFCF1E65844F04C8F3C4592268DB8872940193F3AD4C70D5A88A2C",
+      "path": "firespider-source/Res/F5.png",
+      "bytes": 169
+    },
+    {
+      "sha256": "B5D3533D1CB9E5F20AD460BA00319CD20E36886DD05D9B347B3B94D6423F2B15",
+      "path": "firespider-source/Res/F6.png",
+      "bytes": 246
+    },
+    {
+      "sha256": "645602EB94828BB6C0BA5968E4E309549ABAF8C591C2FBCEA1E1F511290718A5",
+      "path": "firespider-source/Res/F7.png",
+      "bytes": 259
+    },
+    {
+      "sha256": "C302BCF22CA9A3384BF3C7624AABD516A283BFB8B2FFE5ED275AA7DA518B5903",
+      "path": "firespider-source/Res/F8.png",
+      "bytes": 315
+    },
+    {
+      "sha256": "71D0EE171BD5AC7015AC49B6AAEE667DCDB80DBA078270B598EFED81D1F829E8",
+      "path": "firespider-source/Res/F9.png",
+      "bytes": 195
+    },
+    {
+      "sha256": "61F8CD44622A350A631303A94D7041CB68B1985D01AA77E2DA53E3D7A409B4BA",
+      "path": "firespider-source/Res/FX.png",
+      "bytes": 109
+    },
+    {
+      "sha256": "BB61E4643620468DED316365F194274A20B1544EDE55927E1CA85602E032E9BB",
+      "path": "firespider-source/Res/N0.png",
+      "bytes": 191
+    },
+    {
+      "sha256": "C99283E5636F805B00C9E24393E31D565C72C177E2E0173A667DD47BBEAB4EA6",
+      "path": "firespider-source/Res/N1.png",
+      "bytes": 195
+    },
+    {
+      "sha256": "6940D6A07B6EF252855037046BC6B4B5DA1FBE0A8E7B81C82907C45D6607B5BC",
+      "path": "firespider-source/Res/N2.png",
+      "bytes": 184
+    },
+    {
+      "sha256": "AAB48B456F3DCFC4F7713799E5678B6B413FEDE25392FE6A5F90ABA6917953C5",
+      "path": "firespider-source/Res/N3.png",
+      "bytes": 174
+    },
+    {
+      "sha256": "964004012259BE74FD17C863649420D6C548971DF4D4281EC349AE0F20252335",
+      "path": "firespider-source/Res/N4.png",
+      "bytes": 190
+    },
+    {
+      "sha256": "50ECF829B099CB6E55C7DEC2E84A9B7CEDD712841A27DC9DF61B3D18E9CB3B81",
+      "path": "firespider-source/Res/N5.png",
+      "bytes": 186
+    },
+    {
+      "sha256": "59886F526ECB8DC6D0667AD5C15F6DB5F582592B4F190076E0C0B570C69462BD",
+      "path": "firespider-source/Res/N6.png",
+      "bytes": 179
+    },
+    {
+      "sha256": "570EF41EF353AC69FB18F7E108134C74F9029CC8B14A79DF58BD4412957CE9E5",
+      "path": "firespider-source/Res/N7.png",
+      "bytes": 198
+    },
+    {
+      "sha256": "8E0E15808EC66EB001B3268B0EF61EBBA0A18D2AD4245D129B8B57941FCA9503",
+      "path": "firespider-source/Res/O0.png",
+      "bytes": 127
+    },
+    {
+      "sha256": "DD9B6E01EF769B96719C6AB3C801E650F5D4C449E0178F8795CCBAC253B8C131",
+      "path": "firespider-source/Res/O1.gif",
+      "bytes": 149
+    },
+    {
+      "sha256": "65ACD29AEAC726B68BD37C6FE295BB1921DE0D9504B0E892C73649E75E5D02B5",
+      "path": "firespider-source/Res/O3.png",
+      "bytes": 626
+    },
+    {
+      "sha256": "E34F69C52C77082881BEB541ABF63F6F92ACF14C90825F4A6FDD00B30FA6CF65",
+      "path": "firespider-source/Res/O4.png",
+      "bytes": 103
+    },
+    {
+      "sha256": "2E10134FA486E5B3FA1B46764534754B84DF6341232403081534AE55029794AD",
+      "path": "firespider-source/Res/O5.png",
+      "bytes": 137
+    },
+    {
+      "sha256": "969350B601A6CAA2850CEEE7EE4C3A30FD62FC68E30C37FBB169EB80C3A51AB0",
+      "path": "firespider-source/Res/O7.png",
+      "bytes": 89
+    },
+    {
+      "sha256": "391D9E182A30733842EC65BA89F84DFF2C4BB101B9818BB354191DBCD9914BF5",
+      "path": "firespider-source/Res/so.wav",
+      "bytes": 66384
+    },
+    {
+      "sha256": "C17A7F46E62B5C52338DC029B65A5B7ECB9265ED9CAABF93C63B064A65594183",
+      "path": "firespider-source/Res/sr.wav",
+      "bytes": 42080
+    },
+    {
+      "sha256": "2242FA999425DAE21EA5A42881975271EE196CC6DD6107626D6204857424F3B5",
+      "path": "firespider-source/Settings.vb",
+      "bytes": 97
+    },
+    {
+      "sha256": "F84A1557FD5029B65F8A61C5BE34E4C4DAAAC1FFDD7159B741E0B86D2BD8E79C",
+      "path": "firespider-source/source-manifest.json",
+      "bytes": 29862
+    },
+    {
+      "sha256": "AB2B9404158657BB6F0BE70D57937BE15320E011D3CAF13797E8C3C5EE8E835A",
+      "path": "PROJECT_CONTEXT.md",
+      "bytes": 45733
+    },
+    {
+      "sha256": "8AC4C88EDB28D36AE1A193433588E51C73FC6CE8F75F00C217D02DDF7CE228BF",
+      "path": "Lea.Build/Build-CurrentFirespider.ps1",
+      "bytes": 9401
+    },
+    {
+      "sha256": "52A208551F05A89BC80D3156243ADE6AE0EF3F60DA4B15CA5546E1ED307A63FB",
+      "path": "Lea.Build/Prepare-CurrentFirespiderRuntime.ps1",
+      "bytes": 4320
+    },
+    {
+      "sha256": "E174B6559B2253A526B537704CD5E33CE56530E9D36DA3DEC79F5FE3D5FFB5E4",
+      "path": "Lea.Build/Prepare-CurrentFirespiderSmokes.ps1",
+      "bytes": 4445
+    },
+    {
+      "sha256": "0D3E55BCD9CBF09AC299EFAC43F1B9D13079E34595F8699D31B20942C6A29061",
+      "path": "Lea.Build/Audit-CurrentFirespider.ps1",
+      "bytes": 9240
+    },
+    {
+      "sha256": "DB535B4F5D35659F9EEACA4DE051D956BEAE023E8E1A64FBD52FA1CADF6CB679",
+      "path": "Lea.Build/Publish-CurrentFirespider.ps1",
+      "bytes": 8638
+    },
+    {
+      "sha256": "0AC6D53BA9C051AA359805F8C5938D269E1F69960FEEA9CB3D8A26BA9BD24D7C",
+      "path": "Lea.Build/Test-PrivateBindingHostSmokes-v1.generated.ps1",
+      "bytes": 6908
+    },
+    {
+      "sha256": "AE4F6F346E736C28D60291FEBF0EA578D2CEF331CAC2260294F5BEA37564BFE0",
+      "path": "Lea.Build/Test-PrivateBindingHostWorkflows-v1.generated.ps1",
+      "bytes": 7169
+    },
+    {
+      "sha256": "BD2DB16A23A8C41B51BACC78AB9E6501928A44BDE72634CA79290B7EFAD68548",
+      "path": "Lea.Build/Invoke-StartupBody.ps1",
+      "bytes": 1921
+    },
+    {
+      "sha256": "16115BA59D79016AD20DD10C4AA480B43CA09F6249A7E1D613E9D0C70CF5D8B0",
+      "path": "LeaForge/CURRENT_SOURCE_HOST.md",
+      "bytes": 6612
+    },
+    {
+      "sha256": "EB5BEBBCEF0BA096207B454543C4A8EC8E579BAADF5047B4BDDA77C6FF8F674F",
+      "path": "LeaForge/CURRENT_HOST.md",
+      "bytes": 28982
+    },
+    {
+      "sha256": "6CDD2A74ED1972646074138743BB4742CE631C7A1025BBC5B988A48C78C3B2C6",
+      "path": "LeaForge/PROGRESS.md",
+      "bytes": 424464
+    },
+    {
+      "sha256": "8A6455E34D906CECC808AD4C57C304B8670E388B5C10A917EB19D1AC7905C487",
+      "path": "LeaForge/FINISH_PLAN.md",
+      "bytes": 54873
+    },
+    {
+      "sha256": "14DA95E52C1C4F115B4D0E2BC1CE7ACB66A434C4CE3095A51C194B91CDE69E6A",
+      "path": "LeaForge/SOURCE_BACKUPS.md",
+      "bytes": 22692
+    },
+    {
+      "sha256": "1BD8215B13F63EE12AA16554CAF0C4EDF46812FE28B52B45CBC10F1B881FEF16",
+      "path": "Lea.Sdk/CURRENT_BUILD.md",
+      "bytes": 5134
+    },
+    {
+      "sha256": "1042F5CB68AB16A1C66EFB8524B2C5FD6C1C5098A74F088161060692BD629414",
+      "path": "evidence/startup/Test-FirespiderStartup.ps1",
+      "bytes": 25222
+    },
+    {
+      "sha256": "26806608D4BED93F2688B4C7993EC776BFE28A2AFD3E658ADCCECE079FD60253",
+      "path": "evidence/workflow/audit.json",
+      "bytes": 14053
+    },
+    {
+      "sha256": "8AC4C88EDB28D36AE1A193433588E51C73FC6CE8F75F00C217D02DDF7CE228BF",
+      "path": "evidence/workflow/build-build.ps1",
+      "bytes": 9401
+    },
+    {
+      "sha256": "F909B0C740C2A527D46D125BD7FC1C032468ABE96FF045DE8EB2FE9F193BB7BE",
+      "path": "evidence/workflow/build-candidate-manifest.json",
+      "bytes": 35158
+    },
+    {
+      "sha256": "9BBD717538215780D05C8740A1989E8560E15A4DCAA38BFB519FFA7F475FFE8C",
+      "path": "evidence/workflow/build-compile-current-firespider.result.json",
+      "bytes": 1152
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/build-compile-current-firespider.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "C90D9444C7B67F757ED56D3DCCDFFC8EB56D3847BA2DC6CAF541D61A15E4A59B",
+      "path": "evidence/workflow/build-compile-current-firespider.stdout.txt",
+      "bytes": 510
+    },
+    {
+      "sha256": "CD72727F31282AABB42DABBEE2F55BCA69C63A9352A3528C8EB5657A03A2B408",
+      "path": "evidence/workflow/build-result.json",
+      "bytes": 64948
+    },
+    {
+      "sha256": "2836AC6BA77C2DB096C5365EED4D7B6E48D56A82A0A4DFDBEBFD2CCE3DD6E1AB",
+      "path": "evidence/workflow/runtime-runtime-manifest.json",
+      "bytes": 279456
+    },
+    {
+      "sha256": "C21B2358986CAEB9C3626D3EC78860588E3E6BBBEDB589B7909DA23FA2D34896",
+      "path": "evidence/workflow/smoke-clean.json",
+      "bytes": 2601
+    },
+    {
+      "sha256": "06DA5FC41C86B061531EE329B6038B4275FC652AE957AB70C54F87F8C83C8DC7",
+      "path": "evidence/workflow/smoke-exe-clean.result.json",
+      "bytes": 1230
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "evidence/workflow/smoke-exe-clean.stderr.txt",
+      "bytes": 616
+    },
+    {
+      "sha256": "2DFFA224390F944504BDDD555AE688A94EBCFE4D7C2EF0B3BDD405A1FEAF3356",
+      "path": "evidence/workflow/smoke-exe-clean.stdout.txt",
+      "bytes": 1294
+    },
+    {
+      "sha256": "710D750203722403905663CAE9545455C65A1C8EC91CF349C8ED89BE56B626A9",
+      "path": "evidence/workflow/smoke-exe-lazy-all.result.json",
+      "bytes": 1240
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "evidence/workflow/smoke-exe-lazy-all.stderr.txt",
+      "bytes": 616
+    },
+    {
+      "sha256": "F7CECC3D8C346B1F608448A13722CB0518A57512BF4AC8745400B951533B4A85",
+      "path": "evidence/workflow/smoke-exe-lazy-all.stdout.txt",
+      "bytes": 1551
+    },
+    {
+      "sha256": "E231F3A64AD229B89971BB8C39FA27E7CBA0B88544CE92FCEA4653DC324EAED4",
+      "path": "evidence/workflow/smoke-exe-lazy-background.result.json",
+      "bytes": 1260
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "evidence/workflow/smoke-exe-lazy-background.stderr.txt",
+      "bytes": 616
+    },
+    {
+      "sha256": "D5AC6210CF1485D38DED0CB85E2796D01381D6B0E38ABF27C31B35886FCFE88A",
+      "path": "evidence/workflow/smoke-exe-lazy-background.stdout.txt",
+      "bytes": 1574
+    },
+    {
+      "sha256": "F79772B59527B9EB5A8BB2D8F9B84FD71732427A3B5780B5D84070A92550BBF2",
+      "path": "evidence/workflow/smoke-exe-locked.result.json",
+      "bytes": 1234
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "evidence/workflow/smoke-exe-locked.stderr.txt",
+      "bytes": 616
+    },
+    {
+      "sha256": "5E03A06325D7E2E28AB7DA8CD95ACB253F35D29F5BE0EDA5A0AEE132400497D6",
+      "path": "evidence/workflow/smoke-exe-locked.stdout.txt",
+      "bytes": 1295
+    },
+    {
+      "sha256": "CBACC325BD9E89AB988735F9178F1161C3F64A4BA79554F31EE81AFFF668BA1E",
+      "path": "evidence/workflow/smoke-exe-oversized.result.json",
+      "bytes": 1242
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "evidence/workflow/smoke-exe-oversized.stderr.txt",
+      "bytes": 616
+    },
+    {
+      "sha256": "1F13DE65BEC62BA84C98F21F963A092D6DCCC6EC33BDBC43317119755F761125",
+      "path": "evidence/workflow/smoke-exe-oversized.stdout.txt",
+      "bytes": 1298
+    },
+    {
+      "sha256": "B81ACF314ED16CD05A2E78F6E5A05E6192A19EE03204ABC1DACE10316F419F42",
+      "path": "evidence/workflow/smoke-exe-restored.result.json",
+      "bytes": 1238
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "evidence/workflow/smoke-exe-restored.stderr.txt",
+      "bytes": 616
+    },
+    {
+      "sha256": "B6A83A3687E89A4A5E05E1913A5E9ECCC908BAFF956B6E5B778189D80F973CCB",
+      "path": "evidence/workflow/smoke-exe-restored.stdout.txt",
+      "bytes": 1567
+    },
+    {
+      "sha256": "A621C765CF64DE663B71FCA4CF6E8FD4EB48562D60424B216DF53F82349488D2",
+      "path": "evidence/workflow/smoke-host-clean.result.json",
+      "bytes": 1224
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/smoke-host-clean.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "1BED7E7DF3C666FAF0C39C0CC430925BDE913F13720ED0FD3A023943A307450E",
+      "path": "evidence/workflow/smoke-host-clean.stdout.txt",
+      "bytes": 52
+    },
+    {
+      "sha256": "D743D75D34DA6AAFDE47C4522D2175550FE0AFBA054428BBAAF6F0A5D39DABC0",
+      "path": "evidence/workflow/smoke-host-edit.result.json",
+      "bytes": 1221
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/smoke-host-edit.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "7BCA0880966F5BD9DBA47F2D9910D1CA3B2C9000E42320B7BD9314C2E39CD726",
+      "path": "evidence/workflow/smoke-host-edit.stdout.txt",
+      "bytes": 189
+    },
+    {
+      "sha256": "D49820F47BC719E607DE6BF15A285DC141A1FC31D6D6628D21A2881BC1321AE0",
+      "path": "evidence/workflow/smoke-host-lea.result.json",
+      "bytes": 1218
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/smoke-host-lea.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "D8BFFBE114B9C51307B1520855846095E4133105ABD37F5F13A212BB2AB6308E",
+      "path": "evidence/workflow/smoke-host-lea.stdout.txt",
+      "bytes": 50
+    },
+    {
+      "sha256": "1A0470309734EF3FD747CD4AECE9A84707AAEF84247E28A94338B7C4BA29E290",
+      "path": "evidence/workflow/smoke-host-navigation.result.json",
+      "bytes": 1241
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/smoke-host-navigation.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "B073F6F91FA949F7C6B0ED087D24C38228263F33480BB5FAFE60FED084C2415E",
+      "path": "evidence/workflow/smoke-host-navigation.stdout.txt",
+      "bytes": 364
+    },
+    {
+      "sha256": "16E05AB3CDCB5F8555D62B509A9389863909CFCDF55AC1161B2A5E350220F156",
+      "path": "evidence/workflow/smoke-host-script.result.json",
+      "bytes": 1232
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/smoke-host-script.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "175586C5137CE962E48AD9B989D71E6D04C8AF6118F72533A73B7F5C3AD84F38",
+      "path": "evidence/workflow/smoke-host-script.stdout.txt",
+      "bytes": 2596
+    },
+    {
+      "sha256": "2173EF2CD8B8A16CF05AFC626AE2EA77563C5C6D4A3E9CD3E73046D42FD1A7B0",
+      "path": "evidence/workflow/smoke-host-second.result.json",
+      "bytes": 1227
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/smoke-host-second.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "CC7FDC151E35CCDBCB65618EAF343270575209D21C6CE378D350643B4ED75D7F",
+      "path": "evidence/workflow/smoke-host-second.stdout.txt",
+      "bytes": 53
+    },
+    {
+      "sha256": "063A6479B1ADDDC42EE3E3F9484B46651836D2DA580C079B0E5DC13D7B92404B",
+      "path": "evidence/workflow/smoke-host-split.result.json",
+      "bytes": 1225
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/smoke-host-split.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "F94459E2E5F6DE6825573065D9E2C24F87BC737846DD672193101EFCF909B083",
+      "path": "evidence/workflow/smoke-host-split.stdout.txt",
+      "bytes": 196
+    },
+    {
+      "sha256": "8D81B42F487704F8D0EC5EC10F482B1E440A6F5D78A4469328D85CC9239C565D",
+      "path": "evidence/workflow/smoke-host-style-start.result.json",
+      "bytes": 1243
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/smoke-host-style-start.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "53D35EE923641F73631BDDE5FD5EC70B2E53C57F5622E937BF3E61EFF8C1B68F",
+      "path": "evidence/workflow/smoke-host-style-start.stdout.txt",
+      "bytes": 223
+    },
+    {
+      "sha256": "D1695A3485616D59E41B020D4ED8B9B7F43693650ECB9CE9B4339B9EE83FA486",
+      "path": "evidence/workflow/smoke-lazy-all.json",
+      "bytes": 2911
+    },
+    {
+      "sha256": "E051551EB8B8E51A7ED94A4CF3F750A9D418FA522EAFA6E40D8C3A756CEE75FB",
+      "path": "evidence/workflow/smoke-lazy-background.json",
+      "bytes": 2893
+    },
+    {
+      "sha256": "EE60F68B6D4D5B138901BDCBB047EE7264F2BF8EB84A158DA37BC59600F60E29",
+      "path": "evidence/workflow/smoke-locked.json",
+      "bytes": 2602
+    },
+    {
+      "sha256": "09D2930B51A401F38AB46C07F426BFB823E379F554ADF6D6BBA7B5BDF78B0B01",
+      "path": "evidence/workflow/smoke-oversized.json",
+      "bytes": 2605
+    },
+    {
+      "sha256": "F0A022F1C22CC2F3F8E63D7880BC108357A50317909CC07B42801331F5222A85",
+      "path": "evidence/workflow/smoke-restored.json",
+      "bytes": 2879
+    },
+    {
+      "sha256": "38C557C0287B6EFD9E803D438ACF216243231B1D5099D8B750E9F28BE6BB6CD6",
+      "path": "evidence/workflow/smoke-result.json",
+      "bytes": 519009
+    },
+    {
+      "sha256": "E5D71A209F619D1BE605B12263141C3AA9498460E0DF03F5B43FCE4ABC7BDE90",
+      "path": "evidence/workflow/smoke-settings-path.result.json",
+      "bytes": 1235
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/workflow/smoke-settings-path.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "5F43E37C5557F284862BE770A111334A7DAFCE4758B3C81006F0A1A2BE3874B8",
+      "path": "evidence/workflow/smoke-settings-path.stdout.txt",
+      "bytes": 308
+    },
+    {
+      "sha256": "3A3644B1376964A0850695E904F9C9ADE978812ACE9132DA2AA02B07FCAA4B34",
+      "path": "evidence/workflow/source-source.json",
+      "bytes": 1563
+    },
+    {
+      "sha256": "38CDF43079C077876E8244149449959C6A2C0AEFD3E109C31762005D0BE79DE7",
+      "path": "evidence/workflow/source-Test-CurrentFirespiderWorkflows.ps1",
+      "bytes": 7517
+    },
+    {
+      "sha256": "C5035B8EEFD6E103D79B7A8C3FFB80A41A3506731FA885E421B930003872B9C4",
+      "path": "evidence/smoke/Audit-CurrentFirespider.ps1",
+      "bytes": 6790
+    },
+    {
+      "sha256": "D71965F9E080A7E67FD1A8C416791FE4B7917525EDF9C69F21C649BDB326C391",
+      "path": "evidence/smoke/audit.json",
+      "bytes": 5125
+    },
+    {
+      "sha256": "8AC4C88EDB28D36AE1A193433588E51C73FC6CE8F75F00C217D02DDF7CE228BF",
+      "path": "evidence/smoke/build-build.ps1",
+      "bytes": 9401
+    },
+    {
+      "sha256": "F909B0C740C2A527D46D125BD7FC1C032468ABE96FF045DE8EB2FE9F193BB7BE",
+      "path": "evidence/smoke/build-candidate-manifest.json",
+      "bytes": 35158
+    },
+    {
+      "sha256": "9BBD717538215780D05C8740A1989E8560E15A4DCAA38BFB519FFA7F475FFE8C",
+      "path": "evidence/smoke/build-compile-current-firespider.result.json",
+      "bytes": 1152
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/smoke/build-compile-current-firespider.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "C90D9444C7B67F757ED56D3DCCDFFC8EB56D3847BA2DC6CAF541D61A15E4A59B",
+      "path": "evidence/smoke/build-compile-current-firespider.stdout.txt",
+      "bytes": 510
+    },
+    {
+      "sha256": "CD72727F31282AABB42DABBEE2F55BCA69C63A9352A3528C8EB5657A03A2B408",
+      "path": "evidence/smoke/build-result.json",
+      "bytes": 64948
+    },
+    {
+      "sha256": "2836AC6BA77C2DB096C5365EED4D7B6E48D56A82A0A4DFDBEBFD2CCE3DD6E1AB",
+      "path": "evidence/smoke/runtime-runtime-manifest.json",
+      "bytes": 279456
+    },
+    {
+      "sha256": "9BE3D535C8DF03374ADB9771D2B5ED6290140E54F0985D4699C2A78A8D027C2C",
+      "path": "evidence/smoke/smoke-clean.json",
+      "bytes": 2601
+    },
+    {
+      "sha256": "292C50CDFD12A8D9A89A410FA83477A8DC5AC0146CFDA5FE3D05C9EEB0C0D512",
+      "path": "evidence/smoke/smoke-exe-clean.result.json",
+      "bytes": 1225
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "evidence/smoke/smoke-exe-clean.stderr.txt",
+      "bytes": 616
+    },
+    {
+      "sha256": "A56720EE19DA7CEC00CFE7B7D5E4FFF03EA778C0A3E0005EE9B68BFE8C33C3EC",
+      "path": "evidence/smoke/smoke-exe-clean.stdout.txt",
+      "bytes": 1294
+    },
+    {
+      "sha256": "D4F15F8978C092F16A4F17F63275B39E826C0DC990A883D3DAE839E564F546E2",
+      "path": "evidence/smoke/smoke-navigation.result.json",
+      "bytes": 1221
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/smoke/smoke-navigation.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "66C6C54D36128A02F096E6E399C2F34D8A9C47E6ACD88C9B8235F7458B9B501B",
+      "path": "evidence/smoke/smoke-navigation.stdout.txt",
+      "bytes": 364
+    },
+    {
+      "sha256": "2B90E0044B3F6D43D30D1ABCF6ED6BCCCECEDD472DB7A10E83D0978C2D69DEC0",
+      "path": "evidence/smoke/smoke-result.json",
+      "bytes": 499686
+    },
+    {
+      "sha256": "690C491D2E625877F11C1D85301BFEE9CA19BD43EE2D59BA67013331526F8278",
+      "path": "evidence/smoke/smoke-settings-path.result.json",
+      "bytes": 1229
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/smoke/smoke-settings-path.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "8B1CB6CE460869D580EEAD3D07791BFE0C3F5EE038252F75D162D0069CE563EF",
+      "path": "evidence/smoke/smoke-settings-path.stdout.txt",
+      "bytes": 305
+    },
+    {
+      "sha256": "94D96DA622E3776B5F442573FEEF7663331DB41D95CB63F55999A18C67232EF7",
+      "path": "evidence/smoke/source-source.json",
+      "bytes": 1533
+    },
+    {
+      "sha256": "FA9D2FF5639CD7EF6D4586D8624820D47CF759A924D69ECAE80D06E5008E835B",
+      "path": "evidence/smoke/source-Test-CurrentFirespider.ps1",
+      "bytes": 7256
+    },
+    {
+      "sha256": "71C4FA0A8FAD58E7A11B020E3627C67626ACBF7E3F94AA1B59440BDE03FE177D",
+      "path": "evidence/initial-audit-stop/Audit-CurrentFirespider.ps1",
+      "bytes": 8860
+    },
+    {
+      "sha256": "05D8D9C5854E5ABC254EB85D3D17E71D7F2F5C35CCD19569EDF730978ABA335F",
+      "path": "evidence/initial-audit-stop/FAILURE.md",
+      "bytes": 882
+    },
+    {
+      "sha256": "2F748129DA84890B71D5CB08FF4C0D8D304E0BBDE4A3C51A983B07608E244F40",
+      "path": "evidence/pictures/attributes.png",
+      "bytes": 23122
+    },
+    {
+      "sha256": "536C1F7B88430C2E6E2EE4B7F9256FC81C3336DD81434CF2185F6EF700D5692B",
+      "path": "evidence/pictures/main.png",
+      "bytes": 23183
+    },
+    {
+      "sha256": "083071717FBBDBF9750F1627FFE24BE1E677B16FD4BA73F692E85627B1C6B303",
+      "path": "evidence/pictures/pictures.json",
+      "bytes": 1226
+    },
+    {
+      "sha256": "9DBBB93CC7D36E96D971BE4F7AE421B312D730D3800CE4D2387DD95F714C569C",
+      "path": "evidence/pictures/split.png",
+      "bytes": 27585
+    },
+    {
+      "sha256": "F909B0C740C2A527D46D125BD7FC1C032468ABE96FF045DE8EB2FE9F193BB7BE",
+      "path": "evidence/host-source-manifest.json",
+      "bytes": 35158
+    },
+    {
+      "sha256": "D7F18E2E8CBBD3881878BAED34B733044D8CC12A119EADB49EB080BAE3889E2C",
+      "path": "Lea.Engine/MemoryDocument.fragment.cs",
+      "bytes": 1336
+    },
+    {
+      "sha256": "697774441313A48141B0F797B5A19623815E6B055B4637AF78CAC11E70FD7F1D",
+      "path": "Lea.Win/MemoryDocument.fragment.cs",
+      "bytes": 276
+    },
+    {
+      "sha256": "8C0A6AF4B2FEC529D0CE7C9A2E40F09FF2324A9155180DC7A45F040571E5C826",
+      "path": "Lea.Firespider/AccessibilityReport.vb",
+      "bytes": 4946
+    },
+    {
+      "sha256": "B792247DB3A1A5A5DA2CE75039CEB82978128527E8189CAC7137ABF7DF8CE71B",
+      "path": "Lea.Firespider/AccessibilityRoute.vb",
+      "bytes": 1454
+    },
+    {
+      "sha256": "5417781FE49A7A5EBD6C7C479C1DE159985494497193B3BF15E4271DF8584EDA",
+      "path": "Lea.Tests/AccessibilityReportMain.vb",
+      "bytes": 2447
+    },
+    {
+      "sha256": "F62EF081CB2F0B94E79737DEF95F0D7016B654DD6BD5AA38DD5DFB0FCC664362",
+      "path": "Lea.Tests/AccessibilityHostCase.cs",
+      "bytes": 6538
+    },
+    {
+      "sha256": "B3A19AA1E58DE5A52B8AD210F82A4320C6C9AA6B30E1BE2C5D25DA2A6EA52EDC",
+      "path": "Lea.Tests/MemoryDocumentMain.cs",
+      "bytes": 2559
+    },
+    {
+      "sha256": "D5927941C24B101C9FB5D973A419554111E938278053CA476CFD4A1268F34439",
+      "path": "Lea.Tests/MemoryDocumentViewMain.cs",
+      "bytes": 3607
+    },
+    {
+      "sha256": "2D4BE857BE40A5C30D2C05E5A6370546EEB3FCA3FF81018953A5D1DB4B04218F",
+      "path": "Lea.Build/Audit-CurrentHostLegacyRoutes.ps1",
+      "bytes": 4084
+    },
+    {
+      "sha256": "DBF6576401D35102F44765AF22AB4E7044AE233E5D54DDA4245A408004D69FD5",
+      "path": "Lea.Build/Test-OwnedAccessibilityReport.ps1",
+      "bytes": 4157
+    },
+    {
+      "sha256": "716DE28620D0A1357E97267403E9A4544D722DD6F6DDCDE85C477F814EA5A1A7",
+      "path": "Lea.Build/Prepare-AccessibilityHostSource.ps1",
+      "bytes": 3291
+    },
+    {
+      "sha256": "DB65B17F2B58DA23F6D02F1E2D017EE1646183E4C78ED4F3708CF8F7A7509380",
+      "path": "Lea.Build/Build-AccessibilityHost.ps1",
+      "bytes": 5108
+    },
+    {
+      "sha256": "1D8DE755D577D1798EA8899D7A7907CAB179AE97439D29B1CE7D7EF23BB5BE44",
+      "path": "Lea.Build/Test-OwnedAccessibilityHost.ps1",
+      "bytes": 7536
+    },
+    {
+      "sha256": "34F70722C0DA846AE3DE88ECC0AF7141A5D73EE113C436B3678DC87FB6598628",
+      "path": "Lea.Build/Audit-AccessibilityHostUi.ps1",
+      "bytes": 4978
+    },
+    {
+      "sha256": "13FE6AEE63C4F60EEBF1C2174E88E3B545FFF2726FC3CDEB090E50EEF40237FA",
+      "path": "Lea.Build/Test-OwnedMemoryDocument.ps1",
+      "bytes": 10923
+    },
+    {
+      "sha256": "1BC528F30D1F844944689F7A5EB06434179474D3CE2BBAA0FE9CD159A78DE12F",
+      "path": "Lea.Build/Audit-MemoryDocumentView.ps1",
+      "bytes": 4013
+    },
+    {
+      "sha256": "2F6D08CE9E3A7486FC6621B7799E6614A86C75CB918D4022057BBD3B4857E01C",
+      "path": "Lea.Build/Prepare-MemoryReportHost.ps1",
+      "bytes": 3858
+    },
+    {
+      "sha256": "19447BFB6A731F74E49477CF4D60BF48B6D4E004DF0102C65825DCB0E1ABE1E6",
+      "path": "Lea.Build/Prepare-MemoryReportHostProbe.ps1",
+      "bytes": 5396
+    },
+    {
+      "sha256": "7EB3007ECE15D4C16440A555720320AD15B9C5D77347126CB75CA6BBF31B56B0",
+      "path": "Lea.Build/Prepare-MemoryReportBackup.ps1",
+      "bytes": 4815
+    },
+    {
+      "sha256": "A37D44298425436CD9BFA4D989C90389F5905DF60B5347767A6C8F7817FC6ED3",
+      "path": "LeaForge/HOST_LEGACY_ROUTES.md",
+      "bytes": 7562
+    },
+    {
+      "sha256": "E23E8E409D55A712AB5F03CD14748B73F40455E672945247B3AC105BAD520C09",
+      "path": "LeaForge/MEMORY_DOCUMENTS.md",
+      "bytes": 6139
+    },
+    {
+      "sha256": "7FE2BD81D76572A04402D28F5B71DCA6EE7311521643ACD042F99B67906CE792",
+      "path": "memory-sdk-source/Lea.Engine/Ar.cs",
+      "bytes": 489
+    },
+    {
+      "sha256": "A1EE186005F2F5690D540ACEFC54BE8EACF5923F09E4EE22572B0C2B95F80BB9",
+      "path": "memory-sdk-source/Lea.Engine/Ax.cs",
+      "bytes": 3072
+    },
+    {
+      "sha256": "05F9457B7B44B00B743D80157941935E462D8BBC9F321E0EB20645713A12D3F0",
+      "path": "memory-sdk-source/Lea.Engine/B.cs",
+      "bytes": 1136
+    },
+    {
+      "sha256": "CAB89D042708F64784F94B77B8C3120B291B6476E0F698549DD070F1FD4A5CFA",
+      "path": "memory-sdk-source/Lea.Engine/Bi.cs",
+      "bytes": 1388
+    },
+    {
+      "sha256": "D41C1021D3CE916C7EB3D3ABC46E95AFC13DC5AD67F5B29EB66E119474AD4BC6",
+      "path": "memory-sdk-source/Lea.Engine/Cz.cs",
+      "bytes": 410
+    },
+    {
+      "sha256": "F8378792AD26648ABDF6622D7626CD8BD6DECA7FB68E059E7AA87FFEECFDE686",
+      "path": "memory-sdk-source/Lea.Engine/D.cs",
+      "bytes": 458
+    },
+    {
+      "sha256": "21D557385B8AC64B990BE70FC01330C53888BCE1C4B000BFA64CEEE511A89B60",
+      "path": "memory-sdk-source/Lea.Engine/Dv.cs",
+      "bytes": 693
+    },
+    {
+      "sha256": "D7794BFBC7AE4C2EE333499FEA0CE34D84726292C641E00E5F669129B025F4C5",
+      "path": "memory-sdk-source/Lea.Engine/E.cs",
+      "bytes": 676740
+    },
+    {
+      "sha256": "2DA1764948302D718644F991D292F30B940C3F1BB8C176C6AA25C926337B0774",
+      "path": "memory-sdk-source/Lea.Engine/Er.cs",
+      "bytes": 596
+    },
+    {
+      "sha256": "8A7764CDFE4A6A267D8C103E9982B6426B4B85CCA81617DBBB9E4DAA9B42C875",
+      "path": "memory-sdk-source/Lea.Engine/Fi.cs",
+      "bytes": 1912
+    },
+    {
+      "sha256": "04EEE4E4695710EA3E96F60AD8BF6E1F03A56F585239D3D938ABBBA006974766",
+      "path": "memory-sdk-source/Lea.Engine/FontShorthand.cs",
+      "bytes": 5851
+    },
+    {
+      "sha256": "BBFE4C98181F7BC0844EFBA215E976A60734047052498E505C6964BE89E3AA3E",
+      "path": "memory-sdk-source/Lea.Engine/G.cs",
+      "bytes": 2443
+    },
+    {
+      "sha256": "A4AE0FB794F41E493D8E7BF09D0B254AC2B78B23AA55D79657269FB1E85346A9",
+      "path": "memory-sdk-source/Lea.Engine/Gi.cs",
+      "bytes": 846
+    },
+    {
+      "sha256": "BFE89C49863A0A50B527A16E0DF64857C4EA7CEC29EE9FD1CE441902048D3357",
+      "path": "memory-sdk-source/Lea.Engine/Hc.cs",
+      "bytes": 2999
+    },
+    {
+      "sha256": "1EA35B87389F1B5B05CBA00BB17E52424F692C52C56749322AA8569511E87212",
+      "path": "memory-sdk-source/Lea.Engine/Hn.cs",
+      "bytes": 1679
+    },
+    {
+      "sha256": "2522F0F4945EE135BD80F3EC43DB834944A0A8CEC06727AE13282E60B29FC954",
+      "path": "memory-sdk-source/Lea.Engine/Hn.Data.cs",
+      "bytes": 41679
+    },
+    {
+      "sha256": "E432E4B968AB4E2447F727A1EF4DD55C1FE78E06B30EFA4BFA6D7C69A6E04265",
+      "path": "memory-sdk-source/Lea.Engine/Ir.cs",
+      "bytes": 463
+    },
+    {
+      "sha256": "E91CDCF3F517FA8AEC18C9C09657531297B29FFAD72E6018860524A5A1CAFB62",
+      "path": "memory-sdk-source/Lea.Engine/J.cs",
+      "bytes": 75291
+    },
+    {
+      "sha256": "9E0DC5E3B7666AD65D3EB9534F1CCB7E62128FD50078014A6EC38BCFD430E010",
+      "path": "memory-sdk-source/Lea.Engine/Lea.Engine.csproj",
+      "bytes": 1099
+    },
+    {
+      "sha256": "F53BED93A4F80353CC6DDB07EA05F9EE6EE983DE2EB6673C2B8BA286CCD9594F",
+      "path": "memory-sdk-source/Lea.Engine/Ln.cs",
+      "bytes": 180
+    },
+    {
+      "sha256": "45E9BE193E334B27DB61F1CFE0B063F78CE11BDF98496FB6B63D6E973A952421",
+      "path": "memory-sdk-source/Lea.Engine/Mp.cs",
+      "bytes": 372
+    },
+    {
+      "sha256": "F5194006EB436D4D26E96594CAD1AFB16240BDF38F325A4EA30BB4AA11872B9B",
+      "path": "memory-sdk-source/Lea.Engine/N.cs",
+      "bytes": 2409
+    },
+    {
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3",
+      "path": "memory-sdk-source/Lea.Engine/Net48TargetFramework.cs",
+      "bytes": 137
+    },
+    {
+      "sha256": "E9049C8CE791A87B2E0F832FE42821F279A1079E58D70B64098994DBF8514F4C",
+      "path": "memory-sdk-source/Lea.Engine/O.cs",
+      "bytes": 252
+    },
+    {
+      "sha256": "8D596BE99A59E2016D61FBE81E77E4E15DDCE7BA27AC1286EAE4BEC56052F220",
+      "path": "memory-sdk-source/Lea.Engine/Og.cs",
+      "bytes": 3257
+    },
+    {
+      "sha256": "7EC57868F600854277B0AFD545FFDC35F326952E5E39E0514B6AB9C89E409994",
+      "path": "memory-sdk-source/Lea.Engine/P.cs",
+      "bytes": 3206
+    },
+    {
+      "sha256": "651416A2889EF51B6D4732A5CFA307722D117ED0775E1D346EB575285423A1BA",
+      "path": "memory-sdk-source/Lea.Engine/Pc.cs",
+      "bytes": 16438
+    },
+    {
+      "sha256": "DC726E564E0DF04AB3CE6928E3955B68DD8FDB688E3850AAD77EC02F03FB7C92",
+      "path": "memory-sdk-source/Lea.Engine/Ri.cs",
+      "bytes": 4766
+    },
+    {
+      "sha256": "3679DEC3DB439624C1D9780A6EACD951A2E8CF90C271EBF46A5FC2377CA3B34C",
+      "path": "memory-sdk-source/Lea.Engine/S.cs",
+      "bytes": 22858
+    },
+    {
+      "sha256": "56419432F7767A1C25C04242A59683C958FD24B512FB5289B8A5230CA429F73E",
+      "path": "memory-sdk-source/Lea.Engine/Sw.cs",
+      "bytes": 440
+    },
+    {
+      "sha256": "CD726A8695A3D55B2C1DD02394D8E4D267B3D0F01F6439EFB0219FB9BCD5DBF8",
+      "path": "memory-sdk-source/Lea.Engine/Tb.cs",
+      "bytes": 394
+    },
+    {
+      "sha256": "3113F2F86C41A094883C4EB3EE3DB8E7BDE27F2313732BD250A99DE306854431",
+      "path": "memory-sdk-source/Lea.Engine/Tc.cs",
+      "bytes": 502
+    },
+    {
+      "sha256": "129A8BAE08342524B38D4EB7D2DD164728806830EEB746A0F5D8398F8C9AEDBD",
+      "path": "memory-sdk-source/Lea.Engine/Tr.cs",
+      "bytes": 276
+    },
+    {
+      "sha256": "AD5F16EA44466A062010B5EEBC03309BB41AF1DC7F55002F074E42B7F1B23249",
+      "path": "memory-sdk-source/Lea.Engine/Vg.cs",
+      "bytes": 944
+    },
+    {
+      "sha256": "48ACA2338653F918C03694E55B03E541A700BDDFD347804CD5253DE14FD199D1",
+      "path": "memory-sdk-source/Lea.Engine/Vm.cs",
+      "bytes": 602
+    },
+    {
+      "sha256": "D79771205EE69C10892534961B2117AB1F7B92AA42261FE809A7BA40A5D04F22",
+      "path": "memory-sdk-source/Lea.Engine/Vs.cs",
+      "bytes": 4406
+    },
+    {
+      "sha256": "41457ADEE41DF2BF2898286CA492BAAE34A768F5A7D45C183CDDAB5D437BF856",
+      "path": "memory-sdk-source/Lea.Win/Di.cs",
+      "bytes": 24099
+    },
+    {
+      "sha256": "DEE10AB64B227ABBADC7BD1B72E0A504F6D788750C49C5EA3D3CD80004254662",
+      "path": "memory-sdk-source/Lea.Win/DocumentSelection.cs",
+      "bytes": 14271
+    },
+    {
+      "sha256": "5697AA7B65C474236FA18076F0899F65C648708DF7A7F1E763D353E5A3C5880B",
+      "path": "memory-sdk-source/Lea.Win/DocumentSelectionAutomation.cs",
+      "bytes": 5981
+    },
+    {
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5",
+      "path": "memory-sdk-source/Lea.Win/Jb.cs",
+      "bytes": 7357
+    },
+    {
+      "sha256": "80508040B077724635A8EDAB871ABA3EF038C0D8CA7187011953E0B0AF5F76B0",
+      "path": "memory-sdk-source/Lea.Win/Lea.Win.csproj",
+      "bytes": 1528
+    },
+    {
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3",
+      "path": "memory-sdk-source/Lea.Win/Net48TargetFramework.cs",
+      "bytes": 137
+    },
+    {
+      "sha256": "A79E8CCB48BECC64BFAD8590A3609840199ADE97EF49B841C1E86431DBBB209E",
+      "path": "memory-sdk-source/Lea.Win/Pi.cs",
+      "bytes": 14538
+    },
+    {
+      "sha256": "68E7CD7CAD09E7EA1283DC557BC1A3C4BA3B380884CCD7D448FFF58685C597D9",
+      "path": "memory-sdk-source/Lea.Win/PrintImages.cs",
+      "bytes": 2262
+    },
+    {
+      "sha256": "482F990F4D51D809B47338CE475D2CD19A6C6AC28268946FBE24F8DD95E22841",
+      "path": "memory-sdk-source/Lea.Win/Rp.cs",
+      "bytes": 39521
+    },
+    {
+      "sha256": "32FA85047A91AFDA325FA844E17E7C6703F8457B4505192014B686C07ED8C311",
+      "path": "memory-sdk-source/Lea.Win/V.cs",
+      "bytes": 499777
+    },
+    {
+      "sha256": "1C2D3CA0BF9B7995F7BB435807CEFC07CBB99D8A43CBE3CC4F3AEF970AE28810",
+      "path": "memory-sdk-source/Lea.Win/Xs.cs",
+      "bytes": 15266
+    },
+    {
+      "sha256": "FC0BF17DA980918F79535B91C9EE9CA14834500212255BDACBBC8836E6DED300",
+      "path": "memory-host-source/1.Designer.vb",
+      "bytes": 46270
+    },
+    {
+      "sha256": "8983D7D159A826441106FEFE698B6CF1A7D8929FDE39A4F561F99AC867549B06",
+      "path": "memory-host-source/1.resx",
+      "bytes": 124483
+    },
+    {
+      "sha256": "476CC8879FFC2F5A2DFED60910207430A942021974F41B68C6CB22E564BA5B77",
+      "path": "memory-host-source/1.vb",
+      "bytes": 663127
+    },
+    {
+      "sha256": "6D10BAEDCB47535A181AAA17A818A9AF0113BE338AA40A237635D36DC0BACAC2",
+      "path": "memory-host-source/2.Designer.vb",
+      "bytes": 11098
+    },
+    {
+      "sha256": "7A4A98004F09A26680B7E3454F99068C6D5901D3E88C27B572D7C37FD443B18D",
+      "path": "memory-host-source/2.resx",
+      "bytes": 33448
+    },
+    {
+      "sha256": "239E7F5068C283197C81DB32750AD4061CE43608D4E099F1AFA5C3EAE3E5B810",
+      "path": "memory-host-source/2.vb",
+      "bytes": 2369
+    },
+    {
+      "sha256": "2A6572ED795F8B356272B1A6A3D92C0DAD538D3637A2B84E410884D5C8CE694C",
+      "path": "memory-host-source/3.Designer.vb",
+      "bytes": 2717
+    },
+    {
+      "sha256": "6A71FE315F6CBD46B927EBDCC0B7EFF63349A01F6AC0401D35DD8F32802D0275",
+      "path": "memory-host-source/3.resx",
+      "bytes": 31895
+    },
+    {
+      "sha256": "1610890569D34ADD62903FFC262B4FE928E974163342B978A1E4218C5557307B",
+      "path": "memory-host-source/3.vb",
+      "bytes": 126
+    },
+    {
+      "sha256": "88F36D4E53011DA059D26E3B3B1A336C444D5F4FC29A0449078C345185E99718",
+      "path": "memory-host-source/4.Designer.vb",
+      "bytes": 16588
+    },
+    {
+      "sha256": "1C91AD30BEA84A7E9E0001F878438A37A3D719F92E21875AAD694F92205395DB",
+      "path": "memory-host-source/4.resx",
+      "bytes": 35146
+    },
+    {
+      "sha256": "D26A124AFBB7FE6F077D9813965BF9D98C7D6B3491566AEC0B6B064AF41C0765",
+      "path": "memory-host-source/4.vb",
+      "bytes": 11049
+    },
+    {
+      "sha256": "235492F9C24366D7D71A53D7D1195FC1CFE7ABCC40E6191A1ACAB8F8514CD028",
+      "path": "memory-host-source/6.Designer.vb",
+      "bytes": 5112
+    },
+    {
+      "sha256": "1AC5760FC96A2B92A927D0DFC77E600899169422B16CC6D3C92BB89627CD1C0D",
+      "path": "memory-host-source/6.resx",
+      "bytes": 32233
+    },
+    {
+      "sha256": "1FECCC5CD8791E5C9A0617E99031EEA21A8E857921EC5D2A990A5FD0C685A2D7",
+      "path": "memory-host-source/6.vb",
+      "bytes": 949
+    },
+    {
+      "sha256": "0BB4DC083ED9AB8CD9B6902E3A12302DC66BD622241BC7F207788879A7C613C4",
+      "path": "memory-host-source/7.Designer.vb",
+      "bytes": 4726
+    },
+    {
+      "sha256": "3EAB205B42050F3B6BD21C4FB12C1530EC1DE3B68BD5AF8057D8C5C7DB84F7C7",
+      "path": "memory-host-source/7.resx",
+      "bytes": 32404
+    },
+    {
+      "sha256": "9CDB2673FACDEFA0AAADB45D7A5F01354D8FBF4B670D31319142AD533FBEC9C1",
+      "path": "memory-host-source/7.vb",
+      "bytes": 1910
+    },
+    {
+      "sha256": "E91AC2CC41148E4F9F2FA181E5B17C8A4A35E07A56055A9BA6567A6EEC92BFAF",
+      "path": "memory-host-source/app.config",
+      "bytes": 16049
+    },
+    {
+      "sha256": "7366C737C5FB2A839D74148B81DF0656F821F6FC3C63122D6FF10ECC891A01CE",
+      "path": "memory-host-source/BrowserFeatures.vb",
+      "bytes": 63285
+    },
+    {
+      "sha256": "C060199180F8D753CDE7E50E2ED4D1FF6D7C78A70A74ED63422F2593DE46FC05",
+      "path": "memory-host-source/BrowserFeatures10.vb",
+      "bytes": 16443
+    },
+    {
+      "sha256": "3A0B955889E28B3C3950A29BF262716E2ABFC92DD80DD97B1F8A3B8C5244F979",
+      "path": "memory-host-source/BrowserFeatures2.vb",
+      "bytes": 46633
+    },
+    {
+      "sha256": "9752A2F4341A70EB62EEFB7DA1958DA53E841C7E6DB75C3619FE23B24B57E1C0",
+      "path": "memory-host-source/BrowserFeatures3.vb",
+      "bytes": 54002
+    },
+    {
+      "sha256": "C21DF6EC50A6F48FC91F90B692EF3AA5638ED9B83358C45FA348BFD1BA0E0753",
+      "path": "memory-host-source/BrowserFeatures4.vb",
+      "bytes": 63933
+    },
+    {
+      "sha256": "E3B2E2230F3A95BA2332CF53FCDE86BE4EF1312DED35C10C51AA6DABFEA51FB3",
+      "path": "memory-host-source/BrowserFeatures5.vb",
+      "bytes": 16287
+    },
+    {
+      "sha256": "7C97C89F68AE7D4278674BC411601133F620A22F9AB50FEB8B85452C7D5CB77F",
+      "path": "memory-host-source/BrowserFeatures6.vb",
+      "bytes": 32207
+    },
+    {
+      "sha256": "EC7CD5DB9EFAF6F7655BC51F5ACD2769417AA7AD155BD057A79F12C011937C7B",
+      "path": "memory-host-source/BrowserFeatures7.vb",
+      "bytes": 33538
+    },
+    {
+      "sha256": "291E00F72681C177FEC354BEED880C522377B0804F629239AA23800D9D2C2E37",
+      "path": "memory-host-source/BrowserFeatures8.vb",
+      "bytes": 79016
+    },
+    {
+      "sha256": "A50C2E122F780E81F73204CD9311567F024D8E0745BF2042A0C1D825AEF21AF0",
+      "path": "memory-host-source/BrowserFeatures9.vb",
+      "bytes": 69244
+    },
+    {
+      "sha256": "8DD1B020E35B423A2F5A940E7584BD7F9D6B06BE52900BBAA83A09E9999A45F8",
+      "path": "memory-host-source/Firespider Internet.vbproj",
+      "bytes": 14281
+    },
+    {
+      "sha256": "3A39B36317AE73D8C06B18445068E1C072203E9A6FD764AFFE5F932C294087DE",
+      "path": "memory-host-source/FirespiderLea.vb",
+      "bytes": 93549
+    },
+    {
+      "sha256": "94274F7A0336E5140F3986E8C97370EDCA1F2F7532E2403B6CBE6E3CFF9B8AAB",
+      "path": "memory-host-source/FirespiderSplit.vb",
+      "bytes": 18789
+    },
+    {
+      "sha256": "57B6877B04AF39BCEEFBEE78B94F0B25687C623BF80EF184ACB0102DD59ECA39",
+      "path": "memory-host-source/Icon.ico",
+      "bytes": 4518
+    },
+    {
+      "sha256": "7AED1102E230DF80D111E0B52D8CA355D34F755AE1B64A52175D49B8BBFC2164",
+      "path": "memory-host-source/Lea/FirespiderLea.targets",
+      "bytes": 3396
+    },
+    {
+      "sha256": "DD1D8ABB38C1051FA28FE953C6C27978E332C7AE37CB10C2286C0581E4A59FFA",
+      "path": "memory-host-source/Lea/start.html",
+      "bytes": 637
+    },
+    {
+      "sha256": "F1FE31F9A4F8222579BE2D1F7F39A21C96665AC13679A41F5501840A08D39B32",
+      "path": "memory-host-source/licenses/Acornima-BSD-3-Clause.txt",
+      "bytes": 1566
+    },
+    {
+      "sha256": "8626F0B8F39A9AE2BFD4ACA1DA667076A781E4AE07312BC2F880ACCCB57ABDF4",
+      "path": "memory-host-source/licenses/Jint-BSD-2-Clause.txt",
+      "bytes": 1324
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "memory-host-source/licenses/Microsoft-MIT.txt",
+      "bytes": 1139
+    },
+    {
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "path": "memory-host-source/licenses/Microsoft-Third-Party-Notices.txt",
+      "bytes": 15835
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "memory-host-source/licenses/system.buffers/LICENSE.TXT",
+      "bytes": 1139
+    },
+    {
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "path": "memory-host-source/licenses/system.buffers/THIRD-PARTY-NOTICES.TXT",
+      "bytes": 15835
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "memory-host-source/licenses/system.memory/LICENSE.TXT",
+      "bytes": 1139
+    },
+    {
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "path": "memory-host-source/licenses/system.memory/THIRD-PARTY-NOTICES.TXT",
+      "bytes": 15835
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "memory-host-source/licenses/system.numerics.vectors/LICENSE.TXT",
+      "bytes": 1139
+    },
+    {
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "path": "memory-host-source/licenses/system.numerics.vectors/THIRD-PARTY-NOTICES.TXT",
+      "bytes": 15835
+    },
+    {
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "path": "memory-host-source/licenses/system.runtime.compilerservices.unsafe/LICENSE.TXT",
+      "bytes": 1139
+    },
+    {
+      "sha256": "A6344BFB229BC08D1071CEC400EEA216E307439F961C5943EC1B56D2245ACB95",
+      "path": "memory-host-source/licenses/system.runtime.compilerservices.unsafe/THIRD-PARTY-NOTICES.TXT",
+      "bytes": 46990
+    },
+    {
+      "sha256": "5CD2CC77D4EB0AC729AD9982D659829739BF85DC5CB0D67B151C1132B30CDABB",
+      "path": "memory-host-source/My Project/app.manifest",
+      "bytes": 653
+    },
+    {
+      "sha256": "1C81642C36F9A96A423B5CA1E4EC1ED7E78378E220DA0E218A7182D61371BEF6",
+      "path": "memory-host-source/My Project/Application.Designer.vb",
+      "bytes": 1518
+    },
+    {
+      "sha256": "67C1D2051EE1B353232961DBAFEE0F1E3B5E4C41AB098D29A17190A18D58D2FB",
+      "path": "memory-host-source/My Project/Application.myapp",
+      "bytes": 464
+    },
+    {
+      "sha256": "8F860F02036A940152EC19E9C93828CF26708F43DA25999930C9B2B77B3D67FA",
+      "path": "memory-host-source/My Project/AssemblyInfo.vb",
+      "bytes": 1327
+    },
+    {
+      "sha256": "72493DE3F146097C0B568EB3C4A77827A7B053B42093807301ADC0709FE20FC8",
+      "path": "memory-host-source/My Project/Resources.Designer.vb",
+      "bytes": 12124
+    },
+    {
+      "sha256": "4A2DBBA95331DBDA5C21E7A4A8D5B85C2E3C80C5C11A9616C7F3D81D1482D09A",
+      "path": "memory-host-source/My Project/Resources.resx",
+      "bytes": 12023
+    },
+    {
+      "sha256": "C6780CF3926D9F02C3790AF1531E7127832290D30BBED976AB514C892AC1D310",
+      "path": "memory-host-source/My Project/Settings.Designer.vb",
+      "bytes": 56530
+    },
+    {
+      "sha256": "7E1347EE465153D5606013514C5E26869932379AF363E968086EF2E34954AE45",
+      "path": "memory-host-source/My Project/Settings.settings",
+      "bytes": 19793
+    },
+    {
+      "sha256": "097FC97125068D6233CAFF6269E559CD56F6D0C7E8D20296E069FB8A05509C58",
+      "path": "memory-host-source/package-manifest.json",
+      "bytes": 16618
+    },
+    {
+      "sha256": "861E9D9CEF0A4D2A9ECD08AE7860317D845189E2CB94009024F10FEC05F6BFB6",
+      "path": "memory-host-source/PrintCommand.vb",
+      "bytes": 2889
+    },
+    {
+      "sha256": "DB9BE51E2CB2E024B0FCACBEE7BCBEE8B451F43D2344E1F0FB9666C14A90EAAE",
+      "path": "memory-host-source/PrintPreview.vb",
+      "bytes": 2030
+    },
+    {
+      "sha256": "CE31FB01D05FAA128DFA9520C674C0574404A21691F531329D8A78FB5331796A",
+      "path": "memory-host-source/Res/F0.png",
+      "bytes": 201
+    },
+    {
+      "sha256": "74893715C0663C27776282C67E9325431711279FAFE7EA5E8DBC8B5F860DD0CB",
+      "path": "memory-host-source/Res/F1.png",
+      "bytes": 112
+    },
+    {
+      "sha256": "55FCDAE30217F319D3BE58AF2FF344E6CAE85AFEE46803DF79FF166F315BD9EB",
+      "path": "memory-host-source/Res/F2.png",
+      "bytes": 77
+    },
+    {
+      "sha256": "56BC22913B8287F1A48C6EE733B5FA4ED534A5A672A2CE7620B23718799BEB11",
+      "path": "memory-host-source/Res/F3.png",
+      "bytes": 206
+    },
+    {
+      "sha256": "4596DDA389D78E35E8B6826760E86B947FFEE9A8F1F396CAE008FD0D1406C5EA",
+      "path": "memory-host-source/Res/F4.png",
+      "bytes": 207
+    },
+    {
+      "sha256": "2975277265EFCF1E65844F04C8F3C4592268DB8872940193F3AD4C70D5A88A2C",
+      "path": "memory-host-source/Res/F5.png",
+      "bytes": 169
+    },
+    {
+      "sha256": "B5D3533D1CB9E5F20AD460BA00319CD20E36886DD05D9B347B3B94D6423F2B15",
+      "path": "memory-host-source/Res/F6.png",
+      "bytes": 246
+    },
+    {
+      "sha256": "645602EB94828BB6C0BA5968E4E309549ABAF8C591C2FBCEA1E1F511290718A5",
+      "path": "memory-host-source/Res/F7.png",
+      "bytes": 259
+    },
+    {
+      "sha256": "C302BCF22CA9A3384BF3C7624AABD516A283BFB8B2FFE5ED275AA7DA518B5903",
+      "path": "memory-host-source/Res/F8.png",
+      "bytes": 315
+    },
+    {
+      "sha256": "71D0EE171BD5AC7015AC49B6AAEE667DCDB80DBA078270B598EFED81D1F829E8",
+      "path": "memory-host-source/Res/F9.png",
+      "bytes": 195
+    },
+    {
+      "sha256": "61F8CD44622A350A631303A94D7041CB68B1985D01AA77E2DA53E3D7A409B4BA",
+      "path": "memory-host-source/Res/FX.png",
+      "bytes": 109
+    },
+    {
+      "sha256": "BB61E4643620468DED316365F194274A20B1544EDE55927E1CA85602E032E9BB",
+      "path": "memory-host-source/Res/N0.png",
+      "bytes": 191
+    },
+    {
+      "sha256": "C99283E5636F805B00C9E24393E31D565C72C177E2E0173A667DD47BBEAB4EA6",
+      "path": "memory-host-source/Res/N1.png",
+      "bytes": 195
+    },
+    {
+      "sha256": "6940D6A07B6EF252855037046BC6B4B5DA1FBE0A8E7B81C82907C45D6607B5BC",
+      "path": "memory-host-source/Res/N2.png",
+      "bytes": 184
+    },
+    {
+      "sha256": "AAB48B456F3DCFC4F7713799E5678B6B413FEDE25392FE6A5F90ABA6917953C5",
+      "path": "memory-host-source/Res/N3.png",
+      "bytes": 174
+    },
+    {
+      "sha256": "964004012259BE74FD17C863649420D6C548971DF4D4281EC349AE0F20252335",
+      "path": "memory-host-source/Res/N4.png",
+      "bytes": 190
+    },
+    {
+      "sha256": "50ECF829B099CB6E55C7DEC2E84A9B7CEDD712841A27DC9DF61B3D18E9CB3B81",
+      "path": "memory-host-source/Res/N5.png",
+      "bytes": 186
+    },
+    {
+      "sha256": "59886F526ECB8DC6D0667AD5C15F6DB5F582592B4F190076E0C0B570C69462BD",
+      "path": "memory-host-source/Res/N6.png",
+      "bytes": 179
+    },
+    {
+      "sha256": "570EF41EF353AC69FB18F7E108134C74F9029CC8B14A79DF58BD4412957CE9E5",
+      "path": "memory-host-source/Res/N7.png",
+      "bytes": 198
+    },
+    {
+      "sha256": "8E0E15808EC66EB001B3268B0EF61EBBA0A18D2AD4245D129B8B57941FCA9503",
+      "path": "memory-host-source/Res/O0.png",
+      "bytes": 127
+    },
+    {
+      "sha256": "DD9B6E01EF769B96719C6AB3C801E650F5D4C449E0178F8795CCBAC253B8C131",
+      "path": "memory-host-source/Res/O1.gif",
+      "bytes": 149
+    },
+    {
+      "sha256": "65ACD29AEAC726B68BD37C6FE295BB1921DE0D9504B0E892C73649E75E5D02B5",
+      "path": "memory-host-source/Res/O3.png",
+      "bytes": 626
+    },
+    {
+      "sha256": "E34F69C52C77082881BEB541ABF63F6F92ACF14C90825F4A6FDD00B30FA6CF65",
+      "path": "memory-host-source/Res/O4.png",
+      "bytes": 103
+    },
+    {
+      "sha256": "2E10134FA486E5B3FA1B46764534754B84DF6341232403081534AE55029794AD",
+      "path": "memory-host-source/Res/O5.png",
+      "bytes": 137
+    },
+    {
+      "sha256": "969350B601A6CAA2850CEEE7EE4C3A30FD62FC68E30C37FBB169EB80C3A51AB0",
+      "path": "memory-host-source/Res/O7.png",
+      "bytes": 89
+    },
+    {
+      "sha256": "391D9E182A30733842EC65BA89F84DFF2C4BB101B9818BB354191DBCD9914BF5",
+      "path": "memory-host-source/Res/so.wav",
+      "bytes": 66384
+    },
+    {
+      "sha256": "C17A7F46E62B5C52338DC029B65A5B7ECB9265ED9CAABF93C63B064A65594183",
+      "path": "memory-host-source/Res/sr.wav",
+      "bytes": 42080
+    },
+    {
+      "sha256": "2242FA999425DAE21EA5A42881975271EE196CC6DD6107626D6204857424F3B5",
+      "path": "memory-host-source/Settings.vb",
+      "bytes": 97
+    },
+    {
+      "sha256": "F84A1557FD5029B65F8A61C5BE34E4C4DAAAC1FFDD7159B741E0B86D2BD8E79C",
+      "path": "memory-host-source/source-manifest.json",
+      "bytes": 29862
+    },
+    {
+      "sha256": "5E806937CAFCE3C11B8390F87F42F19F20FC8D0ED3F89C234E5EAC93F8CD0586",
+      "path": "evidence/memory-model/compile-memory-core.result.json",
+      "bytes": 1125
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-model/compile-memory-core.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "B6EC713F24C3C186EFB04E15B098FD4FCA4ADBB87A8D3762724FE99BB32307BF",
+      "path": "evidence/memory-model/compile-memory-core.stdout.txt",
+      "bytes": 104
+    },
+    {
+      "sha256": "C8BC340CF5DABE89816FA853059F37D731FA8012321733F1C42F3C8043821F82",
+      "path": "evidence/memory-model/compile-memory-model.result.json",
+      "bytes": 1121
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-model/compile-memory-model.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-model/compile-memory-model.stdout.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "4278252FD54C10156F5534F7F46B58C9781D7598750F7D23ADE3DD77959B48D3",
+      "path": "evidence/memory-model/handoff.json",
+      "bytes": 1124
+    },
+    {
+      "sha256": "2141CC49CCEC0B4C77CB75A58E04CC29BC44FCEDD11682BC2C504F94DCE71C94",
+      "path": "evidence/memory-model/MEMORY_DOCUMENTS.md",
+      "bytes": 3096
+    },
+    {
+      "sha256": "88A18C9A66C7B9350EDFFC818A79A8F2CA6450EBCAB2988852D980630E75D7C3",
+      "path": "evidence/memory-model/memory-model.result.json",
+      "bytes": 1097
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-model/memory-model.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "8EFC40C99055A0FD429DEDC9F1831EED152B838907AA4412874379961867E187",
+      "path": "evidence/memory-model/memory-model.stdout.txt",
+      "bytes": 44
+    },
+    {
+      "sha256": "D7F18E2E8CBBD3881878BAED34B733044D8CC12A119EADB49EB080BAE3889E2C",
+      "path": "evidence/memory-model/MemoryDocument.fragment.cs",
+      "bytes": 1336
+    },
+    {
+      "sha256": "B3A19AA1E58DE5A52B8AD210F82A4320C6C9AA6B30E1BE2C5D25DA2A6EA52EDC",
+      "path": "evidence/memory-model/MemoryDocumentMain.cs",
+      "bytes": 2559
+    },
+    {
+      "sha256": "381BD9F7403BD1C9FABF2F3AAF912DF72A09F248E5BEB5B460AA7CC6B88DA70A",
+      "path": "evidence/memory-model/PROGRESS.md",
+      "bytes": 423421
+    },
+    {
+      "sha256": "8ADB430CF8D18344108E7295576A5297CF59EFEF495293A045E811A92E4E0C23",
+      "path": "evidence/memory-model/PROJECT_CONTEXT.md",
+      "bytes": 43094
+    },
+    {
+      "sha256": "F14824486E9EBF0FAC65D014CDD762CD863A120E96DB7A6BE7CBDF379978DC05",
+      "path": "evidence/memory-model/result.json",
+      "bytes": 20752
+    },
+    {
+      "sha256": "48B5D4422A0DDF620418AB7151F8497894A21F8A2F699634705B21823FA74A51",
+      "path": "evidence/memory-model/source.json",
+      "bytes": 8361
+    },
+    {
+      "sha256": "506B48DDFAF1CD189525A50BC4A0711B03F34E23D68180D3808595D817E1A987",
+      "path": "evidence/memory-model/Test-OwnedMemoryDocument.ps1",
+      "bytes": 7209
+    },
+    {
+      "sha256": "C54F4445033EA66353B524E6B042252C743A6E52014A56CE09E159424E12CD5D",
+      "path": "evidence/memory-view-audit/01-compile-memory-core.result.json",
+      "bytes": 1123
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-view-audit/02-compile-memory-core.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "9BD16D3A6D19802F530AE12763AAF1B21F909372B1B2EEA1CCCA57DFDB6F08C3",
+      "path": "evidence/memory-view-audit/03-compile-memory-core.stdout.txt",
+      "bytes": 103
+    },
+    {
+      "sha256": "F1D1B5C7BD50ADA650ACB5A3799F27262231901B2E85CC3A8302A998946989A2",
+      "path": "evidence/memory-view-audit/04-compile-memory-model.result.json",
+      "bytes": 1119
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-view-audit/05-compile-memory-model.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-view-audit/06-compile-memory-model.stdout.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "AC0FD148260657BBFD14DA4D10B17D50099ED736B0D3684F0D08ECD4891AA265",
+      "path": "evidence/memory-view-audit/07-compile-memory-view-probe.result.json",
+      "bytes": 1135
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-view-audit/08-compile-memory-view-probe.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-view-audit/09-compile-memory-view-probe.stdout.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "EAD89089BE6042347BF664E8C9510FE6E692169721105983CC54B3C2E6A50E60",
+      "path": "evidence/memory-view-audit/10-compile-memory-view.result.json",
+      "bytes": 1122
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-view-audit/11-compile-memory-view.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "949BB328A9CC5566F70BA3BC23FFECA39BE168368F082F4F8312DF9DCE894F47",
+      "path": "evidence/memory-view-audit/12-compile-memory-view.stdout.txt",
+      "bytes": 200
+    },
+    {
+      "sha256": "DFAC44193558F8ECF8E391EC02AC1B1A6FB9FC2A345BC6D3378B7A691FA085E2",
+      "path": "evidence/memory-view-audit/13-memory-model.result.json",
+      "bytes": 1096
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-view-audit/14-memory-model.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "8EFC40C99055A0FD429DEDC9F1831EED152B838907AA4412874379961867E187",
+      "path": "evidence/memory-view-audit/15-memory-model.stdout.txt",
+      "bytes": 44
+    },
+    {
+      "sha256": "32D4B9DF3C7CAFBD94BB8B26ABD5BA004EBBCA8323ACC7C3EAD6F03FA8A64625",
+      "path": "evidence/memory-view-audit/16-memory-view.result.json",
+      "bytes": 1095
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-view-audit/17-memory-view.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "D6C21C323980189DB33E51168AF718200456E6535364B9E91FF506C8F8DFA431",
+      "path": "evidence/memory-view-audit/18-memory-view.stdout.txt",
+      "bytes": 69
+    },
+    {
+      "sha256": "436078461C4F889612B6AD1139FB255C3105E8E7F6BEB6851FA7396F2FF2108A",
+      "path": "evidence/memory-view-audit/19-result.json",
+      "bytes": 32652
+    },
+    {
+      "sha256": "E486E563720971C9C639BA0690287A846C4A3EAA8EBEBC906DC9C05937C5E437",
+      "path": "evidence/memory-view-audit/20-source.json",
+      "bytes": 8361
+    },
+    {
+      "sha256": "D7F18E2E8CBBD3881878BAED34B733044D8CC12A119EADB49EB080BAE3889E2C",
+      "path": "evidence/memory-view-audit/21-MemoryDocument.fragment.cs",
+      "bytes": 1336
+    },
+    {
+      "sha256": "697774441313A48141B0F797B5A19623815E6B055B4637AF78CAC11E70FD7F1D",
+      "path": "evidence/memory-view-audit/22-MemoryDocument.fragment.cs",
+      "bytes": 276
+    },
+    {
+      "sha256": "B3A19AA1E58DE5A52B8AD210F82A4320C6C9AA6B30E1BE2C5D25DA2A6EA52EDC",
+      "path": "evidence/memory-view-audit/23-MemoryDocumentMain.cs",
+      "bytes": 2559
+    },
+    {
+      "sha256": "D5927941C24B101C9FB5D973A419554111E938278053CA476CFD4A1268F34439",
+      "path": "evidence/memory-view-audit/24-MemoryDocumentViewMain.cs",
+      "bytes": 3607
+    },
+    {
+      "sha256": "13FE6AEE63C4F60EEBF1C2174E88E3B545FFF2726FC3CDEB090E50EEF40237FA",
+      "path": "evidence/memory-view-audit/25-Test-OwnedMemoryDocument.ps1",
+      "bytes": 10923
+    },
+    {
+      "sha256": "1BC528F30D1F844944689F7A5EB06434179474D3CE2BBAA0FE9CD159A78DE12F",
+      "path": "evidence/memory-view-audit/26-Audit-MemoryDocumentView.ps1",
+      "bytes": 4013
+    },
+    {
+      "sha256": "AEB285E21D3CFB2040DB4ED6989A52ABFA08DB22AFB9832010946DBB0C24A6D0",
+      "path": "evidence/memory-view-audit/27-memory-view-720.png",
+      "bytes": 5324
+    },
+    {
+      "sha256": "2494583A6E799AE9180DF9D74C79473E9B170EA3CF4DC5F5A3EEB1D0446141B0",
+      "path": "evidence/memory-view-audit/28-memory-view-360.png",
+      "bytes": 4659
+    },
+    {
+      "sha256": "C59876032BFC698B110F7B639A1CCF7FDB20B69D71325DEF1CB83F32618A50B5",
+      "path": "evidence/memory-view-audit/audit.json",
+      "bytes": 6328
+    },
+    {
+      "sha256": "0F5C5317D57DE969F4ECAB38E1E8B974A93BE5B929916E476292F238461DE43D",
+      "path": "evidence/memory-view-audit/handoff.json",
+      "bytes": 566
+    },
+    {
+      "sha256": "B5DFB1011578ABF38610221F0FD8710FAB7E681DC0333EB040B1F1E29193B67E",
+      "path": "evidence/memory-view-audit/MEMORY_DOCUMENTS.md",
+      "bytes": 4651
+    },
+    {
+      "sha256": "B3961C3B5E3DE9D9A03531DF0A46BB02C552DAD4EEEBB433D90CE8F24C91DBE3",
+      "path": "evidence/memory-view-audit/PROGRESS.md",
+      "bytes": 423897
+    },
+    {
+      "sha256": "67EDA2E941D64D29894EFC257E9AAD41EFCBF06D921DD9ED0030ABE5A94E71BE",
+      "path": "evidence/memory-view-audit/PROJECT_CONTEXT.md",
+      "bytes": 44104
+    },
+    {
+      "sha256": "B55EE0B42A0201141ACAFCF7FDB4F247B6E4FDDB38ECFA4520617D21E45ECB83",
+      "path": "evidence/retained-ui-assertion-failure/accessibility-host-ui.result.json",
+      "bytes": 1244
+    },
+    {
+      "sha256": "C8C0CCE43F3BD6A92A360EEA5199CEC16000E828B69218EFBC2C2BCFB0245974",
+      "path": "evidence/retained-ui-assertion-failure/accessibility-host-ui.stderr.txt",
+      "bytes": 240
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/retained-ui-assertion-failure/accessibility-host-ui.stdout.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "A0009390DB127908A8F3C293B5541A2DD2D035C6170909206A6236B03C402A94",
+      "path": "evidence/retained-ui-assertion-failure/AccessibilityHostCase.cs",
+      "bytes": 3106
+    },
+    {
+      "sha256": "696AF1BD6B1B64DC8A26E96894E74C94996255D5ECD8437229E9A6BA39234B06",
+      "path": "evidence/retained-ui-assertion-failure/Boot.generated.cs",
+      "bytes": 222380
+    },
+    {
+      "sha256": "329EAD4F2314F3C70D307F69AED56E209220899069F89709A1C7DE27B326FE84",
+      "path": "evidence/retained-ui-assertion-failure/compile-accessibility-probe.result.json",
+      "bytes": 1257
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/retained-ui-assertion-failure/compile-accessibility-probe.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/retained-ui-assertion-failure/compile-accessibility-probe.stdout.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "70D3FD17FCECBE7C6577BE0EA87F47DF4CDDF9B663150DB0F40A3B514005457B",
+      "path": "evidence/retained-ui-assertion-failure/FAILURE.md",
+      "bytes": 844
+    },
+    {
+      "sha256": "546877F6618C4D0846A562D8617609177C541CE6E28930A74C20522BF2ADD9E1",
+      "path": "evidence/retained-ui-assertion-failure/result.json",
+      "bytes": 385565
+    },
+    {
+      "sha256": "F9F51BF91CFC90D5D840702C8E595517CCFD9561597E815D546FBDD7BC67C3FD",
+      "path": "evidence/retained-ui-assertion-failure/Test-OwnedAccessibilityHost.ps1",
+      "bytes": 7016
+    },
+    {
+      "sha256": "20FF71426AFD3A619D541C1ED9853778BE0B673C285C6F2432187D46B061EF6E",
+      "path": "evidence/retained-private-file-reproduction/accessibility-host-ui.result.json",
+      "bytes": 1243
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/retained-private-file-reproduction/accessibility-host-ui.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "33D205F93C5693F429A493AEC235240CF4A5DC51BE0A28470D28DB480BD5C785",
+      "path": "evidence/retained-private-file-reproduction/accessibility-host-ui.stdout.txt",
+      "bytes": 549
+    },
+    {
+      "sha256": "2C6DB4EE540DE018164E5134F26C812B3F21E3C3FA62EBD3304D2AE7D49C7A9F",
+      "path": "evidence/retained-private-file-reproduction/accessibility-report.png",
+      "bytes": 39008
+    },
+    {
+      "sha256": "F62EF081CB2F0B94E79737DEF95F0D7016B654DD6BD5AA38DD5DFB0FCC664362",
+      "path": "evidence/retained-private-file-reproduction/AccessibilityHostCase.cs",
+      "bytes": 6538
+    },
+    {
+      "sha256": "F5ED9D7EDE21CE7FE738EE2435831366346CF819D8C05FA1F2A9E2648395DFAC",
+      "path": "evidence/retained-private-file-reproduction/Audit-AccessibilityHostUi.ps1",
+      "bytes": 3872
+    },
+    {
+      "sha256": "0B7890ED09FF0A94150EDEC0EF46B60DFC45B3181048301158049F92CF9DBF9F",
+      "path": "evidence/retained-private-file-reproduction/audit.json",
+      "bytes": 2631
+    },
+    {
+      "sha256": "0ECA6B68C30B99334D3F260FB7794548059FEE4D010493C8A314942B9439D9A9",
+      "path": "evidence/retained-private-file-reproduction/Boot.generated.cs",
+      "bytes": 225812
+    },
+    {
+      "sha256": "41DD3DB292CD4F275C85E6E42F5D0F62902165FC3508226555DCF6EAE0D7C8AF",
+      "path": "evidence/retained-private-file-reproduction/compile-accessibility-probe.result.json",
+      "bytes": 1257
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/retained-private-file-reproduction/compile-accessibility-probe.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/retained-private-file-reproduction/compile-accessibility-probe.stdout.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "941DF4B65A266310FCBCE4D25680433A3716605D0ED7540754D277BAA3259EB3",
+      "path": "evidence/retained-private-file-reproduction/handoff.json",
+      "bytes": 1171
+    },
+    {
+      "sha256": "A37D44298425436CD9BFA4D989C90389F5905DF60B5347767A6C8F7817FC6ED3",
+      "path": "evidence/retained-private-file-reproduction/HOST_LEGACY_ROUTES.md",
+      "bytes": 7562
+    },
+    {
+      "sha256": "D72C633F253F5092A6409C0CA1D72E37947A44A673BFD71CAE379BE8042C8219",
+      "path": "evidence/retained-private-file-reproduction/private-report-retention.json",
+      "bytes": 104
+    },
+    {
+      "sha256": "DB66C1D0180261F0A7391DA5DC82554706917AA1545E827528A450473D1A15F6",
+      "path": "evidence/retained-private-file-reproduction/PROGRESS.md",
+      "bytes": 422937
+    },
+    {
+      "sha256": "047BC27FE71118FC75FF24BAC2481FB7E48007A2F03A90FC32930F216AC10194",
+      "path": "evidence/retained-private-file-reproduction/PROJECT_CONTEXT.md",
+      "bytes": 42068
+    },
+    {
+      "sha256": "B1C72E3C3AD9587511057D2ED6F667310629B133B0AC5FBC40E61633EDA1BC81",
+      "path": "evidence/retained-private-file-reproduction/result.json",
+      "bytes": 385469
+    },
+    {
+      "sha256": "F90A7FA44F505D798A0019C10627169676B844870E155076010FA8B6BDFC4A91",
+      "path": "evidence/retained-private-file-reproduction/Test-OwnedAccessibilityHost.ps1",
+      "bytes": 7016
+    },
+    {
+      "sha256": "2251628D9BBDBD3E8D169C25EF3A4F1B269D40575B8BD55E61C537436C1B32C6",
+      "path": "evidence/memory-host-ui-audit/accessibility-host-ui.result.json",
+      "bytes": 1242
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-host-ui-audit/accessibility-host-ui.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "EE15609E0D7EDE63A2D85FA2795E69F62664CF6D8175F34724248B2B56E3C21C",
+      "path": "evidence/memory-host-ui-audit/accessibility-host-ui.stdout.txt",
+      "bytes": 540
+    },
+    {
+      "sha256": "68B5953338F219B6D59AB7974F89DB3B8E9CD66A8D22EDA3A14E5D497DC3BBC0",
+      "path": "evidence/memory-host-ui-audit/accessibility-report.png",
+      "bytes": 39228
+    },
+    {
+      "sha256": "CEED3213A51E7410E3E0F723EC0C6439A0B76F03ED231D3ED68A6E2119C6AABA",
+      "path": "evidence/memory-host-ui-audit/audit.json",
+      "bytes": 2668
+    },
+    {
+      "sha256": "F5FA748619238B6D98E07E569E9604C5D9F5E9D7ADC116AA6A1A94FB19B0C83F",
+      "path": "evidence/memory-host-ui-audit/Boot.generated.cs",
+      "bytes": 227351
+    },
+    {
+      "sha256": "0BC84B1845CDD611B297CDC9E55D2834B6D8193239D5AAEAE249EF45C48AA40C",
+      "path": "evidence/memory-host-ui-audit/compile-accessibility-probe.result.json",
+      "bytes": 1258
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-host-ui-audit/compile-accessibility-probe.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-host-ui-audit/compile-accessibility-probe.stdout.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "50DAD1F0200CCC3E3D8246AF1A67853EBC014CFA613AED896F1F90966875B495",
+      "path": "evidence/memory-host-ui-audit/private-report-retention.json",
+      "bytes": 114
+    },
+    {
+      "sha256": "4FA98483EB92FCDFFE35B9A9B79776A5A06A2418DC6E3A36B5FB7864FB04B1AF",
+      "path": "evidence/memory-host-ui-audit/result.json",
+      "bytes": 385450
+    },
+    {
+      "sha256": "CF64CFCEBA8842416F242EED697A2E3F580DBCE3B71EEFFCC2DBDE26C969AA97",
+      "path": "evidence/memory-host-build/compile-accessibility-host.result.json",
+      "bytes": 1153
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/memory-host-build/compile-accessibility-host.stderr.txt",
+      "bytes": 0
+    },
+    {
+      "sha256": "03D8445C40D35A323E0642026096DD2ABA5BC1D9DDC47F2A4D9E13212AE39D18",
+      "path": "evidence/memory-host-build/compile-accessibility-host.stdout.txt",
+      "bytes": 510
+    },
+    {
+      "sha256": "20263B4F2789086313704E0FCCD59EC42BB9065BA26542B7D80B1CCD98F72C1E",
+      "path": "evidence/memory-host-build/result.json",
+      "bytes": 29493
+    },
+    {
+      "sha256": "712CD05FF0D4FDB864EF347A88D12F7EAF4BCF099451C7345A91CA4AC3903A4B",
+      "path": "evidence/memory-host-source/source.json",
+      "bytes": 27804
+    },
+    {
+      "sha256": "DDA3F3B5175918C33E38779F7C8437E8F4D8096ED8F9045BC87CA2E034C67CE7",
+      "path": "evidence/memory-host-probe/MemoryReportHostCase.cs",
+      "bytes": 8077
+    },
+    {
+      "sha256": "75A9E374C64F2B1C07585F8155CD923ED4036AA393C67FE7FC7067FF84EA2179",
+      "path": "evidence/memory-host-probe/source.json",
+      "bytes": 524
+    },
+    {
+      "sha256": "3D2FFE571037AAC6EA3DDA88EF4D13CDC6466080891F4EB571EB975F2990AC99",
+      "path": "evidence/publish-memory-reports.generated.ps1",
+      "bytes": 11145
+    }
+  ],
+  "hostSha256": "9513A0BD7C620589F4AB332CE19F155686C01104B1E8D99A5DECAAF1814F2586",
+  "thirdPartyBinariesIncluded": false
+}

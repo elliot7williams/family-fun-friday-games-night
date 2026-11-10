@@ -1,0 +1,57 @@
+{
+  "clickHoverEscapingEmptyGuard": true,
+  "ownedRuns": 2,
+  "privateReportFileRegressionPassed": true,
+  "resultSha256": "4FA98483EB92FCDFFE35B9A9B79776A5A06A2418DC6E3A36B5FB7864FB04B1AF",
+  "loadingDisposedPausedSplitQualified": false,
+  "runtimeFiles": 401,
+  "bytesAndAclStable": true,
+  "all15WorkflowsQualified": false,
+  "globalPrivacyQualified": false,
+  "releaseQualified": false,
+  "originalNavigationChecksRetained": true,
+  "copies": [
+    {
+      "sha256": "2251628D9BBDBD3E8D169C25EF3A4F1B269D40575B8BD55E61C537436C1B32C6",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\accessibility-host-ui.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\accessibility-host-ui.stderr.txt"
+    },
+    {
+      "sha256": "EE15609E0D7EDE63A2D85FA2795E69F62664CF6D8175F34724248B2B56E3C21C",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\accessibility-host-ui.stdout.txt"
+    },
+    {
+      "sha256": "68B5953338F219B6D59AB7974F89DB3B8E9CD66A8D22EDA3A14E5D497DC3BBC0",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\accessibility-report.png"
+    },
+    {
+      "sha256": "F5FA748619238B6D98E07E569E9604C5D9F5E9D7ADC116AA6A1A94FB19B0C83F",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\Boot.generated.cs"
+    },
+    {
+      "sha256": "0BC84B1845CDD611B297CDC9E55D2834B6D8193239D5AAEAE249EF45C48AA40C",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\compile-accessibility-probe.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\compile-accessibility-probe.stderr.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\compile-accessibility-probe.stdout.txt"
+    },
+    {
+      "sha256": "50DAD1F0200CCC3E3D8246AF1A67853EBC014CFA613AED896F1F90966875B495",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\private-report-retention.json"
+    },
+    {
+      "sha256": "4FA98483EB92FCDFFE35B9A9B79776A5A06A2418DC6E3A36B5FB7864FB04B1AF",
+      "path": "I:\\LeaBuildStorage\\memory-report-host-ui-audit-20261110-v1\\result.json"
+    }
+  ],
+  "verified": true,
+  "hostSha256": "86DB310DB3CAD186A046308A63FB9CDC352D42B10A9816E51A51FF6C59BAFF4D"
+}

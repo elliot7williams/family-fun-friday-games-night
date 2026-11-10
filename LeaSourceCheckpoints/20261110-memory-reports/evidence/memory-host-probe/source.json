@@ -1,0 +1,9 @@
+{
+  "expectedBehaviorChanged": "Report is memory-backed, not retained HTML",
+  "settingsNavigationChecksRetained": true,
+  "baselineCaseSha256": "F62EF081CB2F0B94E79737DEF95F0D7016B654DD6BD5AA38DD5DFB0FCC664362",
+  "executed": false,
+  "baselinePrivacyReceiptSha256": "B1C72E3C3AD9587511057D2ED6F667310629B133B0AC5FBC40E61633EDA1BC81",
+  "source": "I:\\LeaBuildStorage\\memory-report-host-probe-20261110-v1\\MemoryReportHostCase.cs",
+  "sha256": "DDA3F3B5175918C33E38779F7C8437E8F4D8096ED8F9045BC87CA2E034C67CE7"
+}

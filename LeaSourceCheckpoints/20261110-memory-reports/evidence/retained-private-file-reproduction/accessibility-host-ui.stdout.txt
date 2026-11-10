@@ -1,0 +1,6 @@
+PASS Lea accessibility host: click/hover/escaping/empty-tab/no-legacy
+PASS Lea accessibility states: loading/paused/no-selection guards; private-retention issue reproduced, NOT fixed
+PASS navigation: saved/default home, new Lea homepage, tab list, and local-file domain guard
+PASS navigation: Lea/legacy snapshots, private opens, append/order, bounds, locked and empty sessions
+PASS navigation: both mixed-engine left-close menus, private history, stable counts, and stale tab selection
+PASS Lea boot: navigation; Show=2252 ms; initial tabs=1

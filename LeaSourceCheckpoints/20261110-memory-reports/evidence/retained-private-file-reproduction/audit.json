@@ -1,0 +1,56 @@
+{
+  "clickHoverEscapingEmptyGuard": true,
+  "verified": true,
+  "copies": [
+    {
+      "sha256": "20FF71426AFD3A619D541C1ED9853778BE0B673C285C6F2432187D46B061EF6E",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\accessibility-host-ui.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\accessibility-host-ui.stderr.txt"
+    },
+    {
+      "sha256": "33D205F93C5693F429A493AEC235240CF4A5DC51BE0A28470D28DB480BD5C785",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\accessibility-host-ui.stdout.txt"
+    },
+    {
+      "sha256": "2C6DB4EE540DE018164E5134F26C812B3F21E3C3FA62EBD3304D2AE7D49C7A9F",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\accessibility-report.png"
+    },
+    {
+      "sha256": "0ECA6B68C30B99334D3F260FB7794548059FEE4D010493C8A314942B9439D9A9",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\Boot.generated.cs"
+    },
+    {
+      "sha256": "41DD3DB292CD4F275C85E6E42F5D0F62902165FC3508226555DCF6EAE0D7C8AF",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\compile-accessibility-probe.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\compile-accessibility-probe.stderr.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\compile-accessibility-probe.stdout.txt"
+    },
+    {
+      "sha256": "D72C633F253F5092A6409C0CA1D72E37947A44A673BFD71CAE379BE8042C8219",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\private-report-retention.json"
+    },
+    {
+      "sha256": "B1C72E3C3AD9587511057D2ED6F667310629B133B0AC5FBC40E61633EDA1BC81",
+      "path": "I:\\LeaBuildStorage\\accessibility-host-ui-audit-20261110-v3\\result.json"
+    }
+  ],
+  "loadingDisposedPausedSplitQualified": false,
+  "runtimeFiles": 401,
+  "ownedRuns": 2,
+  "all15WorkflowsQualified": false,
+  "hostSha256": "61986B5044C5D0FED6B77C6895386813184177E4B5DB9F76C8FC5DA40FF90A1A",
+  "privateReportRetentionQualified": false,
+  "bytesAndAclStable": true,
+  "originalNavigationChecksRetained": true,
+  "resultSha256": "B1C72E3C3AD9587511057D2ED6F667310629B133B0AC5FBC40E61633EDA1BC81",
+  "releaseQualified": false
+}

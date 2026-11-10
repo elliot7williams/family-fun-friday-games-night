@@ -1,0 +1,128 @@
+{
+  "coreSha256": "F05E474C73BAAE19278EE4C80D9D617BD361432B3AADCD472BEA680280E9CBFD",
+  "isolatedTempHtmlAbsent": true,
+  "ownedRuns": 6,
+  "runtimeBytesAndAclsStable": true,
+  "globalResourceConfinementQualified": false,
+  "viewSha256": "FEBA2DFD4C987ADDC47B53217947D05B112C60B2E4AE3C942F72FEAE79F3E77E",
+  "hostIntegrated": false,
+  "viewChecks": 17,
+  "verified": true,
+  "copies": [
+    {
+      "sha256": "C54F4445033EA66353B524E6B042252C743A6E52014A56CE09E159424E12CD5D",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\01-compile-memory-core.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\02-compile-memory-core.stderr.txt"
+    },
+    {
+      "sha256": "9BD16D3A6D19802F530AE12763AAF1B21F909372B1B2EEA1CCCA57DFDB6F08C3",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\03-compile-memory-core.stdout.txt"
+    },
+    {
+      "sha256": "F1D1B5C7BD50ADA650ACB5A3799F27262231901B2E85CC3A8302A998946989A2",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\04-compile-memory-model.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\05-compile-memory-model.stderr.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\06-compile-memory-model.stdout.txt"
+    },
+    {
+      "sha256": "AC0FD148260657BBFD14DA4D10B17D50099ED736B0D3684F0D08ECD4891AA265",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\07-compile-memory-view-probe.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\08-compile-memory-view-probe.stderr.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\09-compile-memory-view-probe.stdout.txt"
+    },
+    {
+      "sha256": "EAD89089BE6042347BF664E8C9510FE6E692169721105983CC54B3C2E6A50E60",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\10-compile-memory-view.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\11-compile-memory-view.stderr.txt"
+    },
+    {
+      "sha256": "949BB328A9CC5566F70BA3BC23FFECA39BE168368F082F4F8312DF9DCE894F47",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\12-compile-memory-view.stdout.txt"
+    },
+    {
+      "sha256": "DFAC44193558F8ECF8E391EC02AC1B1A6FB9FC2A345BC6D3378B7A691FA085E2",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\13-memory-model.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\14-memory-model.stderr.txt"
+    },
+    {
+      "sha256": "8EFC40C99055A0FD429DEDC9F1831EED152B838907AA4412874379961867E187",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\15-memory-model.stdout.txt"
+    },
+    {
+      "sha256": "32D4B9DF3C7CAFBD94BB8B26ABD5BA004EBBCA8323ACC7C3EAD6F03FA8A64625",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\16-memory-view.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\17-memory-view.stderr.txt"
+    },
+    {
+      "sha256": "D6C21C323980189DB33E51168AF718200456E6535364B9E91FF506C8F8DFA431",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\18-memory-view.stdout.txt"
+    },
+    {
+      "sha256": "436078461C4F889612B6AD1139FB255C3105E8E7F6BEB6851FA7396F2FF2108A",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\19-result.json"
+    },
+    {
+      "sha256": "E486E563720971C9C639BA0690287A846C4A3EAA8EBEBC906DC9C05937C5E437",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\20-source.json"
+    },
+    {
+      "sha256": "D7F18E2E8CBBD3881878BAED34B733044D8CC12A119EADB49EB080BAE3889E2C",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\21-MemoryDocument.fragment.cs"
+    },
+    {
+      "sha256": "697774441313A48141B0F797B5A19623815E6B055B4637AF78CAC11E70FD7F1D",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\22-MemoryDocument.fragment.cs"
+    },
+    {
+      "sha256": "B3A19AA1E58DE5A52B8AD210F82A4320C6C9AA6B30E1BE2C5D25DA2A6EA52EDC",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\23-MemoryDocumentMain.cs"
+    },
+    {
+      "sha256": "D5927941C24B101C9FB5D973A419554111E938278053CA476CFD4A1268F34439",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\24-MemoryDocumentViewMain.cs"
+    },
+    {
+      "sha256": "13FE6AEE63C4F60EEBF1C2174E88E3B545FFF2726FC3CDEB090E50EEF40237FA",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\25-Test-OwnedMemoryDocument.ps1"
+    },
+    {
+      "sha256": "1BC528F30D1F844944689F7A5EB06434179474D3CE2BBAA0FE9CD159A78DE12F",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\26-Audit-MemoryDocumentView.ps1"
+    },
+    {
+      "sha256": "AEB285E21D3CFB2040DB4ED6989A52ABFA08DB22AFB9832010946DBB0C24A6D0",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\27-memory-view-720.png"
+    },
+    {
+      "sha256": "2494583A6E799AE9180DF9D74C79473E9B170EA3CF4DC5F5A3EEB1D0446141B0",
+      "path": "I:\\LeaBuildStorage\\memory-document-view-audit-20261110-v1\\28-memory-view-360.png"
+    }
+  ],
+  "privateBrowserDefectFixed": false,
+  "modelChecks": 12,
+  "releaseQualified": false
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "path": "I:\\LeaBuildStorage\\memory-document-model-20261110-v1\\PROJECT_CONTEXT.md",
+    "sha256": "8ADB430CF8D18344108E7295576A5297CF59EFEF495293A045E811A92E4E0C23"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-document-model-20261110-v1\\MEMORY_DOCUMENTS.md",
+    "sha256": "2141CC49CCEC0B4C77CB75A58E04CC29BC44FCEDD11682BC2C504F94DCE71C94"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-document-model-20261110-v1\\PROGRESS.md",
+    "sha256": "381BD9F7403BD1C9FABF2F3AAF912DF72A09F248E5BEB5B460AA7CC6B88DA70A"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-document-model-20261110-v1\\MemoryDocument.fragment.cs",
+    "sha256": "D7F18E2E8CBBD3881878BAED34B733044D8CC12A119EADB49EB080BAE3889E2C"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-document-model-20261110-v1\\MemoryDocumentMain.cs",
+    "sha256": "B3A19AA1E58DE5A52B8AD210F82A4320C6C9AA6B30E1BE2C5D25DA2A6EA52EDC"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-document-model-20261110-v1\\Test-OwnedMemoryDocument.ps1",
+    "sha256": "506B48DDFAF1CD189525A50BC4A0711B03F34E23D68180D3808595D817E1A987"
+  }
+]
