@@ -1,0 +1,40 @@
+{
+  "navigationBudgetMs": 90000,
+  "actualExeBudgetMs": 100000,
+  "source": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-source-20261110-v1\\Test-CurrentFirespiderWorkflows.ps1",
+  "verified": true,
+  "templateSha256": "AE4F6F346E736C28D60291FEBF0EA578D2CEF331CAC2260294F5BEA37564BFE0",
+  "settingsBudgetMs": 30000,
+  "inverseVerified": true,
+  "replacements": [
+    [
+      "continuity-evidence/private-binding-host-workflows-v1",
+      "continuity-evidence/guarded-sdk-host-workflows-v1"
+    ],
+    [
+      "I:\\LeaBuildStorage\\private-binding-firespider-runtime-20261103-v1\\runtime-manifest.json",
+      "I:\\LeaBuildStorage\\guarded-sdk-host-runtime-20261110-v1\\runtime-manifest.json"
+    ],
+    [
+      "694C89BB4FDF24936EF5424CAFC09C57BCDB50ED7EC21483D0DBDBD3A3E122FA",
+      "A566E5A5AEF6F7898D8B1DE8230D19C171FDB8F01804F58186AD96BC269FB8A0"
+    ],
+    [
+      "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85",
+      "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606"
+    ],
+    [
+      "Exact private-binding host original 15 workflow cases",
+      "Exact current-source SDK host original 15 workflow cases"
+    ]
+  ],
+  "retirementBudgetMs": 5000,
+  "workflows": true,
+  "requiredCases": 15,
+  "assertionsChanged": false,
+  "sha256": "1E50F74F86215675D072F815291FD35167993B99F2B3530155B80FC76B193746",
+  "hostAdopted": false,
+  "executed": false,
+  "manifestSha256": "A566E5A5AEF6F7898D8B1DE8230D19C171FDB8F01804F58186AD96BC269FB8A0",
+  "helperPathReplacements": 6
+}

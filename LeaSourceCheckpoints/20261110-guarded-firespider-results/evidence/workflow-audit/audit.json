@@ -1,0 +1,231 @@
+{
+  "forcedCleanup": false,
+  "verified": true,
+  "actualExeResponsive": true,
+  "all15WorkflowsQualified": true,
+  "releaseQualified": false,
+  "assertionsChanged": false,
+  "scriptSha256": "874EAD3CD97C03D66ED0B0D421D35A1ACDFC3883F49D9EE28705E1141E9C485D",
+  "runtimeFiles": 400,
+  "bytesAndAclStable": true,
+  "manifestSha256": "A566E5A5AEF6F7898D8B1DE8230D19C171FDB8F01804F58186AD96BC269FB8A0",
+  "legacyEngineLoaded": false,
+  "startupReliabilityFixed": false,
+  "resultSha256": "5C4EB30217D1D48061BAD5E4443C6F6B5F3541C2CFC3B33125DBBC7346B15846",
+  "ownedRuns": 16,
+  "hostAdopted": false,
+  "cases": 15,
+  "hostSha256": "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606",
+  "sourceSha256": "7BF14378F9179370940B76C96891DFDD3A9EA6C77D833063BB324DD9D7923429",
+  "copies": [
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\clean.json",
+      "sha256": "1713ADB885D21B84148E39CCD307CFD6497487F024B9E7E96765B01BC84EDB76"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-clean.result.json",
+      "sha256": "4DE1FA00276CB1BD4B09F09DC8457088A933795DC26194AD791ABB0A7F48169E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-clean.stderr.txt",
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-clean.stdout.txt",
+      "sha256": "D3447910E69DD7631C4041575D1EF444DE39904A4C0C23338A5F571247708949"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-lazy-all.result.json",
+      "sha256": "860323999EBC3E1850C6F03E14B8C4A76C28E575BFDA74BBC2E654980B103D94"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-lazy-all.stderr.txt",
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-lazy-all.stdout.txt",
+      "sha256": "48F6E6A57570082C52D2C3D68A796197809F07963BBFEA890659324A4CDAC3A5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-lazy-background.result.json",
+      "sha256": "8884B88BDBBBE1D91581C82EA07D6E80820A5EA569F0B8C32E70BF25C8E34120"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-lazy-background.stderr.txt",
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-lazy-background.stdout.txt",
+      "sha256": "E6225F6CFBA1D331F16A17378F81AED0700C7D8105F0D4FD11349A8D553FD0A6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-locked.result.json",
+      "sha256": "78E80CFFB2AC9E2B808878E5DE0CE0135E1ABE6C26EB7BB45D9150915C8F3900"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-locked.stderr.txt",
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-locked.stdout.txt",
+      "sha256": "1805488E1D9362A2ACC2F02FA100CB8E6FD24B4A04234BD508B1BAF652268FEC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-oversized.result.json",
+      "sha256": "0A8BF3B9BEA15283E1801970DAEA48B375CE2132D3AC83472BFEDCC1128F4F50"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-oversized.stderr.txt",
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-oversized.stdout.txt",
+      "sha256": "85231CB2DFD8E20D2E0182786D5CEB9BBD220423164EE9C4AAC7673FB1E3D430"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-restored.result.json",
+      "sha256": "EC833F6BE23BADDA8C263F4F8DCAF3A903E8C92E3C85944B900689F6A6BCA283"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-restored.stderr.txt",
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\exe-restored.stdout.txt",
+      "sha256": "0E08ACE54F3E18D88287B150B6E465221FC0F3A8B013E4A60082413F209C564E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-clean.result.json",
+      "sha256": "93316DFB3620A089C3D427DC6B20E3DFDFF9A4C5F26153405D371A68C5839971"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-clean.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-clean.stdout.txt",
+      "sha256": "BDC5C7E76F89EBF74F7F32B708C4680BCDA5C4228A7C04245E26BF2DA28E9B18"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-edit.result.json",
+      "sha256": "864B0F53659F1246B2C3722BA5D1DDAFC30F37210306B6ABE46B5E98ADEB97A9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-edit.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-edit.stdout.txt",
+      "sha256": "2352C3DDFDF209CAC02062554D923DD8D907F117F1AB4C7B3477DF1A40ADF58D"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-lea.result.json",
+      "sha256": "47E220D1ABAEFFC17215BE7DC359CADE3858F6DB01F41C1A3FE0551679CAC075"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-lea.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-lea.stdout.txt",
+      "sha256": "B56034A16210B2E45C505C1AAE2AFD26EF39880E84CF3A01A6D61402A92EF8BD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-navigation.result.json",
+      "sha256": "001B367D6C84C28751243A28AF996009DC01D2392D56D892DBE2604AC231F3D3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-navigation.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-navigation.stdout.txt",
+      "sha256": "91ACCED7253240779F73EC4A63000113EE0EFD6CED3F90726D73A089F61E3334"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-script.result.json",
+      "sha256": "2A616DD018202A0AAF09F3DC51078976486B63328DF1274ED4E79D8EABC6BE0C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-script.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-script.stdout.txt",
+      "sha256": "D8F681EAB58906090B2DA96BD53D25C58F93DF57AF8AC082948DD0D3DC8C8C42"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-second.result.json",
+      "sha256": "F3160DA2FE3F65500560C69F62F570E57845AF125BAEC9893880A5A02A589760"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-second.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-second.stdout.txt",
+      "sha256": "CA2662912228EBE625340B79D911732EF3C88A07B3BECF48FB489367740CB75A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-split.result.json",
+      "sha256": "C42A03F33AE8CF99462D92C95A02B760CFA00F4CF67109C81C93E8213AC3D259"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-split.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-split.stdout.txt",
+      "sha256": "83CEE5F6AB52CF7453BADF7FF24AEB7599888AC7049EA15626068FE625A51D02"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-style-start.result.json",
+      "sha256": "ACD0D5625A5EDF71139DE89489FA87214C95C376DD211F48A5EF98F041781CEC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-style-start.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\host-style-start.stdout.txt",
+      "sha256": "79268217ABAB14D9599B20277EEA11AEC5794DCED3496B13986DF49DB59154F6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\lazy-all.json",
+      "sha256": "14CB77E08AA496A15AA92FC573A233C55E4DA484003F06A2A6A07A37101BA161"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\lazy-background.json",
+      "sha256": "0074E9B9671473DF409315D0D3146412E4BF96DB28891F3B5B0FA2B2CFEA9E39"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\locked.json",
+      "sha256": "6E5CD638E10332583F88784E600A22DC752933264075426B488748A784CBE7AD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\oversized.json",
+      "sha256": "6BDC9556F33D6DCF660E2C070BE0A71D33F88B5DB5011037AFE43034D808EFE8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\restored.json",
+      "sha256": "6AD5A10EEC42EF96E3819ECCA651D68519279DB2E0013598879EEDE7E93F4714"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\result.json",
+      "sha256": "5C4EB30217D1D48061BAD5E4443C6F6B5F3541C2CFC3B33125DBBC7346B15846"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\settings-path.result.json",
+      "sha256": "D29BF93E6336BAA98871EB2FA583D162EF32ED88F28E41F3F9E8AC9B17F40607"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\settings-path.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-workflow-audit-20261110-v1\\settings-path.stdout.txt",
+      "sha256": "5DF6FDAB1877A80F6AE3CA19EFE73ADF17536895FEDF6BB09A84C8D41F83448B"
+    }
+  ],
+  "printQualified": false
+}

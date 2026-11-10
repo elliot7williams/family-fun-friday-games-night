@@ -1,0 +1,23 @@
+[
+  {
+    "path": "I:\\LeaBuildStorage\\guarded-sdk-host-continuation-20261110-v1\\script-main.png",
+    "lastWriteTimeUtc": "2026-11-10T11:43:27.3910781Z",
+    "runFinishedUtc": "2026-11-10T11:43:48.4515461Z",
+    "runBirthUtc": "2026-11-10T11:43:11.4383352Z",
+    "sha256": "536C1F7B88430C2E6E2EE4B7F9256FC81C3336DD81434CF2185F6EF700D5692B"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\guarded-sdk-host-continuation-20261110-v1\\script-split.png",
+    "lastWriteTimeUtc": "2026-11-10T11:43:44.1432715Z",
+    "runFinishedUtc": "2026-11-10T11:43:48.4515461Z",
+    "runBirthUtc": "2026-11-10T11:43:11.4383352Z",
+    "sha256": "9DBBB93CC7D36E96D971BE4F7AE421B312D730D3800CE4D2387DD95F714C569C"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\guarded-sdk-host-continuation-20261110-v1\\script-attributes.png",
+    "lastWriteTimeUtc": "2026-11-10T11:43:26.813401Z",
+    "runFinishedUtc": "2026-11-10T11:43:48.4515461Z",
+    "runBirthUtc": "2026-11-10T11:43:11.4383352Z",
+    "sha256": "2F748129DA84890B71D5CB08FF4C0D8D304E0BBDE4A3C51A983B07608E244F40"
+  }
+]

@@ -1,0 +1,2 @@
+PASS split: native panes, privacy, field retention, guard/link/forms, bidirectional scroll, in-memory comparison, bounded layout, and disposal
+PASS Lea boot: split; Show=2246 ms; initial tabs=1

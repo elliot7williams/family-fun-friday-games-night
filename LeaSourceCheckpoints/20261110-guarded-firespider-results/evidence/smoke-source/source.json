@@ -1,0 +1,40 @@
+{
+  "replacements": [
+    [
+      "continuity-evidence/private-binding-host-smokes-v1",
+      "continuity-evidence/guarded-sdk-host-smokes-v1"
+    ],
+    [
+      "I:\\LeaBuildStorage\\private-binding-firespider-runtime-20261103-v1\\runtime-manifest.json",
+      "I:\\LeaBuildStorage\\guarded-sdk-host-runtime-20261110-v1\\runtime-manifest.json"
+    ],
+    [
+      "694C89BB4FDF24936EF5424CAFC09C57BCDB50ED7EC21483D0DBDBD3A3E122FA",
+      "A566E5A5AEF6F7898D8B1DE8230D19C171FDB8F01804F58186AD96BC269FB8A0"
+    ],
+    [
+      "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85",
+      "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606"
+    ],
+    [
+      "Exact private-binding host settings/navigation/actual clean EXE smokes",
+      "Exact current-source SDK host settings/navigation/actual clean EXE smokes"
+    ]
+  ],
+  "verified": true,
+  "hostAdopted": false,
+  "helperPathReplacements": 6,
+  "source": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-source-20261110-v1\\Test-CurrentFirespider.ps1",
+  "workflows": false,
+  "assertionsChanged": false,
+  "executed": false,
+  "manifestSha256": "A566E5A5AEF6F7898D8B1DE8230D19C171FDB8F01804F58186AD96BC269FB8A0",
+  "settingsBudgetMs": 30000,
+  "navigationBudgetMs": 90000,
+  "retirementBudgetMs": 5000,
+  "sha256": "A79C6D1A6C16F38DC479621CCDAA2EB3AE212EBAE6952D4173F3F1EDA95E36AE",
+  "templateSha256": "0AC6D53BA9C051AA359805F8C5938D269E1F69960FEEA9CB3D8A26BA9BD24D7C",
+  "inverseVerified": true,
+  "actualExeBudgetMs": 100000,
+  "requiredCases": 3
+}

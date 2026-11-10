@@ -1,0 +1,2 @@
+PASS style startup: native saved STARTUP style and timer preview, named replacement, paused/empty guards, retained rules/page, unsupported script status, no MSHTML
+PASS Lea boot: style-start; Show=2141 ms; initial tabs=1

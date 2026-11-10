@@ -1,0 +1,60 @@
+{
+    "Passed":  true,
+    "Scenario":  "lazy-all",
+    "Responsive":  true,
+    "Lea":  false,
+    "Tabs":  2,
+    "DeferredSelection":  true,
+    "Resumed":  true,
+    "LegacyEngine":  false,
+    "ReadyMs":  4598,
+    "ObservedMs":  6237,
+    "Title":  "Firespider Internet 17 - Lea in Firespider",
+    "Executable":  "C:\\Users\\Elliot\\AppData\\Local\\Temp\\lea-startup-runtime-a3778b78d8b94429906ee301c5197333\\Firespider Internet 19.exe",
+    "ConfigSHA256":  "B695A5493EF62D00BA390D5196E5CC8D5494A4ACEE104553BF2E5287CD0ABECF",
+    "SourceConfigSHA256":  "E91AC2CC41148E4F9F2FA181E5B17C8A4A35E07A56055A9BA6567A6EEC92BFAF",
+    "ProfileIsolation":  "Fresh unsigned executable path; standard settings provider",
+    "Settings":  {
+                     "recoveryEnabled":  "",
+                     "el":  "",
+                     "dashboard":  "",
+                     "ps":  "",
+                     "backupEnabled":  "",
+                     "rws":  "",
+                     "cleanExit":  "e",
+                     "analyticsEnabled":  "",
+                     "h":  "file:///C:/Users/Elliot/AppData/Local/Temp/lea-startup-runtime-a3778b78d8b94429906ee301c5197333/Lea/start.html",
+                     "portableMode":  "",
+                     "nf":  "file:///C:/Users/Elliot/AppData/Local/Temp/lea-startup-runtime-a3778b78d8b94429906ee301c5197333/Lea/start.html",
+                     "frEnabled":  "",
+                     "t":  "",
+                     "rs":  "",
+                     "watchEnabled":  "",
+                     "lazyRestoreMode":  "all",
+                     "hibernateEnabled":  ""
+                 },
+    "Session":  "C:\\Users\\Elliot\\AppData\\Local\\Temp\\lea-startup-91eb132ee47c48d49ed2c944eda756e6.txt",
+    "InitialUris":  [
+                        "file:///C:/Users/Elliot/AppData/Local/Temp/lea-startup-runtime-a3778b78d8b94429906ee301c5197333/Lea/start.html",
+                        "file:///C:/Users/Elliot/AppData/Local/Temp/lea-startup-runtime-a3778b78d8b94429906ee301c5197333/Lea/start.html"
+                    ],
+    "BudgetSeconds":  63,
+    "ResumeBudgetSeconds":  15,
+    "LastObservation":  {
+                            "ElapsedMs":  4596,
+                            "Handle":  2164268,
+                            "Title":  "Firespider Internet 17",
+                            "Tabs":  2,
+                            "Selected":  0,
+                            "Deferred":  true,
+                            "Resume":  1443316,
+                            "Ready":  true,
+                            "TopNames":  [
+                                             "Firespider Internet 17 - [Suspended] file:///C:/Users/Elliot/AppData/Local/Temp/lea-sta..."
+                                         ]
+                        },
+    "ForcedCleanup":  false,
+    "CleanupErrors":  [
+
+                      ]
+}

@@ -1,0 +1,44 @@
+{
+  "hostSha256": "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606",
+  "startupReliabilityFixed": false,
+  "ownedRuns": 1,
+  "copies": [
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-print-audit-20261110-v1\\run-print-command-preview.result.json",
+      "sha256": "C805F680BEBD24B0F3FD575CE9680CBCCC3ADF543FC11BCC2FFA868B8739C239"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-print-audit-20261110-v1\\run-print-command-preview.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-print-audit-20261110-v1\\run-print-command-preview.stdout.txt",
+      "sha256": "781233F1A9D285F69122B60AECB25A467DB724F8D8E564E6C1A9C5A926C3E0E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-print-audit-20261110-v1\\run-result.json",
+      "sha256": "DDE3C3959EDCC7ED6EFAD5D5AF0CC6F985EE5C3A7E7FF3B724C05ED3AFE6F7C6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-print-audit-20261110-v1\\source-source.json",
+      "sha256": "9138BF370EE43C52704DCE84EF58F9F618D5462253B5C8F26DAE6A4C4D9E2938"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-print-audit-20261110-v1\\source-Test-CurrentFirespiderPrint.ps1",
+      "sha256": "CD61D3760FDCA26D08BE2D98E9137ACA1D9A980D670804626E106A86EBA5E3A9"
+    }
+  ],
+  "scriptSha256": "FC34D4B41FD1BBC3B67B4BED68E2FBC05F949F0C9411048F65B0A8F081178419",
+  "limitsChanged": false,
+  "physicalPrintingQualified": false,
+  "runtimeMembers": 403,
+  "printSha256": "DDE3C3959EDCC7ED6EFAD5D5AF0CC6F985EE5C3A7E7FF3B724C05ED3AFE6F7C6",
+  "queueSubmitted": false,
+  "hostAdopted": false,
+  "assertionsChanged": false,
+  "printCommandPassed": true,
+  "verified": true,
+  "releaseQualified": false,
+  "runtimeBytesAndAclStable": true,
+  "previewPassed": true
+}
