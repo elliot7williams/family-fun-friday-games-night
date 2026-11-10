@@ -1,0 +1,33 @@
+{
+  "queueSubmissionAllowed": false,
+  "verified": true,
+  "inverseVerified": true,
+  "executed": false,
+  "source": "I:\\LeaBuildStorage\\guarded-sdk-host-print-source-20261110-v1\\Test-CurrentFirespiderPrint.ps1",
+  "assertionsChanged": false,
+  "printBudgetMs": 90000,
+  "sha256": "CD61D3760FDCA26D08BE2D98E9137ACA1D9A980D670804626E106A86EBA5E3A9",
+  "helperPathReplacements": 5,
+  "hostAdopted": false,
+  "retirementBudgetMs": 5000,
+  "manifestSha256": "A566E5A5AEF6F7898D8B1DE8230D19C171FDB8F01804F58186AD96BC269FB8A0",
+  "templateSha256": "8EEBE670453A7C6604A1C3560EA8EF6EDF91F461789CCCBCCF58B708CBB05365",
+  "replacements": [
+    [
+      "continuity-evidence/private-binding-host-print-v1",
+      "continuity-evidence/guarded-sdk-host-print-v1"
+    ],
+    [
+      "I:\\LeaBuildStorage\\private-binding-firespider-runtime-20261103-v1\\runtime-manifest.json",
+      "I:\\LeaBuildStorage\\guarded-sdk-host-runtime-20261110-v1\\runtime-manifest.json"
+    ],
+    [
+      "694C89BB4FDF24936EF5424CAFC09C57BCDB50ED7EC21483D0DBDBD3A3E122FA",
+      "A566E5A5AEF6F7898D8B1DE8230D19C171FDB8F01804F58186AD96BC269FB8A0"
+    ],
+    [
+      "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85",
+      "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606"
+    ]
+  ]
+}
