@@ -1,0 +1,1899 @@
+{
+  "completeSdk": false,
+  "ownerAttention": false,
+  "passed": false,
+  "runs": [
+    {
+      "exitObserved": true,
+      "activeAfterRetirement": 0,
+      "startAttempted": true,
+      "stderrRetainedBytes": 0,
+      "pid": 14144,
+      "finishedUtc": "2026-11-09T23:30:46.2139121Z",
+      "retainedForOwner": false,
+      "outputDrained": true,
+      "timedOut": false,
+      "stderrComplete": true,
+      "error": null,
+      "stderr": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original-missing-dependencies.stderr.txt",
+      "childRetirementIndependentlyAudited": true,
+      "killRequested": false,
+      "name": "original-missing-dependencies",
+      "startUnknown": false,
+      "stdoutComplete": true,
+      "parentBudgetMs": 120000,
+      "passed": false,
+      "stderrBytes": 0,
+      "stdout": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original-missing-dependencies.stdout.txt",
+      "unsafeToContinue": false,
+      "exitCode": 1,
+      "stdoutBytes": 10079,
+      "retirementAndDrainElapsedMs": 97,
+      "elapsedMs": 4906,
+      "originalHandleCaptured": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "captureOverflow": false,
+      "ownedJob": true,
+      "started": true,
+      "stdoutRetainedBytes": 10079,
+      "startReturned": true,
+      "birthUtc": "2026-11-09T23:30:41.2413727Z"
+    }
+  ],
+  "inputsUnchanged": true,
+  "error": "System.Management.Automation.RuntimeException: Original clean-build defect not reproduced safely",
+  "sourceGraphCompiled": false,
+  "inputs": [
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-SdkSourceGraph.ps1",
+      "sha256": "DA27A06005F13E96277E7BFA78F31520308531A8777EB34FAD2DEAADE86EF8D9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\github-source-checkpoint-20261109-v1\\LeaSourceCheckpoints\\20261102\\mature-sdk\\source-manifest.json",
+      "sha256": "B5A0283803C7062DA98A7F3331D94940360E00045A06038168FCA94214CD114A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\result.json",
+      "sha256": "E1A27B9A2ACCCAC6820393FEEBBD6145911D30E9ECF50459DE28E9AB5B4FC46A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\result.json",
+      "sha256": "952D427EBE4CC04653F22C23833A7D1845BC323AF931ED5181A9D72236181337"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-build.json",
+      "sha256": "D32732C0BF3B548DB649966100D4B074663E07544BC9C25A648A80D6723AB02C"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\staging.json",
+      "sha256": "591FBFFC8D0A57136FEC81442A392BE1B8F14ABC9931D7DCC9E41FD14B3F7B5B"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ar.cs",
+      "sha256": "7FE2BD81D76572A04402D28F5B71DCA6EE7311521643ACD042F99B67906CE792"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Ar.cs",
+      "sha256": "7FE2BD81D76572A04402D28F5B71DCA6EE7311521643ACD042F99B67906CE792"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ax.cs",
+      "sha256": "A1EE186005F2F5690D540ACEFC54BE8EACF5923F09E4EE22572B0C2B95F80BB9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Ax.cs",
+      "sha256": "A1EE186005F2F5690D540ACEFC54BE8EACF5923F09E4EE22572B0C2B95F80BB9"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\B.cs",
+      "sha256": "05F9457B7B44B00B743D80157941935E462D8BBC9F321E0EB20645713A12D3F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\B.cs",
+      "sha256": "05F9457B7B44B00B743D80157941935E462D8BBC9F321E0EB20645713A12D3F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Bi.cs",
+      "sha256": "CAB89D042708F64784F94B77B8C3120B291B6476E0F698549DD070F1FD4A5CFA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Bi.cs",
+      "sha256": "CAB89D042708F64784F94B77B8C3120B291B6476E0F698549DD070F1FD4A5CFA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Cz.cs",
+      "sha256": "D41C1021D3CE916C7EB3D3ABC46E95AFC13DC5AD67F5B29EB66E119474AD4BC6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Cz.cs",
+      "sha256": "D41C1021D3CE916C7EB3D3ABC46E95AFC13DC5AD67F5B29EB66E119474AD4BC6"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\D.cs",
+      "sha256": "F8378792AD26648ABDF6622D7626CD8BD6DECA7FB68E059E7AA87FFEECFDE686"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\D.cs",
+      "sha256": "F8378792AD26648ABDF6622D7626CD8BD6DECA7FB68E059E7AA87FFEECFDE686"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Dv.cs",
+      "sha256": "21D557385B8AC64B990BE70FC01330C53888BCE1C4B000BFA64CEEE511A89B60"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Dv.cs",
+      "sha256": "21D557385B8AC64B990BE70FC01330C53888BCE1C4B000BFA64CEEE511A89B60"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\E.cs",
+      "sha256": "4375F4D7018BB8D1ED7467F455FDA3A81E59C2511AC4289F04A2B665E131F052"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\E.cs",
+      "sha256": "4375F4D7018BB8D1ED7467F455FDA3A81E59C2511AC4289F04A2B665E131F052"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Er.cs",
+      "sha256": "2DA1764948302D718644F991D292F30B940C3F1BB8C176C6AA25C926337B0774"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Er.cs",
+      "sha256": "2DA1764948302D718644F991D292F30B940C3F1BB8C176C6AA25C926337B0774"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Fi.cs",
+      "sha256": "8A7764CDFE4A6A267D8C103E9982B6426B4B85CCA81617DBBB9E4DAA9B42C875"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Fi.cs",
+      "sha256": "8A7764CDFE4A6A267D8C103E9982B6426B4B85CCA81617DBBB9E4DAA9B42C875"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\FontShorthand.cs",
+      "sha256": "04EEE4E4695710EA3E96F60AD8BF6E1F03A56F585239D3D938ABBBA006974766"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\FontShorthand.cs",
+      "sha256": "04EEE4E4695710EA3E96F60AD8BF6E1F03A56F585239D3D938ABBBA006974766"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\G.cs",
+      "sha256": "BBFE4C98181F7BC0844EFBA215E976A60734047052498E505C6964BE89E3AA3E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\G.cs",
+      "sha256": "BBFE4C98181F7BC0844EFBA215E976A60734047052498E505C6964BE89E3AA3E"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Gi.cs",
+      "sha256": "A4AE0FB794F41E493D8E7BF09D0B254AC2B78B23AA55D79657269FB1E85346A9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Gi.cs",
+      "sha256": "A4AE0FB794F41E493D8E7BF09D0B254AC2B78B23AA55D79657269FB1E85346A9"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Hc.cs",
+      "sha256": "BFE89C49863A0A50B527A16E0DF64857C4EA7CEC29EE9FD1CE441902048D3357"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Hc.cs",
+      "sha256": "BFE89C49863A0A50B527A16E0DF64857C4EA7CEC29EE9FD1CE441902048D3357"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Hn.cs",
+      "sha256": "1EA35B87389F1B5B05CBA00BB17E52424F692C52C56749322AA8569511E87212"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Hn.cs",
+      "sha256": "1EA35B87389F1B5B05CBA00BB17E52424F692C52C56749322AA8569511E87212"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Hn.Data.cs",
+      "sha256": "2522F0F4945EE135BD80F3EC43DB834944A0A8CEC06727AE13282E60B29FC954"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Hn.Data.cs",
+      "sha256": "2522F0F4945EE135BD80F3EC43DB834944A0A8CEC06727AE13282E60B29FC954"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ir.cs",
+      "sha256": "E432E4B968AB4E2447F727A1EF4DD55C1FE78E06B30EFA4BFA6D7C69A6E04265"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Ir.cs",
+      "sha256": "E432E4B968AB4E2447F727A1EF4DD55C1FE78E06B30EFA4BFA6D7C69A6E04265"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\J.cs",
+      "sha256": "E91CDCF3F517FA8AEC18C9C09657531297B29FFAD72E6018860524A5A1CAFB62"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\J.cs",
+      "sha256": "E91CDCF3F517FA8AEC18C9C09657531297B29FFAD72E6018860524A5A1CAFB62"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ln.cs",
+      "sha256": "F53BED93A4F80353CC6DDB07EA05F9EE6EE983DE2EB6673C2B8BA286CCD9594F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Ln.cs",
+      "sha256": "F53BED93A4F80353CC6DDB07EA05F9EE6EE983DE2EB6673C2B8BA286CCD9594F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Mp.cs",
+      "sha256": "45E9BE193E334B27DB61F1CFE0B063F78CE11BDF98496FB6B63D6E973A952421"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Mp.cs",
+      "sha256": "45E9BE193E334B27DB61F1CFE0B063F78CE11BDF98496FB6B63D6E973A952421"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\N.cs",
+      "sha256": "F5194006EB436D4D26E96594CAD1AFB16240BDF38F325A4EA30BB4AA11872B9B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\N.cs",
+      "sha256": "F5194006EB436D4D26E96594CAD1AFB16240BDF38F325A4EA30BB4AA11872B9B"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\O.cs",
+      "sha256": "E9049C8CE791A87B2E0F832FE42821F279A1079E58D70B64098994DBF8514F4C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\O.cs",
+      "sha256": "E9049C8CE791A87B2E0F832FE42821F279A1079E58D70B64098994DBF8514F4C"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Og.cs",
+      "sha256": "8D596BE99A59E2016D61FBE81E77E4E15DDCE7BA27AC1286EAE4BEC56052F220"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Og.cs",
+      "sha256": "8D596BE99A59E2016D61FBE81E77E4E15DDCE7BA27AC1286EAE4BEC56052F220"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\P.cs",
+      "sha256": "ACDA9A49BDC171C4414F85C503DDE2812AC56C4E0F8C1E33AEB3264E482027DD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\P.cs",
+      "sha256": "ACDA9A49BDC171C4414F85C503DDE2812AC56C4E0F8C1E33AEB3264E482027DD"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Pc.cs",
+      "sha256": "651416A2889EF51B6D4732A5CFA307722D117ED0775E1D346EB575285423A1BA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Pc.cs",
+      "sha256": "651416A2889EF51B6D4732A5CFA307722D117ED0775E1D346EB575285423A1BA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ri.cs",
+      "sha256": "DC726E564E0DF04AB3CE6928E3955B68DD8FDB688E3850AAD77EC02F03FB7C92"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Ri.cs",
+      "sha256": "DC726E564E0DF04AB3CE6928E3955B68DD8FDB688E3850AAD77EC02F03FB7C92"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\S.cs",
+      "sha256": "3679DEC3DB439624C1D9780A6EACD951A2E8CF90C271EBF46A5FC2377CA3B34C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\S.cs",
+      "sha256": "3679DEC3DB439624C1D9780A6EACD951A2E8CF90C271EBF46A5FC2377CA3B34C"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Sw.cs",
+      "sha256": "56419432F7767A1C25C04242A59683C958FD24B512FB5289B8A5230CA429F73E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Sw.cs",
+      "sha256": "56419432F7767A1C25C04242A59683C958FD24B512FB5289B8A5230CA429F73E"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Tb.cs",
+      "sha256": "CD726A8695A3D55B2C1DD02394D8E4D267B3D0F01F6439EFB0219FB9BCD5DBF8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Tb.cs",
+      "sha256": "CD726A8695A3D55B2C1DD02394D8E4D267B3D0F01F6439EFB0219FB9BCD5DBF8"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Tc.cs",
+      "sha256": "3113F2F86C41A094883C4EB3EE3DB8E7BDE27F2313732BD250A99DE306854431"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Tc.cs",
+      "sha256": "3113F2F86C41A094883C4EB3EE3DB8E7BDE27F2313732BD250A99DE306854431"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Tr.cs",
+      "sha256": "129A8BAE08342524B38D4EB7D2DD164728806830EEB746A0F5D8398F8C9AEDBD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Tr.cs",
+      "sha256": "129A8BAE08342524B38D4EB7D2DD164728806830EEB746A0F5D8398F8C9AEDBD"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Vg.cs",
+      "sha256": "AD5F16EA44466A062010B5EEBC03309BB41AF1DC7F55002F074E42B7F1B23249"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Vg.cs",
+      "sha256": "AD5F16EA44466A062010B5EEBC03309BB41AF1DC7F55002F074E42B7F1B23249"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Vm.cs",
+      "sha256": "48ACA2338653F918C03694E55B03E541A700BDDFD347804CD5253DE14FD199D1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Vm.cs",
+      "sha256": "48ACA2338653F918C03694E55B03E541A700BDDFD347804CD5253DE14FD199D1"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Vs.cs",
+      "sha256": "D79771205EE69C10892534961B2117AB1F7B92AA42261FE809A7BA40A5D04F22"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Vs.cs",
+      "sha256": "D79771205EE69C10892534961B2117AB1F7B92AA42261FE809A7BA40A5D04F22"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Di.cs",
+      "sha256": "41457ADEE41DF2BF2898286CA492BAAE34A768F5A7D45C183CDDAB5D437BF856"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\Di.cs",
+      "sha256": "41457ADEE41DF2BF2898286CA492BAAE34A768F5A7D45C183CDDAB5D437BF856"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\DocumentSelection.cs",
+      "sha256": "DEE10AB64B227ABBADC7BD1B72E0A504F6D788750C49C5EA3D3CD80004254662"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\DocumentSelection.cs",
+      "sha256": "DEE10AB64B227ABBADC7BD1B72E0A504F6D788750C49C5EA3D3CD80004254662"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\DocumentSelectionAutomation.cs",
+      "sha256": "5697AA7B65C474236FA18076F0899F65C648708DF7A7F1E763D353E5A3C5880B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\DocumentSelectionAutomation.cs",
+      "sha256": "5697AA7B65C474236FA18076F0899F65C648708DF7A7F1E763D353E5A3C5880B"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Jb.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\Jb.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Pi.cs",
+      "sha256": "A79E8CCB48BECC64BFAD8590A3609840199ADE97EF49B841C1E86431DBBB209E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\Pi.cs",
+      "sha256": "A79E8CCB48BECC64BFAD8590A3609840199ADE97EF49B841C1E86431DBBB209E"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\PrintImages.cs",
+      "sha256": "68E7CD7CAD09E7EA1283DC557BC1A3C4BA3B380884CCD7D448FFF58685C597D9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\PrintImages.cs",
+      "sha256": "68E7CD7CAD09E7EA1283DC557BC1A3C4BA3B380884CCD7D448FFF58685C597D9"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Rp.cs",
+      "sha256": "482F990F4D51D809B47338CE475D2CD19A6C6AC28268946FBE24F8DD95E22841"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\Rp.cs",
+      "sha256": "482F990F4D51D809B47338CE475D2CD19A6C6AC28268946FBE24F8DD95E22841"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\V.cs",
+      "sha256": "952585156E3A8D8800398116B12D1132D754CFBD4249E216C1D05DE6394A368F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\V.cs",
+      "sha256": "952585156E3A8D8800398116B12D1132D754CFBD4249E216C1D05DE6394A368F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Xs.cs",
+      "sha256": "1C2D3CA0BF9B7995F7BB435807CEFC07CBB99D8A43CBE3CC4F3AEF970AE28810"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\Xs.cs",
+      "sha256": "1C2D3CA0BF9B7995F7BB435807CEFC07CBB99D8A43CBE3CC4F3AEF970AE28810"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\1.cs",
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\1.cs",
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\2.cs",
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\2.cs",
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\3.cs",
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\3.cs",
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\4.cs",
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\4.cs",
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\5.cs",
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\5.cs",
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\6.cs",
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\6.cs",
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\7.cs",
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\7.cs",
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\8.cs",
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\8.cs",
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\9.cs",
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\9.cs",
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\10.cs",
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\10.cs",
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\11.cs",
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\11.cs",
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\12.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\12.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\13.cs",
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\13.cs",
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\14.cs",
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\14.cs",
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\15.cs",
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\15.cs",
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\github-source-checkpoint-20261109-v1\\LeaSourceCheckpoints\\20261102\\mature-sdk\\Lea.Script.Win\\W.cs",
+      "sha256": "197F77D2A0085A0D00AE2B912E1C3ED06EC373B538392A81E3CBEB1B088B7509"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script.Win\\W.cs",
+      "sha256": "197F77D2A0085A0D00AE2B912E1C3ED06EC373B538392A81E3CBEB1B088B7509"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\github-source-checkpoint-20261109-v1\\LeaSourceCheckpoints\\20261102\\mature-sdk\\Lea.Script.Win\\AssemblyInfo.cs",
+      "sha256": "E1AED7A86015A517767EEF367D87E70BD60DB37F34209C6CA623B785D6D55F42"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script.Win\\AssemblyInfo.cs",
+      "sha256": "E1AED7A86015A517767EEF367D87E70BD60DB37F34209C6CA623B785D6D55F42"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-full-assembly-20261103-v5-assets\\fixtures\\Lea.Script\\Dom.js",
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\Dom.js",
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-full-assembly-20261103-v5-assets\\fixtures\\Lea.Script\\Dom.compact.js",
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\Dom.compact.js",
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\lib\\Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\lib\\Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\lib\\System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\lib\\System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\lib\\System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\lib\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Directory.Build.targets",
+      "sha256": "9396191B864CAADBFF92390701601747C841F1429A26FB63285848C43744BC65"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Directory.Build.targets",
+      "sha256": "9396191B864CAADBFF92390701601747C841F1429A26FB63285848C43744BC65"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Engine.csproj",
+      "sha256": "96B09D181BF292DD666E8604B707B56FB8D870F6C5A3466F363C7A5EF1D18F76"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Engine\\Lea.Engine.csproj",
+      "sha256": "9E0DC5E3B7666AD65D3EB9534F1CCB7E62128FD50078014A6EC38BCFD430E010"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Win.csproj",
+      "sha256": "561D9FD35EC6648969B3E132CFD14273A5A9CE4AED1BBDF246E40D361B775B40"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Win\\Lea.Win.csproj",
+      "sha256": "80508040B077724635A8EDAB871ABA3EF038C0D8CA7187011953E0B0AF5F76B0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\github-source-checkpoint-20261109-v1\\LeaSourceCheckpoints\\20261102\\mature-sdk\\Lea.Script\\Lea.Script.csproj",
+      "sha256": "6CE68A14E15DFC62EF19D41FAB4AD4355AD88C282CDA176B853407DA68F67342"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script\\Lea.Script.csproj",
+      "sha256": "6CE68A14E15DFC62EF19D41FAB4AD4355AD88C282CDA176B853407DA68F67342"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\github-source-checkpoint-20261109-v1\\LeaSourceCheckpoints\\20261102\\mature-sdk\\Lea.Script.Win\\Lea.Script.Win.csproj",
+      "sha256": "56FE3B2D0E337846ABCAA5C42FCD50F3E8713560CC710837BEE1261C379F2B45"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\original\\Lea.Script.Win\\Lea.Script.Win.csproj",
+      "sha256": "56FE3B2D0E337846ABCAA5C42FCD50F3E8713560CC710837BEE1261C379F2B45"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ar.cs",
+      "sha256": "7FE2BD81D76572A04402D28F5B71DCA6EE7311521643ACD042F99B67906CE792"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Ar.cs",
+      "sha256": "7FE2BD81D76572A04402D28F5B71DCA6EE7311521643ACD042F99B67906CE792"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ax.cs",
+      "sha256": "A1EE186005F2F5690D540ACEFC54BE8EACF5923F09E4EE22572B0C2B95F80BB9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Ax.cs",
+      "sha256": "A1EE186005F2F5690D540ACEFC54BE8EACF5923F09E4EE22572B0C2B95F80BB9"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\B.cs",
+      "sha256": "05F9457B7B44B00B743D80157941935E462D8BBC9F321E0EB20645713A12D3F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\B.cs",
+      "sha256": "05F9457B7B44B00B743D80157941935E462D8BBC9F321E0EB20645713A12D3F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Bi.cs",
+      "sha256": "CAB89D042708F64784F94B77B8C3120B291B6476E0F698549DD070F1FD4A5CFA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Bi.cs",
+      "sha256": "CAB89D042708F64784F94B77B8C3120B291B6476E0F698549DD070F1FD4A5CFA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Cz.cs",
+      "sha256": "D41C1021D3CE916C7EB3D3ABC46E95AFC13DC5AD67F5B29EB66E119474AD4BC6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Cz.cs",
+      "sha256": "D41C1021D3CE916C7EB3D3ABC46E95AFC13DC5AD67F5B29EB66E119474AD4BC6"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\D.cs",
+      "sha256": "F8378792AD26648ABDF6622D7626CD8BD6DECA7FB68E059E7AA87FFEECFDE686"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\D.cs",
+      "sha256": "F8378792AD26648ABDF6622D7626CD8BD6DECA7FB68E059E7AA87FFEECFDE686"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Dv.cs",
+      "sha256": "21D557385B8AC64B990BE70FC01330C53888BCE1C4B000BFA64CEEE511A89B60"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Dv.cs",
+      "sha256": "21D557385B8AC64B990BE70FC01330C53888BCE1C4B000BFA64CEEE511A89B60"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\E.cs",
+      "sha256": "4375F4D7018BB8D1ED7467F455FDA3A81E59C2511AC4289F04A2B665E131F052"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\E.cs",
+      "sha256": "4375F4D7018BB8D1ED7467F455FDA3A81E59C2511AC4289F04A2B665E131F052"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Er.cs",
+      "sha256": "2DA1764948302D718644F991D292F30B940C3F1BB8C176C6AA25C926337B0774"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Er.cs",
+      "sha256": "2DA1764948302D718644F991D292F30B940C3F1BB8C176C6AA25C926337B0774"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Fi.cs",
+      "sha256": "8A7764CDFE4A6A267D8C103E9982B6426B4B85CCA81617DBBB9E4DAA9B42C875"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Fi.cs",
+      "sha256": "8A7764CDFE4A6A267D8C103E9982B6426B4B85CCA81617DBBB9E4DAA9B42C875"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\FontShorthand.cs",
+      "sha256": "04EEE4E4695710EA3E96F60AD8BF6E1F03A56F585239D3D938ABBBA006974766"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\FontShorthand.cs",
+      "sha256": "04EEE4E4695710EA3E96F60AD8BF6E1F03A56F585239D3D938ABBBA006974766"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\G.cs",
+      "sha256": "BBFE4C98181F7BC0844EFBA215E976A60734047052498E505C6964BE89E3AA3E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\G.cs",
+      "sha256": "BBFE4C98181F7BC0844EFBA215E976A60734047052498E505C6964BE89E3AA3E"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Gi.cs",
+      "sha256": "A4AE0FB794F41E493D8E7BF09D0B254AC2B78B23AA55D79657269FB1E85346A9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Gi.cs",
+      "sha256": "A4AE0FB794F41E493D8E7BF09D0B254AC2B78B23AA55D79657269FB1E85346A9"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Hc.cs",
+      "sha256": "BFE89C49863A0A50B527A16E0DF64857C4EA7CEC29EE9FD1CE441902048D3357"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Hc.cs",
+      "sha256": "BFE89C49863A0A50B527A16E0DF64857C4EA7CEC29EE9FD1CE441902048D3357"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Hn.cs",
+      "sha256": "1EA35B87389F1B5B05CBA00BB17E52424F692C52C56749322AA8569511E87212"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Hn.cs",
+      "sha256": "1EA35B87389F1B5B05CBA00BB17E52424F692C52C56749322AA8569511E87212"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Hn.Data.cs",
+      "sha256": "2522F0F4945EE135BD80F3EC43DB834944A0A8CEC06727AE13282E60B29FC954"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Hn.Data.cs",
+      "sha256": "2522F0F4945EE135BD80F3EC43DB834944A0A8CEC06727AE13282E60B29FC954"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ir.cs",
+      "sha256": "E432E4B968AB4E2447F727A1EF4DD55C1FE78E06B30EFA4BFA6D7C69A6E04265"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Ir.cs",
+      "sha256": "E432E4B968AB4E2447F727A1EF4DD55C1FE78E06B30EFA4BFA6D7C69A6E04265"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\J.cs",
+      "sha256": "E91CDCF3F517FA8AEC18C9C09657531297B29FFAD72E6018860524A5A1CAFB62"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\J.cs",
+      "sha256": "E91CDCF3F517FA8AEC18C9C09657531297B29FFAD72E6018860524A5A1CAFB62"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ln.cs",
+      "sha256": "F53BED93A4F80353CC6DDB07EA05F9EE6EE983DE2EB6673C2B8BA286CCD9594F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Ln.cs",
+      "sha256": "F53BED93A4F80353CC6DDB07EA05F9EE6EE983DE2EB6673C2B8BA286CCD9594F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Mp.cs",
+      "sha256": "45E9BE193E334B27DB61F1CFE0B063F78CE11BDF98496FB6B63D6E973A952421"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Mp.cs",
+      "sha256": "45E9BE193E334B27DB61F1CFE0B063F78CE11BDF98496FB6B63D6E973A952421"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\N.cs",
+      "sha256": "F5194006EB436D4D26E96594CAD1AFB16240BDF38F325A4EA30BB4AA11872B9B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\N.cs",
+      "sha256": "F5194006EB436D4D26E96594CAD1AFB16240BDF38F325A4EA30BB4AA11872B9B"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\O.cs",
+      "sha256": "E9049C8CE791A87B2E0F832FE42821F279A1079E58D70B64098994DBF8514F4C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\O.cs",
+      "sha256": "E9049C8CE791A87B2E0F832FE42821F279A1079E58D70B64098994DBF8514F4C"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Og.cs",
+      "sha256": "8D596BE99A59E2016D61FBE81E77E4E15DDCE7BA27AC1286EAE4BEC56052F220"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Og.cs",
+      "sha256": "8D596BE99A59E2016D61FBE81E77E4E15DDCE7BA27AC1286EAE4BEC56052F220"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\P.cs",
+      "sha256": "ACDA9A49BDC171C4414F85C503DDE2812AC56C4E0F8C1E33AEB3264E482027DD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\P.cs",
+      "sha256": "ACDA9A49BDC171C4414F85C503DDE2812AC56C4E0F8C1E33AEB3264E482027DD"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Pc.cs",
+      "sha256": "651416A2889EF51B6D4732A5CFA307722D117ED0775E1D346EB575285423A1BA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Pc.cs",
+      "sha256": "651416A2889EF51B6D4732A5CFA307722D117ED0775E1D346EB575285423A1BA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ri.cs",
+      "sha256": "DC726E564E0DF04AB3CE6928E3955B68DD8FDB688E3850AAD77EC02F03FB7C92"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Ri.cs",
+      "sha256": "DC726E564E0DF04AB3CE6928E3955B68DD8FDB688E3850AAD77EC02F03FB7C92"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\S.cs",
+      "sha256": "3679DEC3DB439624C1D9780A6EACD951A2E8CF90C271EBF46A5FC2377CA3B34C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\S.cs",
+      "sha256": "3679DEC3DB439624C1D9780A6EACD951A2E8CF90C271EBF46A5FC2377CA3B34C"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Sw.cs",
+      "sha256": "56419432F7767A1C25C04242A59683C958FD24B512FB5289B8A5230CA429F73E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Sw.cs",
+      "sha256": "56419432F7767A1C25C04242A59683C958FD24B512FB5289B8A5230CA429F73E"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Tb.cs",
+      "sha256": "CD726A8695A3D55B2C1DD02394D8E4D267B3D0F01F6439EFB0219FB9BCD5DBF8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Tb.cs",
+      "sha256": "CD726A8695A3D55B2C1DD02394D8E4D267B3D0F01F6439EFB0219FB9BCD5DBF8"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Tc.cs",
+      "sha256": "3113F2F86C41A094883C4EB3EE3DB8E7BDE27F2313732BD250A99DE306854431"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Tc.cs",
+      "sha256": "3113F2F86C41A094883C4EB3EE3DB8E7BDE27F2313732BD250A99DE306854431"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Tr.cs",
+      "sha256": "129A8BAE08342524B38D4EB7D2DD164728806830EEB746A0F5D8398F8C9AEDBD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Tr.cs",
+      "sha256": "129A8BAE08342524B38D4EB7D2DD164728806830EEB746A0F5D8398F8C9AEDBD"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Vg.cs",
+      "sha256": "AD5F16EA44466A062010B5EEBC03309BB41AF1DC7F55002F074E42B7F1B23249"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Vg.cs",
+      "sha256": "AD5F16EA44466A062010B5EEBC03309BB41AF1DC7F55002F074E42B7F1B23249"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Vm.cs",
+      "sha256": "48ACA2338653F918C03694E55B03E541A700BDDFD347804CD5253DE14FD199D1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Vm.cs",
+      "sha256": "48ACA2338653F918C03694E55B03E541A700BDDFD347804CD5253DE14FD199D1"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Vs.cs",
+      "sha256": "D79771205EE69C10892534961B2117AB1F7B92AA42261FE809A7BA40A5D04F22"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Vs.cs",
+      "sha256": "D79771205EE69C10892534961B2117AB1F7B92AA42261FE809A7BA40A5D04F22"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Di.cs",
+      "sha256": "41457ADEE41DF2BF2898286CA492BAAE34A768F5A7D45C183CDDAB5D437BF856"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\Di.cs",
+      "sha256": "41457ADEE41DF2BF2898286CA492BAAE34A768F5A7D45C183CDDAB5D437BF856"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\DocumentSelection.cs",
+      "sha256": "DEE10AB64B227ABBADC7BD1B72E0A504F6D788750C49C5EA3D3CD80004254662"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\DocumentSelection.cs",
+      "sha256": "DEE10AB64B227ABBADC7BD1B72E0A504F6D788750C49C5EA3D3CD80004254662"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\DocumentSelectionAutomation.cs",
+      "sha256": "5697AA7B65C474236FA18076F0899F65C648708DF7A7F1E763D353E5A3C5880B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\DocumentSelectionAutomation.cs",
+      "sha256": "5697AA7B65C474236FA18076F0899F65C648708DF7A7F1E763D353E5A3C5880B"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Jb.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\Jb.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Pi.cs",
+      "sha256": "A79E8CCB48BECC64BFAD8590A3609840199ADE97EF49B841C1E86431DBBB209E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\Pi.cs",
+      "sha256": "A79E8CCB48BECC64BFAD8590A3609840199ADE97EF49B841C1E86431DBBB209E"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\PrintImages.cs",
+      "sha256": "68E7CD7CAD09E7EA1283DC557BC1A3C4BA3B380884CCD7D448FFF58685C597D9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\PrintImages.cs",
+      "sha256": "68E7CD7CAD09E7EA1283DC557BC1A3C4BA3B380884CCD7D448FFF58685C597D9"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Rp.cs",
+      "sha256": "482F990F4D51D809B47338CE475D2CD19A6C6AC28268946FBE24F8DD95E22841"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\Rp.cs",
+      "sha256": "482F990F4D51D809B47338CE475D2CD19A6C6AC28268946FBE24F8DD95E22841"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\V.cs",
+      "sha256": "952585156E3A8D8800398116B12D1132D754CFBD4249E216C1D05DE6394A368F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\V.cs",
+      "sha256": "952585156E3A8D8800398116B12D1132D754CFBD4249E216C1D05DE6394A368F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Xs.cs",
+      "sha256": "1C2D3CA0BF9B7995F7BB435807CEFC07CBB99D8A43CBE3CC4F3AEF970AE28810"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\Xs.cs",
+      "sha256": "1C2D3CA0BF9B7995F7BB435807CEFC07CBB99D8A43CBE3CC4F3AEF970AE28810"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\1.cs",
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\1.cs",
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\2.cs",
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\2.cs",
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\3.cs",
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\3.cs",
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\4.cs",
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\4.cs",
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\5.cs",
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\5.cs",
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\6.cs",
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\6.cs",
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\7.cs",
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\7.cs",
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\8.cs",
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\8.cs",
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\9.cs",
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\9.cs",
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\10.cs",
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\10.cs",
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\11.cs",
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\11.cs",
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\12.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\12.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\13.cs",
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\13.cs",
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\14.cs",
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\14.cs",
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\15.cs",
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\15.cs",
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\github-source-checkpoint-20261109-v1\\LeaSourceCheckpoints\\20261102\\mature-sdk\\Lea.Script.Win\\W.cs",
+      "sha256": "197F77D2A0085A0D00AE2B912E1C3ED06EC373B538392A81E3CBEB1B088B7509"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script.Win\\W.cs",
+      "sha256": "197F77D2A0085A0D00AE2B912E1C3ED06EC373B538392A81E3CBEB1B088B7509"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\github-source-checkpoint-20261109-v1\\LeaSourceCheckpoints\\20261102\\mature-sdk\\Lea.Script.Win\\AssemblyInfo.cs",
+      "sha256": "E1AED7A86015A517767EEF367D87E70BD60DB37F34209C6CA623B785D6D55F42"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script.Win\\AssemblyInfo.cs",
+      "sha256": "E1AED7A86015A517767EEF367D87E70BD60DB37F34209C6CA623B785D6D55F42"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-full-assembly-20261103-v5-assets\\fixtures\\Lea.Script\\Dom.js",
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\Dom.js",
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-full-assembly-20261103-v5-assets\\fixtures\\Lea.Script\\Dom.compact.js",
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\Dom.compact.js",
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\lib\\Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\lib\\Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\lib\\System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\lib\\System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\lib\\System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\lib\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Directory.Build.targets",
+      "sha256": "9396191B864CAADBFF92390701601747C841F1429A26FB63285848C43744BC65"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Directory.Build.targets",
+      "sha256": "9396191B864CAADBFF92390701601747C841F1429A26FB63285848C43744BC65"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Engine.csproj",
+      "sha256": "96B09D181BF292DD666E8604B707B56FB8D870F6C5A3466F363C7A5EF1D18F76"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Engine\\Lea.Engine.csproj",
+      "sha256": "9E0DC5E3B7666AD65D3EB9534F1CCB7E62128FD50078014A6EC38BCFD430E010"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Win.csproj",
+      "sha256": "561D9FD35EC6648969B3E132CFD14273A5A9CE4AED1BBDF246E40D361B775B40"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Win\\Lea.Win.csproj",
+      "sha256": "80508040B077724635A8EDAB871ABA3EF038C0D8CA7187011953E0B0AF5F76B0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Script.csproj",
+      "sha256": "59D7884B30764026E671A240DD92D1A5F0CA32A7BD90AE0383D97EC45219DFBC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script\\Lea.Script.csproj",
+      "sha256": "418BAD1BC9DA3598EEC5E12DFEFFE2E84D6C6B9CFC6DC138866E9A979BEB2F6A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Script.Win.csproj",
+      "sha256": "6A5610ED56C27C922A8A275E8E29B3AA09A2F7B3CA370C816FAA29A112400854"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\source\\Lea.Script.Win\\Lea.Script.Win.csproj",
+      "sha256": "B1ED51BACAB7FA947B7307D92E04B58459107E3948D79EEB3ED2A8B2AB6EC448"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ar.cs",
+      "sha256": "7FE2BD81D76572A04402D28F5B71DCA6EE7311521643ACD042F99B67906CE792"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Ar.cs",
+      "sha256": "7FE2BD81D76572A04402D28F5B71DCA6EE7311521643ACD042F99B67906CE792"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ax.cs",
+      "sha256": "A1EE186005F2F5690D540ACEFC54BE8EACF5923F09E4EE22572B0C2B95F80BB9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Ax.cs",
+      "sha256": "A1EE186005F2F5690D540ACEFC54BE8EACF5923F09E4EE22572B0C2B95F80BB9"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\B.cs",
+      "sha256": "05F9457B7B44B00B743D80157941935E462D8BBC9F321E0EB20645713A12D3F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\B.cs",
+      "sha256": "05F9457B7B44B00B743D80157941935E462D8BBC9F321E0EB20645713A12D3F0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Bi.cs",
+      "sha256": "CAB89D042708F64784F94B77B8C3120B291B6476E0F698549DD070F1FD4A5CFA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Bi.cs",
+      "sha256": "CAB89D042708F64784F94B77B8C3120B291B6476E0F698549DD070F1FD4A5CFA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Cz.cs",
+      "sha256": "D41C1021D3CE916C7EB3D3ABC46E95AFC13DC5AD67F5B29EB66E119474AD4BC6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Cz.cs",
+      "sha256": "D41C1021D3CE916C7EB3D3ABC46E95AFC13DC5AD67F5B29EB66E119474AD4BC6"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\D.cs",
+      "sha256": "F8378792AD26648ABDF6622D7626CD8BD6DECA7FB68E059E7AA87FFEECFDE686"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\D.cs",
+      "sha256": "F8378792AD26648ABDF6622D7626CD8BD6DECA7FB68E059E7AA87FFEECFDE686"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Dv.cs",
+      "sha256": "21D557385B8AC64B990BE70FC01330C53888BCE1C4B000BFA64CEEE511A89B60"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Dv.cs",
+      "sha256": "21D557385B8AC64B990BE70FC01330C53888BCE1C4B000BFA64CEEE511A89B60"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\E.cs",
+      "sha256": "4375F4D7018BB8D1ED7467F455FDA3A81E59C2511AC4289F04A2B665E131F052"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\E.cs",
+      "sha256": "4375F4D7018BB8D1ED7467F455FDA3A81E59C2511AC4289F04A2B665E131F052"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Er.cs",
+      "sha256": "2DA1764948302D718644F991D292F30B940C3F1BB8C176C6AA25C926337B0774"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Er.cs",
+      "sha256": "2DA1764948302D718644F991D292F30B940C3F1BB8C176C6AA25C926337B0774"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Fi.cs",
+      "sha256": "8A7764CDFE4A6A267D8C103E9982B6426B4B85CCA81617DBBB9E4DAA9B42C875"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Fi.cs",
+      "sha256": "8A7764CDFE4A6A267D8C103E9982B6426B4B85CCA81617DBBB9E4DAA9B42C875"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\FontShorthand.cs",
+      "sha256": "04EEE4E4695710EA3E96F60AD8BF6E1F03A56F585239D3D938ABBBA006974766"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\FontShorthand.cs",
+      "sha256": "04EEE4E4695710EA3E96F60AD8BF6E1F03A56F585239D3D938ABBBA006974766"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\G.cs",
+      "sha256": "BBFE4C98181F7BC0844EFBA215E976A60734047052498E505C6964BE89E3AA3E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\G.cs",
+      "sha256": "BBFE4C98181F7BC0844EFBA215E976A60734047052498E505C6964BE89E3AA3E"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Gi.cs",
+      "sha256": "A4AE0FB794F41E493D8E7BF09D0B254AC2B78B23AA55D79657269FB1E85346A9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Gi.cs",
+      "sha256": "A4AE0FB794F41E493D8E7BF09D0B254AC2B78B23AA55D79657269FB1E85346A9"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Hc.cs",
+      "sha256": "BFE89C49863A0A50B527A16E0DF64857C4EA7CEC29EE9FD1CE441902048D3357"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Hc.cs",
+      "sha256": "BFE89C49863A0A50B527A16E0DF64857C4EA7CEC29EE9FD1CE441902048D3357"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Hn.cs",
+      "sha256": "1EA35B87389F1B5B05CBA00BB17E52424F692C52C56749322AA8569511E87212"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Hn.cs",
+      "sha256": "1EA35B87389F1B5B05CBA00BB17E52424F692C52C56749322AA8569511E87212"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Hn.Data.cs",
+      "sha256": "2522F0F4945EE135BD80F3EC43DB834944A0A8CEC06727AE13282E60B29FC954"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Hn.Data.cs",
+      "sha256": "2522F0F4945EE135BD80F3EC43DB834944A0A8CEC06727AE13282E60B29FC954"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ir.cs",
+      "sha256": "E432E4B968AB4E2447F727A1EF4DD55C1FE78E06B30EFA4BFA6D7C69A6E04265"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Ir.cs",
+      "sha256": "E432E4B968AB4E2447F727A1EF4DD55C1FE78E06B30EFA4BFA6D7C69A6E04265"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\J.cs",
+      "sha256": "E91CDCF3F517FA8AEC18C9C09657531297B29FFAD72E6018860524A5A1CAFB62"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\J.cs",
+      "sha256": "E91CDCF3F517FA8AEC18C9C09657531297B29FFAD72E6018860524A5A1CAFB62"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ln.cs",
+      "sha256": "F53BED93A4F80353CC6DDB07EA05F9EE6EE983DE2EB6673C2B8BA286CCD9594F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Ln.cs",
+      "sha256": "F53BED93A4F80353CC6DDB07EA05F9EE6EE983DE2EB6673C2B8BA286CCD9594F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Mp.cs",
+      "sha256": "45E9BE193E334B27DB61F1CFE0B063F78CE11BDF98496FB6B63D6E973A952421"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Mp.cs",
+      "sha256": "45E9BE193E334B27DB61F1CFE0B063F78CE11BDF98496FB6B63D6E973A952421"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\N.cs",
+      "sha256": "F5194006EB436D4D26E96594CAD1AFB16240BDF38F325A4EA30BB4AA11872B9B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\N.cs",
+      "sha256": "F5194006EB436D4D26E96594CAD1AFB16240BDF38F325A4EA30BB4AA11872B9B"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\O.cs",
+      "sha256": "E9049C8CE791A87B2E0F832FE42821F279A1079E58D70B64098994DBF8514F4C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\O.cs",
+      "sha256": "E9049C8CE791A87B2E0F832FE42821F279A1079E58D70B64098994DBF8514F4C"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Og.cs",
+      "sha256": "8D596BE99A59E2016D61FBE81E77E4E15DDCE7BA27AC1286EAE4BEC56052F220"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Og.cs",
+      "sha256": "8D596BE99A59E2016D61FBE81E77E4E15DDCE7BA27AC1286EAE4BEC56052F220"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\P.cs",
+      "sha256": "ACDA9A49BDC171C4414F85C503DDE2812AC56C4E0F8C1E33AEB3264E482027DD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\P.cs",
+      "sha256": "ACDA9A49BDC171C4414F85C503DDE2812AC56C4E0F8C1E33AEB3264E482027DD"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Pc.cs",
+      "sha256": "651416A2889EF51B6D4732A5CFA307722D117ED0775E1D346EB575285423A1BA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Pc.cs",
+      "sha256": "651416A2889EF51B6D4732A5CFA307722D117ED0775E1D346EB575285423A1BA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Ri.cs",
+      "sha256": "DC726E564E0DF04AB3CE6928E3955B68DD8FDB688E3850AAD77EC02F03FB7C92"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Ri.cs",
+      "sha256": "DC726E564E0DF04AB3CE6928E3955B68DD8FDB688E3850AAD77EC02F03FB7C92"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\S.cs",
+      "sha256": "3679DEC3DB439624C1D9780A6EACD951A2E8CF90C271EBF46A5FC2377CA3B34C"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\S.cs",
+      "sha256": "3679DEC3DB439624C1D9780A6EACD951A2E8CF90C271EBF46A5FC2377CA3B34C"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Sw.cs",
+      "sha256": "56419432F7767A1C25C04242A59683C958FD24B512FB5289B8A5230CA429F73E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Sw.cs",
+      "sha256": "56419432F7767A1C25C04242A59683C958FD24B512FB5289B8A5230CA429F73E"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Tb.cs",
+      "sha256": "CD726A8695A3D55B2C1DD02394D8E4D267B3D0F01F6439EFB0219FB9BCD5DBF8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Tb.cs",
+      "sha256": "CD726A8695A3D55B2C1DD02394D8E4D267B3D0F01F6439EFB0219FB9BCD5DBF8"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Tc.cs",
+      "sha256": "3113F2F86C41A094883C4EB3EE3DB8E7BDE27F2313732BD250A99DE306854431"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Tc.cs",
+      "sha256": "3113F2F86C41A094883C4EB3EE3DB8E7BDE27F2313732BD250A99DE306854431"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Tr.cs",
+      "sha256": "129A8BAE08342524B38D4EB7D2DD164728806830EEB746A0F5D8398F8C9AEDBD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Tr.cs",
+      "sha256": "129A8BAE08342524B38D4EB7D2DD164728806830EEB746A0F5D8398F8C9AEDBD"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Vg.cs",
+      "sha256": "AD5F16EA44466A062010B5EEBC03309BB41AF1DC7F55002F074E42B7F1B23249"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Vg.cs",
+      "sha256": "AD5F16EA44466A062010B5EEBC03309BB41AF1DC7F55002F074E42B7F1B23249"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Vm.cs",
+      "sha256": "48ACA2338653F918C03694E55B03E541A700BDDFD347804CD5253DE14FD199D1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Vm.cs",
+      "sha256": "48ACA2338653F918C03694E55B03E541A700BDDFD347804CD5253DE14FD199D1"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\core-source\\Vs.cs",
+      "sha256": "D79771205EE69C10892534961B2117AB1F7B92AA42261FE809A7BA40A5D04F22"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Vs.cs",
+      "sha256": "D79771205EE69C10892534961B2117AB1F7B92AA42261FE809A7BA40A5D04F22"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Di.cs",
+      "sha256": "41457ADEE41DF2BF2898286CA492BAAE34A768F5A7D45C183CDDAB5D437BF856"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\Di.cs",
+      "sha256": "41457ADEE41DF2BF2898286CA492BAAE34A768F5A7D45C183CDDAB5D437BF856"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\DocumentSelection.cs",
+      "sha256": "DEE10AB64B227ABBADC7BD1B72E0A504F6D788750C49C5EA3D3CD80004254662"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\DocumentSelection.cs",
+      "sha256": "DEE10AB64B227ABBADC7BD1B72E0A504F6D788750C49C5EA3D3CD80004254662"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\DocumentSelectionAutomation.cs",
+      "sha256": "5697AA7B65C474236FA18076F0899F65C648708DF7A7F1E763D353E5A3C5880B"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\DocumentSelectionAutomation.cs",
+      "sha256": "5697AA7B65C474236FA18076F0899F65C648708DF7A7F1E763D353E5A3C5880B"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Jb.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\Jb.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\Net48TargetFramework.cs",
+      "sha256": "3148F36078FE6A000C203AFBE9522A0155ED2A8B11F2F329B8C71434F0972EA3"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Pi.cs",
+      "sha256": "A79E8CCB48BECC64BFAD8590A3609840199ADE97EF49B841C1E86431DBBB209E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\Pi.cs",
+      "sha256": "A79E8CCB48BECC64BFAD8590A3609840199ADE97EF49B841C1E86431DBBB209E"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\PrintImages.cs",
+      "sha256": "68E7CD7CAD09E7EA1283DC557BC1A3C4BA3B380884CCD7D448FFF58685C597D9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\PrintImages.cs",
+      "sha256": "68E7CD7CAD09E7EA1283DC557BC1A3C4BA3B380884CCD7D448FFF58685C597D9"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Rp.cs",
+      "sha256": "482F990F4D51D809B47338CE475D2CD19A6C6AC28268946FBE24F8DD95E22841"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\Rp.cs",
+      "sha256": "482F990F4D51D809B47338CE475D2CD19A6C6AC28268946FBE24F8DD95E22841"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\V.cs",
+      "sha256": "952585156E3A8D8800398116B12D1132D754CFBD4249E216C1D05DE6394A368F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\V.cs",
+      "sha256": "952585156E3A8D8800398116B12D1132D754CFBD4249E216C1D05DE6394A368F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-signed-render-v1\\view-source\\Xs.cs",
+      "sha256": "1C2D3CA0BF9B7995F7BB435807CEFC07CBB99D8A43CBE3CC4F3AEF970AE28810"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\Xs.cs",
+      "sha256": "1C2D3CA0BF9B7995F7BB435807CEFC07CBB99D8A43CBE3CC4F3AEF970AE28810"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\1.cs",
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\1.cs",
+      "sha256": "8E5C36BC75FB06A1792AB8FB0CB9652EB25810C099FCA33E0AE7033B84949CD2"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\2.cs",
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\2.cs",
+      "sha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\3.cs",
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\3.cs",
+      "sha256": "813DF40E48763531F1D664DA14CA1786CD22A44986117BDB95BE905D1C3123DC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\4.cs",
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\4.cs",
+      "sha256": "764223AF7A5259E8C167852864677887D6B5A2878F8F449DB43BC364BA7BC7D5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\5.cs",
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\5.cs",
+      "sha256": "9D0D4BE2FACFA28B7887C512C274CF8E6298BC31475465518C9020A0ABFB93F5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\6.cs",
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\6.cs",
+      "sha256": "5CC754F6DDF643811F57637D0BBBC1526955AFC47D210EC00AC2FFD19F1E3FAC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\7.cs",
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\7.cs",
+      "sha256": "5EA0287237F94156C56FD85B7BDEC22AF1CE985ED9E838A1A2CFFA8598FDA683"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\8.cs",
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\8.cs",
+      "sha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\9.cs",
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\9.cs",
+      "sha256": "2324C9B82B25DBC2767F9C372DE1F91031F3148516870FC6C3FAF6CC91EB3F12"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\10.cs",
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\10.cs",
+      "sha256": "2DDAE2203C58AABEA824C1AC95C9F8A3630E188837A7659C4976D2C26643E8DF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\11.cs",
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\11.cs",
+      "sha256": "B3DED102C389ABC6C96AD24FB83F60366D93AB37F96795E8DB8B838A2DD4E0F0"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\12.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\12.cs",
+      "sha256": "1A1EEA7B07D57ACE2F6003EBE90F057ACB90C841F262D87314A414FD49A9E3E5"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\13.cs",
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\13.cs",
+      "sha256": "FD5BD356DEC82D38C9B3199036EFAE24F2B06931E5DCEAA30607958DE22C19B6"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\14.cs",
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\14.cs",
+      "sha256": "CE6F3CCA760E5227243DBFB3279FBDF1AA571D23073500A0E9F68791377588B8"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\signed-font-startup-investigation-20261108-v1\\parent-source\\15.cs",
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\15.cs",
+      "sha256": "F8EE5151879D45507AD1D53961E5BD22F4DFF16BDEE8F4FA64192D2A3113CD11"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\github-source-checkpoint-20261109-v1\\LeaSourceCheckpoints\\20261102\\mature-sdk\\Lea.Script.Win\\W.cs",
+      "sha256": "197F77D2A0085A0D00AE2B912E1C3ED06EC373B538392A81E3CBEB1B088B7509"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script.Win\\W.cs",
+      "sha256": "197F77D2A0085A0D00AE2B912E1C3ED06EC373B538392A81E3CBEB1B088B7509"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\github-source-checkpoint-20261109-v1\\LeaSourceCheckpoints\\20261102\\mature-sdk\\Lea.Script.Win\\AssemblyInfo.cs",
+      "sha256": "E1AED7A86015A517767EEF367D87E70BD60DB37F34209C6CA623B785D6D55F42"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script.Win\\AssemblyInfo.cs",
+      "sha256": "E1AED7A86015A517767EEF367D87E70BD60DB37F34209C6CA623B785D6D55F42"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-full-assembly-20261103-v5-assets\\fixtures\\Lea.Script\\Dom.js",
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\Dom.js",
+      "sha256": "A228494E1D20D2669DC2FED38B93B7549EF8849FA2C7997F45EE32678117239A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\private-binding-full-assembly-20261103-v5-assets\\fixtures\\Lea.Script\\Dom.compact.js",
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\Dom.compact.js",
+      "sha256": "196BCE962F2C2F375C77644D0AE19485820F599170D4D80013829A6ECD2886E3"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\lib\\Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\lib\\Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\lib\\System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\lib\\System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\lib\\System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\lib\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Directory.Build.targets",
+      "sha256": "9396191B864CAADBFF92390701601747C841F1429A26FB63285848C43744BC65"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Directory.Build.targets",
+      "sha256": "9396191B864CAADBFF92390701601747C841F1429A26FB63285848C43744BC65"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Engine.csproj",
+      "sha256": "96B09D181BF292DD666E8604B707B56FB8D870F6C5A3466F363C7A5EF1D18F76"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\Lea.Engine.csproj",
+      "sha256": "9E0DC5E3B7666AD65D3EB9534F1CCB7E62128FD50078014A6EC38BCFD430E010"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Win.csproj",
+      "sha256": "561D9FD35EC6648969B3E132CFD14273A5A9CE4AED1BBDF246E40D361B775B40"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Win\\Lea.Win.csproj",
+      "sha256": "80508040B077724635A8EDAB871ABA3EF038C0D8CA7187011953E0B0AF5F76B0"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Script.csproj",
+      "sha256": "59D7884B30764026E671A240DD92D1A5F0CA32A7BD90AE0383D97EC45219DFBC"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script\\Lea.Script.csproj",
+      "sha256": "418BAD1BC9DA3598EEC5E12DFEFFE2E84D6C6B9CFC6DC138866E9A979BEB2F6A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Sdk\\Lea.Script.Win.csproj",
+      "sha256": "6A5610ED56C27C922A8A275E8E29B3AA09A2F7B3CA370C816FAA29A112400854"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Script.Win\\Lea.Script.Win.csproj",
+      "sha256": "B1ED51BACAB7FA947B7307D92E04B58459107E3948D79EEB3ED2A8B2AB6EC448"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v1\\binary\\Lea.Engine\\SourceGraphPoison.cs",
+      "sha256": "0BF9D169B2F79A909BB0E277F1DA7B387467E63D5EC50F174D9C03D975E46931"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\OwnedTestProcess.cs",
+      "sha256": "D553F33A48B9B7DD5CF97012E6974C4B4054C315B19FD0086C05543844242AFA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Invoke-OwnedTestRun.ps1",
+      "sha256": "E5DD42C23546F58CEF425DE5602CC39D478409A824FDBB4C19F5CB454FC0FC00"
+    },
+    {
+      "path": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "sha256": "A1EF87676086E14B67CC106C232B573C6BB70EBEACA41BF5C9155797022BC55F"
+    },
+    {
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\MSBuild.dll",
+      "sha256": "B15E60726C084197F47BAFAE9A1B60506F4F5D44CD873F6CD7CC91AE10F18FB6"
+    }
+  ],
+  "before": [],
+  "binaryModeCompiled": false,
+  "productBinariesUsedForSourceBuild": false,
+  "startupFixed": false,
+  "changedFiles": [],
+  "embeddingPassed": false,
+  "hostAdopted": false
+}

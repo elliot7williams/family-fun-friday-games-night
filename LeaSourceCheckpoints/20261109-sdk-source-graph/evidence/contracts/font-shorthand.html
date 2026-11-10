@@ -1,0 +1,33 @@
+<html><head><title>Relative fonts</title><style>
+.guard {font-size:19px;font-family:Arial;font-weight:bold;font-style:italic;line-height:41px}
+</style></head><body>
+<p id="default" style="font:1.5em Arial">Default medium basis</p>
+<div style="font-size:20px">
+<p id="short-em" style="font:1.5em Arial">Shorthand em</p>
+<p id="short-percent" style="font:150% Arial">Shorthand percent</p>
+<p id="long-em" style="font-size:1.5em">Longhand em</p>
+<p id="long-percent" style="font-size:150%">Longhand percent</p>
+<div style="font-size:1.5em"><p id="nested" style="font-size:120%">Nested</p></div>
+<p id="order-short" style="font-size:10px;font:150% Arial">Inherited basis</p>
+<p id="order-long" style="font:24px Arial;font-size:150%">Inherited basis</p>
+<p id="decimal-percent" style="font:125.0% Arial">Decimal</p>
+<p id="uppercase" style="font:1.5EM Arial">Case</p>
+<p id="half" style="font:.5em Arial">Leading decimal</p>
+<p id="styled" style="font:italic bold 1.5em/1.5 Arial">Style plus line-height</p>
+<p id="plus-short-em" style="font:+1.5em Arial">Signed shorthand em</p>
+<p id="plus-short-percent" style="font:+150% Arial">Signed shorthand percent</p>
+<p id="plus-long-em" style="font-size:+1.5em">Signed longhand em</p>
+<p id="plus-long-percent" style="font-size:+150%">Signed longhand percent</p>
+<p id="plus-half" style="font:+.5em Arial">Signed leading decimal</p>
+<p id="plus-uppercase" style="font-size:+1.5EM">Signed uppercase unit</p>
+<p class="guard" id="double-plus" style="font:++1.5em serif">Invalid</p>
+<p class="guard" id="separated-plus" style="font-size:+ 150%">Invalid</p>
+<p class="guard" id="mixed-sign" style="font-size:+-1.5em">Invalid</p>
+<p class="guard" id="plus-invalid-short" style="font:bold +1.5em/garbage serif">Atomic rejection</p>
+<p class="guard" id="negative" style="font:-1em serif">Invalid</p>
+<p class="guard" id="zero" style="font-size:0em">Unsupported zero</p>
+<p class="guard" id="oversize" style="font:9999em serif">Bounded size</p>
+<p class="guard" id="bad-number" style="font-size:1.2.3em">Invalid</p>
+<p class="guard" id="bad-unit" style="font:1.5qu serif">Invalid</p>
+<p class="guard" id="invalid-short" style="font:bold 1.5em/garbage serif">Atomic rejection</p>
+</div></body></html>

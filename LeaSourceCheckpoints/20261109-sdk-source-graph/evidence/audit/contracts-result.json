@@ -1,0 +1,410 @@
+{
+  "inputsUnchanged": true,
+  "passed": true,
+  "changedFiles": [],
+  "hostAdopted": false,
+  "inputs": [
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-SdkSourceGraphContracts.ps1",
+      "sha256": "49B3161CAB9648233577CDCA3DAB07E22DA5E039C92D2343201F4CC5BBE56DBD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\result.json",
+      "sha256": "E9F481961EDB427F255715F51F28F4ED0E9D675EEA79C10D5E97B772C339A8BF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\Lea.Engine.dll",
+      "sha256": "11B154A135F6A1B455080A384AF281759EF09DB18347C15C805149153A8C362A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.Engine.dll",
+      "sha256": "11B154A135F6A1B455080A384AF281759EF09DB18347C15C805149153A8C362A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\Lea.Win.dll",
+      "sha256": "61DA2736DB46AE97B2D2D42DD141AEF2A691693CEE7013547BEFCEDD7562813F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.Win.dll",
+      "sha256": "61DA2736DB46AE97B2D2D42DD141AEF2A691693CEE7013547BEFCEDD7562813F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\Lea.Script.dll",
+      "sha256": "406C5634638D75C66892BD95429760CB4A5C74C94277913D1DF467147E30E75F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.Script.dll",
+      "sha256": "406C5634638D75C66892BD95429760CB4A5C74C94277913D1DF467147E30E75F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\Lea.Script.Win.dll",
+      "sha256": "58E4D8D8D2CB32A0A5791198FD7635554A579A5625A10AF3D542A51513268FDA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.Script.Win.dll",
+      "sha256": "58E4D8D8D2CB32A0A5791198FD7635554A579A5625A10AF3D542A51513268FDA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-20261109-v2\\source\\bin\\Release\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\result.json",
+      "sha256": "E1A27B9A2ACCCAC6820393FEEBBD6145911D30E9ECF50459DE28E9AB5B4FC46A"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\FontRelativeMain.cs",
+      "sha256": "9E50B996767BEEA0FDDEB5408DE2F78E81E5043596439F2107C1DB621AF88B76"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\FontRelativeMain.cs",
+      "sha256": "9E50B996767BEEA0FDDEB5408DE2F78E81E5043596439F2107C1DB621AF88B76"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\font-net48-relative-candidate-v1\\font-shorthand.html",
+      "sha256": "43543DB409F3A86C35EC7F21F9AC0A8DE78DBF4BB1CEB5A939E550AD6D6EF649"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\font-shorthand.html",
+      "sha256": "43543DB409F3A86C35EC7F21F9AC0A8DE78DBF4BB1CEB5A939E550AD6D6EF649"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\OwnedTestProcess.cs",
+      "sha256": "D553F33A48B9B7DD5CF97012E6974C4B4054C315B19FD0086C05543844242AFA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Invoke-OwnedTestRun.ps1",
+      "sha256": "E5DD42C23546F58CEF425DE5602CC39D478409A824FDBB4C19F5CB454FC0FC00"
+    },
+    {
+      "path": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "sha256": "A1EF87676086E14B67CC106C232B573C6BB70EBEACA41BF5C9155797022BC55F"
+    },
+    {
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\csc.dll",
+      "sha256": "FEE49445287D3C12E8ECC098544AA87F6710BF8CE5222A516485A7F839EF5C67"
+    },
+    {
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\csc.deps.json",
+      "sha256": "0BE4BE860B146DB7CE8BFBB2085ECD78734739EA236A6DD75CC797526FE8F130"
+    },
+    {
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\csc.runtimeconfig.json",
+      "sha256": "F0A2BF4CBAD107BE70624C080E5A6F7776EF7BB0A300E25D810207EB0AC2BC4E"
+    },
+    {
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\Microsoft.CodeAnalysis.dll",
+      "sha256": "C8F219C56D4CB477A171A2FE0D3260508F883DD2AEFA587DE5C0A863C3067468"
+    },
+    {
+      "path": "C:\\Program Files\\dotnet\\sdk\\8.0.427\\Roslyn\\bincore\\Microsoft.CodeAnalysis.CSharp.dll",
+      "sha256": "67EB14B7A67D7A96DC02D88FB8A959574B53FD2C274FE6E706D1FA42D2A15DF4"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\mscorlib.dll",
+      "sha256": "5DCF2B7B18483C094F206A6B93558692ABF1BEAF507AD8AA076040E98DE72B6C"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.dll",
+      "sha256": "C5E2E638FF819616C8B30DBA5927D60F4E0251B2CFA0E9C5A6D67C7898BCBC9F"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Core.dll",
+      "sha256": "860278D7437CAAA95C988ABC910A92DB130ED1EE88841747BFED974EF1C95CC1"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Drawing.dll",
+      "sha256": "5543CE5B5A2A9003E3930C29A134A955A188F8147A9786FDE93EAA23494FF0E8"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Windows.Forms.dll",
+      "sha256": "50C095D710D00D971FA63AB9B88FAADCA5CCEE36C9B8CA8E911F8380E778BF6A"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\netstandard.dll",
+      "sha256": "DD00178E6032D311F09E6217FC07DC39667B638B9AD7C1339BDF0CD80CDD5679"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\SdkSourceContractMain.cs",
+      "sha256": "332DE2A6CD99E2D067987BE903B6FC4A0C37E41B6033809B49DCB70FAEBAE5DD"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\source-contract.rsp",
+      "sha256": "4BBAAB559E3317417C0CAA86CF2731B0634714C8792F9121A4EC86AD8B295E97"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.SourceContract.Tests.exe",
+      "sha256": "06982E44F5E09356B74CBD4B3E1D73001AC8BDB895D81942926DA8393234EBCB"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\FontRelativeMain.cs",
+      "sha256": "9E50B996767BEEA0FDDEB5408DE2F78E81E5043596439F2107C1DB621AF88B76"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\signed-font-contract.rsp",
+      "sha256": "B3D8BA4BDAE05DC199D9B46319B7212915D91BD1935AD0EF84958494A3AFB6B4"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.SourceFont.Tests.exe",
+      "sha256": "DF42FE4A77D8F52AF18DF4D7EAF6621F8EC5E9BB2515007ABBF03B71093DADF8"
+    }
+  ],
+  "scriptExecuted": false,
+  "fontChecks": 28,
+  "nativeWorkerQualified": false,
+  "runs": [
+    {
+      "parentBudgetMs": 120000,
+      "startReturned": true,
+      "error": null,
+      "originalHandleCaptured": true,
+      "exitObserved": true,
+      "started": true,
+      "finishedUtc": "2026-11-09T23:41:21.9789082Z",
+      "elapsedMs": 2954,
+      "stdoutBytes": 87,
+      "captureOverflow": false,
+      "unsafeToContinue": false,
+      "birthUtc": "2026-11-09T23:41:18.9805239Z",
+      "stderrRetainedBytes": 0,
+      "killRequested": false,
+      "activeAfterRetirement": 0,
+      "stderr": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\compile-source-contract.stderr.txt",
+      "childRetirementIndependentlyAudited": true,
+      "ownedJob": true,
+      "stdoutComplete": true,
+      "passed": true,
+      "stderrBytes": 0,
+      "exitCode": 0,
+      "name": "compile-source-contract",
+      "pid": 9824,
+      "outputDrained": true,
+      "retirementAndDrainElapsedMs": 102,
+      "startUnknown": false,
+      "retainedForOwner": false,
+      "stderrComplete": true,
+      "stdout": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\compile-source-contract.stdout.txt",
+      "sharedRetirementDrainBudgetMs": 5000,
+      "timedOut": false,
+      "stdoutRetainedBytes": 87,
+      "startAttempted": true
+    },
+    {
+      "parentBudgetMs": 120000,
+      "startReturned": true,
+      "error": null,
+      "originalHandleCaptured": true,
+      "exitObserved": true,
+      "started": true,
+      "finishedUtc": "2026-11-09T23:41:25.3962556Z",
+      "elapsedMs": 3197,
+      "stdoutBytes": 87,
+      "captureOverflow": false,
+      "unsafeToContinue": false,
+      "birthUtc": "2026-11-09T23:41:22.1674378Z",
+      "stderrRetainedBytes": 0,
+      "killRequested": false,
+      "activeAfterRetirement": 0,
+      "stderr": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\compile-signed-font-contract.stderr.txt",
+      "childRetirementIndependentlyAudited": true,
+      "ownedJob": true,
+      "stdoutComplete": true,
+      "passed": true,
+      "stderrBytes": 0,
+      "exitCode": 0,
+      "name": "compile-signed-font-contract",
+      "pid": 2272,
+      "outputDrained": true,
+      "retirementAndDrainElapsedMs": 33,
+      "startUnknown": false,
+      "retainedForOwner": false,
+      "stderrComplete": true,
+      "stdout": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\compile-signed-font-contract.stdout.txt",
+      "sharedRetirementDrainBudgetMs": 5000,
+      "timedOut": false,
+      "stdoutRetainedBytes": 87,
+      "startAttempted": true
+    },
+    {
+      "parentBudgetMs": 30000,
+      "startReturned": true,
+      "error": null,
+      "originalHandleCaptured": true,
+      "exitObserved": true,
+      "started": true,
+      "finishedUtc": "2026-11-09T23:41:26.4660668Z",
+      "elapsedMs": 624,
+      "stdoutBytes": 29,
+      "captureOverflow": false,
+      "unsafeToContinue": false,
+      "birthUtc": "2026-11-09T23:41:25.8655234Z",
+      "stderrRetainedBytes": 0,
+      "killRequested": false,
+      "activeAfterRetirement": 0,
+      "stderr": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\source-contract.stderr.txt",
+      "childRetirementIndependentlyAudited": true,
+      "ownedJob": true,
+      "stdoutComplete": true,
+      "passed": true,
+      "stderrBytes": 0,
+      "exitCode": 0,
+      "name": "source-contract",
+      "pid": 1388,
+      "outputDrained": true,
+      "retirementAndDrainElapsedMs": 73,
+      "startUnknown": false,
+      "retainedForOwner": false,
+      "stderrComplete": true,
+      "stdout": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\source-contract.stdout.txt",
+      "sharedRetirementDrainBudgetMs": 5000,
+      "timedOut": false,
+      "stdoutRetainedBytes": 29,
+      "startAttempted": true
+    },
+    {
+      "parentBudgetMs": 30000,
+      "startReturned": true,
+      "error": null,
+      "originalHandleCaptured": true,
+      "exitObserved": true,
+      "started": true,
+      "finishedUtc": "2026-11-09T23:41:27.7944046Z",
+      "elapsedMs": 1130,
+      "stdoutBytes": 1138,
+      "captureOverflow": false,
+      "unsafeToContinue": false,
+      "birthUtc": "2026-11-09T23:41:26.6697421Z",
+      "stderrRetainedBytes": 0,
+      "killRequested": false,
+      "activeAfterRetirement": 0,
+      "stderr": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\signed-font-contract.stderr.txt",
+      "childRetirementIndependentlyAudited": true,
+      "ownedJob": true,
+      "stdoutComplete": true,
+      "passed": true,
+      "stderrBytes": 0,
+      "exitCode": 0,
+      "name": "signed-font-contract",
+      "pid": 3400,
+      "outputDrained": true,
+      "retirementAndDrainElapsedMs": 96,
+      "startUnknown": false,
+      "retainedForOwner": false,
+      "stderrComplete": true,
+      "stdout": "I:\\LeaBuildStorage\\sdk-source-graph-contracts-20261109-v1\\signed-font-contract.stdout.txt",
+      "sharedRetirementDrainBudgetMs": 5000,
+      "timedOut": false,
+      "stdoutRetainedBytes": 1138,
+      "startAttempted": true
+    }
+  ],
+  "ownerAttention": false,
+  "completeSdk": false,
+  "before": [
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Acornima.dll"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Jint.dll"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "11B154A135F6A1B455080A384AF281759EF09DB18347C15C805149153A8C362A",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.Engine.dll"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "406C5634638D75C66892BD95429760CB4A5C74C94277913D1DF467147E30E75F",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.Script.dll"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "58E4D8D8D2CB32A0A5791198FD7635554A579A5625A10AF3D542A51513268FDA",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.Script.Win.dll"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "06982E44F5E09356B74CBD4B3E1D73001AC8BDB895D81942926DA8393234EBCB",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.SourceContract.Tests.exe"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "DF42FE4A77D8F52AF18DF4D7EAF6621F8EC5E9BB2515007ABBF03B71093DADF8",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.SourceFont.Tests.exe"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "61DA2736DB46AE97B2D2D42DD141AEF2A691693CEE7013547BEFCEDD7562813F",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\Lea.Win.dll"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\System.Buffers.dll"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\System.Memory.dll"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\System.Numerics.Vectors.dll"
+    },
+    {
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\sdk-source-graph-contracts-v1\\runtime\\System.Runtime.CompilerServices.Unsafe.dll"
+    }
+  ],
+  "componentChecks": 14
+}

@@ -1,0 +1,24 @@
+/nologo
+/noconfig
+/nostdlib+
+/target:exe
+/optimize+
+/langversion:12
+/out:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\Lea.SourceContract.Tests.exe"
+"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\Lea.Tests\SdkSourceContractMain.cs"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\mscorlib.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Core.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Drawing.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Windows.Forms.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\Facades\netstandard.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\Lea.Engine.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\Lea.Win.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\Lea.Script.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\Lea.Script.Win.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\Acornima.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\Jint.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\System.Buffers.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\System.Memory.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\System.Numerics.Vectors.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-source-graph-contracts-v1\runtime\System.Runtime.CompilerServices.Unsafe.dll"

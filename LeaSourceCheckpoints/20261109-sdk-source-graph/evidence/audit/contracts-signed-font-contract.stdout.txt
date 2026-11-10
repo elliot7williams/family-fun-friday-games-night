@@ -1,0 +1,19 @@
+FONT_RELATIVE short-em expected=30 actual=30 passed=True
+FONT_RELATIVE short-percent expected=30 actual=30 passed=True
+FONT_RELATIVE long-em expected=30 actual=30 passed=True
+FONT_RELATIVE long-percent expected=30 actual=30 passed=True
+FONT_RELATIVE nested expected=36 actual=36 passed=True
+FONT_RELATIVE order-short expected=30 actual=30 passed=True
+FONT_RELATIVE order-long expected=30 actual=30 passed=True
+FONT_RELATIVE decimal-percent expected=25 actual=25 passed=True
+FONT_RELATIVE uppercase expected=30 actual=30 passed=True
+FONT_RELATIVE half expected=10 actual=10 passed=True
+FONT_RELATIVE default expected=24 actual=24 passed=True
+FONT_RELATIVE styled expected=30 actual=30 passed=True
+FONT_RELATIVE plus-short-em expected=30 actual=30 passed=True
+FONT_RELATIVE plus-short-percent expected=30 actual=30 passed=True
+FONT_RELATIVE plus-long-em expected=30 actual=30 passed=True
+FONT_RELATIVE plus-long-percent expected=30 actual=30 passed=True
+FONT_RELATIVE plus-half expected=10 actual=10 passed=True
+FONT_RELATIVE plus-uppercase expected=30 actual=30 passed=True
+FONT_RELATIVE controls=10 cases=18 failures=0

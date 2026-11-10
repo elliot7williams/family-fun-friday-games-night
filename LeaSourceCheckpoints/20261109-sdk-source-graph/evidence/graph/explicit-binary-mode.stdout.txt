@@ -1,0 +1,2 @@
+  Lea.Script -> I:\LeaBuildStorage\sdk-source-graph-20261109-v2\binary\bin\Release\Lea.Script.dll
+  Lea.Script.Win -> I:\LeaBuildStorage\sdk-source-graph-20261109-v2\binary\bin\Release\Lea.Script.Win.dll
