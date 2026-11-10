@@ -1,0 +1,115 @@
+PASS device real PrintCapabilities schema units
+PASS device DIP to hundredth inch paper conversion
+PASS device hard margins preserved
+PASS device CSS viewport conversion
+PASS device already oriented landscape not rotated twice
+PASS device borderless bounds
+PASS device metric paper and asymmetric origin
+PASS device user margins and bands intersect hard margins
+PASS device scale and grayscale retained
+PASS device null options denied
+PASS device null capabilities denied
+PASS device missing imageable area denied
+PASS device missing paper dimension denied
+PASS device area beyond paper denied
+PASS device impossible user margins denied
+PASS device capabilities not mutated
+PASS Lea printer geometry: 16
+PASS dialog fixture matches current64-bit AnyCPU browser
+PASS dialog zero page bound denied
+PASS dialog excessive page bound denied
+PASS dialog constructor does not mutate caller settings
+PASS dialog unaccepted settings denied
+PASS dialog null owner denied
+PASS dialog uncreated owner denied
+PASS dialog worker thread denied
+PASS dialog wrong thread disposal denied
+TRACE printer modal timer dispatched on 6324 owner=1311726
+TRACE thread window=1901704 class=#32770 visible=True owner=1311726 rootOwner=1311726
+TRACE thread window=1311726 class=WindowsForms10.Window.8.app.0.34f5582_r7_ad1 visible=True owner=0 rootOwner=1311726
+TRACE thread window=329000 class=ComboLBox visible=False owner=0 rootOwner=65552
+TRACE thread window=197938 class=.NET-BroadcastEventWindow.4.0.0.0.34f5582.0 visible=False owner=0 rootOwner=197938
+TRACE thread window=459926 class=MSCTFIME UI visible=False owner=656428 rootOwner=1311726
+TRACE thread window=656428 class=IME visible=False owner=1901704 rootOwner=1311726
+TRACE printer dialog owner matched, native disabled=True
+TRACE printer cancel posted=True
+PASS dialog native owner and modal disable verified
+PASS dialog native cancel returns false without a job
+PASS dialog reentry denied
+PASS dialog busy disposal denied
+PASS dialog pending settings denied
+PASS dialog cancellation restores live owner
+PASS dialog canceled settings denied
+PASS dialog owned native selection action True
+PASS dialog native acceptance returns settings without dispatch
+PASS dialog accepted printer and all-page selection
+PASS dialog accepted page bounds retained
+PASS dialog accepted settings defensively cloned
+PASS ticket null options denied
+PASS ticket ordinary selection rejected before preparation
+PASS ticket prepared for accepted printer
+PASS ticket real driver capabilities produce geometry
+PASS ticket user margins and header retained
+PASS ticket validated copies match native selection
+PASS ticket defensive clone retains prepared settings
+PASS ticket geometry dispatcher guard
+PASS ticket wrong thread disposal denied
+PASS ticket null pages rejected
+PASS ticket null submission rejected before dispatch
+PASS ticket foreign geometry rejected
+PASS ticket foreign geometry cannot dispatch
+PASS ticket all-page paginator bound to prepared geometry
+PASS ticket prepared pages export without queue submission
+PASS ticket unresolved images rejected
+PASS ticket unresolved images cannot dispatch
+PASS ticket disposed settings denied
+PASS ticket disposed printer denied
+PASS ticket disposed range denied
+PASS ticket disposed submission rejected
+PASS ticket disposal does not own caller plan
+PASS Lea prepared printer ticket: 22
+PASS dialog caller cannot mutate accepted selection
+PASS dialog owned native selection action False
+PASS dialog cancel after acceptance returns false
+PASS dialog cancel clears previously accepted settings
+PASS dialog disposed selection denied
+PASS dialog disposed settings denied
+PASS Lea native printer selection: 27
+PASS range fixture has at least four pages
+PASS inclusive middle range count
+PASS range source identity
+PASS range paper preserved
+PASS range geometry mutation denied
+PASS range negative page denied
+PASS range missing sentinels
+PASS range fresh wrappers
+PASS full range accepted
+PASS last single page accepted
+PASS range null source denied
+PASS range zero first denied
+PASS range negative first denied
+PASS range reversed denied
+PASS range outside source denied
+PASS range arithmetic extremes denied
+PASS range thread affinity
+PASS range export count and borrowed stream
+PASS range nonempty export denied
+PASS range rejected destination unchanged
+PASS range readonly destination denied
+PASS range null destination denied
+PASS range null export denied
+PASS range stored page count
+PASS range retains original footer 0
+PASS range retains selected body 0
+PASS range address privacy 0
+PASS range retains original footer 1
+PASS range retains selected body 1
+PASS range address privacy 1
+PASS disposed range count denied
+PASS disposed range page denied
+PASS disposed range size denied
+PASS disposed range source denied
+PASS disposed range construction denied
+PASS disposed range export denied
+PASS disposed range destination untouched
+PASS Lea print range: 37

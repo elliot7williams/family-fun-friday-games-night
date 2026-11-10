@@ -1,0 +1,32 @@
+[
+  {
+    "bytes": 366592,
+    "name": "Acornima.dll",
+    "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+  },
+  {
+    "bytes": 2627072,
+    "name": "Jint.dll",
+    "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+  },
+  {
+    "bytes": 20856,
+    "name": "System.Buffers.dll",
+    "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+  },
+  {
+    "bytes": 142240,
+    "name": "System.Memory.dll",
+    "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+  },
+  {
+    "bytes": 115856,
+    "name": "System.Numerics.Vectors.dll",
+    "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+  },
+  {
+    "bytes": 18024,
+    "name": "System.Runtime.CompilerServices.Unsafe.dll",
+    "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+  }
+]

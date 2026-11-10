@@ -1,0 +1,5 @@
+{"passed":true,"baselineChecks":40,"friendlyChecks":46,"browserRouted":false,"printJobSubmitted":false}
+VARIABLE selected=iiii measuredPrefix=28 bounds={X=20,Y=152,Width=156,Height=37}
+VARIABLE highlightRight=48 expectedRight=48
+DECODER source cache=1 failed=0 starts=1 workerPresent=True diagnostic=phase=done; result=ok; worker=11420; wall=888; ready=1; kind=; steps=queue=2;launch=2;hello=457;guards=826;host=826;admission=836;start=843;request=844;response=844;bitmap=875;done=888;; queue=thread; admitMs=12; dispatchMs=12; threadMs=14; owner=1:other:done:age=911:s=queue=20;launch=20;prep=25;prepared=36;lock=36;sid=58;sid-ok=112;acl=118;pipe=131;attrs=135;create=136;token=443;job=451;resume=468;returned=475;hello=475;guards=845;host=845;:cancel=0
+{"passed":true,"liveChecks":250,"printJobSubmitted":false,"hostRouted":false}

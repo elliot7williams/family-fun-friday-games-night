@@ -1,0 +1,1 @@
+I:\LeaBuildStorage\sdk-print-source-graph-20261109-v1\old-control\Lea.Print\Lea.Print.csproj(59,5): error : Set LeaCorePath to the matching mature Lea.Engine.dll; do not silently use a prototype.

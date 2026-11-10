@@ -1,0 +1,244 @@
+PASS null view rejected
+PASS uncreated handle rejected
+PASS ready document captured
+PASS live title
+PASS parsed content captured
+PASS no invented document selection
+PASS cross thread rejected without UI invoke
+PASS busy view rejected
+PASS permitted native selection captured
+PASS focus and selection preserved
+PASS capture detached from live editor
+PASS password selection denied
+PASS disposed view rejected
+PASS Lea print capture: 13 checks
+PASS WPF multiple pages
+PASS original text retained
+PASS contiguous normalized page text
+PASS no missing glyph IDs across pages
+PASS nonblank WPF text 96
+PASS WPF ink body bounds 96
+PASS nonblank WPF text 144
+PASS WPF ink body bounds 144
+PAGES 3 GLYPHS 4570 MISSING 0
+PASS negative page denied
+PASS past last page denied
+PASS cross thread drawing denied
+PASS disposed drawing denied
+PASS blank WPF text denied
+PASS WPF text cap
+PASS null WPF geometry denied
+PASS NaN WPF font denied
+PASS infinite WPF font denied
+PASS small WPF font denied
+PASS large WPF font denied
+PASS MTA capture denied
+PASS tiny WPF page denied
+PASS WPF page cap enforced
+PASS Lea paginated WPF text and foundation
+PASS title line normalized
+PASS address secrets removed
+PASS framed body visible
+PASS ink inside reserved areas
+PASS header/footer option respected
+PASS active source address omitted
+PASS metadata cap
+PASS address cap
+PASS frame invalid page
+PASS frame honors plan lifetime
+PASS framed body visible
+PASS ink inside reserved areas
+PASS header/footer option respected
+PASS Lea print frame and foundation
+PASS paginator complete multi-page count
+PASS paginator oriented paper size
+PASS paginator source identity
+PASS paginator refuses implicit repagination
+PASS paginator refuses empty paper
+PASS paginator negative page
+PASS paginator missing sentinel
+PASS paginator huge index sentinel
+PASS paginator page geometry 0
+PASS paginator page geometry 1
+PASS paginator page geometry 2
+PASS paginator page geometry 3
+PASS paginator page geometry 4
+PASS paginator page geometry 5
+PASS paginator page geometry 6
+PASS paginator page geometry 7
+PASS paginator page geometry 8
+PASS paginator page geometry 9
+PASS paginator independent page wrappers
+PASS paginator thread affinity
+PASS paginator disposed plan page
+PASS paginator disposed plan metadata
+PASS paginator disposed construction
+PASS paginator null plan
+PASS Lea paginator and foundation
+PASS XPS export page count
+PASS XPS caller stream retained
+PASS XPS nonempty destination denied
+PASS XPS denied destination unchanged
+PASS XPS readonly destination denied
+PASS XPS null destination denied
+PASS XPS null paginator denied
+PASS XPS persisted fixed page count
+PASS XPS embedded font resources
+PASS XPS stored paper size 0
+PASS XPS stored body header footer 0
+PASS XPS displayed address privacy 0
+PASS XPS stored paper size 1
+PASS XPS stored body header footer 1
+PASS XPS displayed address privacy 1
+PASS XPS stored paper size 2
+PASS XPS stored body header footer 2
+PASS XPS displayed address privacy 2
+PASS XPS every fixture line retained
+PASS XPS reopened pagination
+PASS XPS reopened page visible
+PASS XPS reopened body visible independently of bands
+PASS XPS disposed plan denied
+PASS XPS plan failure leaves destination empty
+PASS Lea XPS export and foundation
+PASS preview initial state
+PASS preview first-page buttons
+PASS preview next command
+PASS preview previous command
+PASS preview last-page buttons
+PASS preview programmatic zoom
+PASS preview zoom menu command
+PASS preview fit-width command and displayed zoom
+PASS preview rendered window dimensions
+PASS preview narrow window controls
+PASS preview rendered window dimensions
+PASS preview negative page
+PASS preview missing page
+PASS preview NaN zoom
+PASS preview infinite zoom
+PASS preview minimum zoom
+PASS preview maximum zoom
+PASS preview thread affinity
+PASS preview disposed navigation
+PASS preview does not own plan
+PASS preview disposed plan
+PASS preview null paginator
+PASS Lea preview and foundation
+PASS WinForms preview owned visible window
+PASS WinForms ElementHost child bridge
+PASS WinForms preview initial pagination
+PASS WinForms preview navigation
+PASS WinForms preview fills host
+PASS WinForms preview thread affinity
+PASS WinForms preview releases native controls
+PASS WinForms close disposes WPF preview
+PASS WinForms disposed view accessor
+PASS WinForms close retains owner and plan
+PASS WinForms preview can reopen same plan
+PASS WinForms disposed plan denied
+PASS WinForms null paginator denied
+PASS Lea WinForms preview and foundation
+PASS document captured from actual native view
+PASS document heading typography
+PASS document inline emphasis
+PASS document links have no activation object
+PASS document ordered and nested bullet lists
+PASS document table cells and spans
+PASS document whitespace and nonbreaking space
+PASS document preformatted whitespace
+PASS document literal markup and explicit image placeholder
+PASS document excluded snapshot content stays excluded
+PASS document plan records structured mode and unresolved image
+PASS document contiguous multi-page text
+PASS document all paragraphs retained
+PASS document body visible document-first.png
+PASS document body visible document-last.png
+PASS document structured XPS export
+PASS document reopened XPS pagination
+PASS document body visible document-readback.png
+PASS document persisted XPS structure text
+PASS document null snapshot
+PASS document null geometry
+PASS document MTA rejected
+PASS document empty content rejected
+PASS document text cap
+PASS document node cap
+PASS document table span cap
+PASS document aggregate column allocation cap
+PASS Lea structured document and foundation
+PASS print styles complete node map
+PASS print styles print media cascade
+PASS print styles important beats inline normal
+PASS print styles print and screen visibility
+PASS print styles font sizes
+PASS print styles negated media
+PASS print styles recursive composite media
+PASS print styles portrait width media
+PASS print styles isolated viewport units
+PASS print styles vh vmin vmax fonts
+PASS print styles calculated decimal and case-insensitive fonts
+PASS print styles invalid viewport font fallback
+PASS print styles inherited visibility override
+PASS print styles opacity retained
+PASS print styles closed disclosure state
+PASS print styles width and composite negatives
+PASS print styles landscape media
+PASS print styles distinct viewport font widths
+PASS print styles screen viewport fonts also supported
+PASS print styles live page state unchanged
+PASS print styles live paint objects unchanged
+PASS print styles screen media default unchanged
+PASS print styles map readonly
+PASS print styles null page
+PASS print styles foreign page
+PASS print styles empty geometry
+PASS print styles viewport cap
+PASS print styles duplicate tree rejected
+PASS print styles query recovers after rejected tree
+PASS Lea print styles and foundation
+PASS styled snapshot complete detached style records
+PASS styled snapshot excludes all secret text
+PASS styled snapshot visible override and print-only content
+PASS styled snapshot detached from mutable query styles
+PASS styled snapshot scalar properties readonly
+PASS styled renderer typography and safe family
+PASS styled renderer color and decoration
+PASS styled renderer background
+PASS styled renderer alpha and inherited opacity
+PASS styled renderer rejects URI font families and maps local fallback
+PASS styled renderer rejects color-profile URI syntax
+PASS styled renderer CSS whitespace and inline display
+PASS styled renderer secret text absent
+PASS styled plan provenance
+PASS styled document body pixels
+PASS styled document grayscale flag pixels
+PASS styled plan provenance
+PASS styled document body pixels
+PASS styled document grayscale flag pixels
+PASS styled XPS hidden text excluded and visible text retained
+PASS styled snapshot null map
+PASS styled snapshot missing node style
+PASS styled snapshot foreign map
+PASS unstyled snapshot compatibility explicit
+PASS Lea styled document and foundation
+PASS live styled capture null view
+PASS live styled capture null geometry
+PASS live styles uncreated view denied
+PASS live styled capture uncreated view denied
+PASS live styled capture unloaded page denied
+PASS live styled capture uses print layout viewport
+PASS live styled capture preserves page viewport and focus
+PASS live styled capture print media policy
+PASS live styles cross thread denied without invoke
+PASS live styled capture cross thread denied without invoke
+PASS live styles busy view denied
+PASS live styled capture busy view denied
+PASS live styles viewport cap
+PASS live styled capture preserves native field selection
+PASS live styled capture password selection denied
+PASS live styled capture detached after navigation
+PASS live styles disposed view denied
+PASS live styled capture disposed view denied
+PASS live captured document opens WinForms preview after view disposal
+PASS live captured document exports after view disposal
+PASS live captured XPS retains visible content and excludes fixture secrets
+PASS Lea live styled capture and foundation
