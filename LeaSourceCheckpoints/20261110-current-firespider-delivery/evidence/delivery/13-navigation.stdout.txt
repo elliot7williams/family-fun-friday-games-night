@@ -1,0 +1,4 @@
+PASS navigation: saved/default home, new Lea homepage, tab list, and local-file domain guard
+PASS navigation: Lea/legacy snapshots, private opens, append/order, bounds, locked and empty sessions
+PASS navigation: both mixed-engine left-close menus, private history, stable counts, and stale tab selection
+PASS Lea boot: navigation; Show=2160 ms; initial tabs=1

@@ -1,0 +1,26 @@
+{
+  "beforeCaseFinishedUtc": "2026-11-10T05:14:50.4293757Z",
+  "afterPreviousCaseUtc": "2026-11-10T05:14:19.7091478Z",
+  "files": [
+    {
+      "source": "C:\\Users\\Elliot\\AppData\\Local\\Temp\\Lea-145-firespider-main.png",
+      "sha256": "536C1F7B88430C2E6E2EE4B7F9256FC81C3336DD81434CF2185F6EF700D5692B",
+      "lastWriteUtc": "2026-11-10T05:14:38.199309Z",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-pictures-20261110-v1\\main.png"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\AppData\\Local\\Temp\\Lea-145-firespider-attributes.png",
+      "sha256": "2F748129DA84890B71D5CB08FF4C0D8D304E0BBDE4A3C51A983B07608E244F40",
+      "lastWriteUtc": "2026-11-10T05:14:37.7163769Z",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-pictures-20261110-v1\\attributes.png"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\AppData\\Local\\Temp\\Lea-145-firespider-split.png",
+      "sha256": "9DBBB93CC7D36E96D971BE4F7AE421B312D730D3800CE4D2387DD95F714C569C",
+      "lastWriteUtc": "2026-11-10T05:14:47.2810635Z",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-pictures-20261110-v1\\split.png"
+    }
+  ],
+  "verified": true,
+  "case": "host-script"
+}

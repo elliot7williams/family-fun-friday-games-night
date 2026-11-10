@@ -1,0 +1,44 @@
+{
+  "actualExeBudgetMs": 100000,
+  "templateSha256": "3DC6D7BF960039A18206CDC504046164C77C416AC373910E690A187C6A49DF46",
+  "source": "I:\\LeaBuildStorage\\current-firespider-extraction-source-20261110-v1\\Test-CurrentFirespiderExtraction.ps1",
+  "assertionsChanged": false,
+  "executed": false,
+  "inverseVerified": true,
+  "verified": true,
+  "hostAdopted": false,
+  "replacements": [
+    [
+      "continuity-evidence/private-binding-package-extraction-v1",
+      "continuity-evidence/current-source-package-extraction-v1"
+    ],
+    [
+      "I:\\LeaBuildStorage\\private-binding-firespider-package-20261103-v1",
+      "I:\\LeaBuildStorage\\current-firespider-package-20261110-v1"
+    ],
+    [
+      "AF32F7320FB74F2CBAE418E5966196D93AEFFBE278A7A41E4B72BFC4F9762E7D",
+      "099D3347BCC7BD882FA4398F6E7455396BD10EEEA94E069D59978B5F295F3A5A"
+    ],
+    [
+      "Firespider-Lea-private-binding-development-20261103.zip",
+      "Firespider-Lea-current-source-development-20261110.zip"
+    ],
+    [
+      "2D684D53800618A2920E86B6051526DEB651D946EC6781A628F887CAD71B3D68",
+      "81CBAC6F685EC65DF45DF069C99F03FC263340683CB94F5908C5D1E9C0CE7482"
+    ],
+    [
+      "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85",
+      "9513A0BD7C620589F4AB332CE19F155686C01104B1E8D99A5DECAAF1814F2586"
+    ],
+    [
+      "Fresh private-binding ZIP extraction",
+      "Fresh current-source ZIP extraction"
+    ]
+  ],
+  "navigationBudgetMs": 90000,
+  "settingsBudgetMs": 30000,
+  "retirementBudgetMs": 5000,
+  "sha256": "037E1F65AD848236FF8BE79E30E2DDC1451FAC53DA78FFA727563DCD35BDAB05"
+}

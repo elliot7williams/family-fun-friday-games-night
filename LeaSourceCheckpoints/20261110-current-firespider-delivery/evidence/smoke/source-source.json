@@ -1,0 +1,38 @@
+{
+  "navigationBudgetMs": 90000,
+  "templateSha256": "0AC6D53BA9C051AA359805F8C5938D269E1F69960FEEA9CB3D8A26BA9BD24D7C",
+  "inverseVerified": true,
+  "assertionsChanged": false,
+  "retirementBudgetMs": 5000,
+  "source": "I:\\LeaBuildStorage\\current-firespider-smoke-source-20261110-v1\\Test-CurrentFirespider.ps1",
+  "replacements": [
+    [
+      "continuity-evidence/private-binding-host-smokes-v1",
+      "continuity-evidence/current-source-host-smokes-v1"
+    ],
+    [
+      "I:\\LeaBuildStorage\\private-binding-firespider-runtime-20261103-v1\\runtime-manifest.json",
+      "I:\\LeaBuildStorage\\current-firespider-runtime-20261110-v1\\runtime-manifest.json"
+    ],
+    [
+      "694C89BB4FDF24936EF5424CAFC09C57BCDB50ED7EC21483D0DBDBD3A3E122FA",
+      "2836AC6BA77C2DB096C5365EED4D7B6E48D56A82A0A4DFDBEBFD2CCE3DD6E1AB"
+    ],
+    [
+      "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85",
+      "9513A0BD7C620589F4AB332CE19F155686C01104B1E8D99A5DECAAF1814F2586"
+    ],
+    [
+      "Exact private-binding host settings/navigation/actual clean EXE smokes",
+      "Exact current-source SDK host settings/navigation/actual clean EXE smokes"
+    ]
+  ],
+  "helperPathReplacements": 6,
+  "manifestSha256": "2836AC6BA77C2DB096C5365EED4D7B6E48D56A82A0A4DFDBEBFD2CCE3DD6E1AB",
+  "sha256": "FA9D2FF5639CD7EF6D4586D8624820D47CF759A924D69ECAE80D06E5008E835B",
+  "executed": false,
+  "actualExeBudgetMs": 100000,
+  "settingsBudgetMs": 30000,
+  "verified": true,
+  "hostAdopted": false
+}

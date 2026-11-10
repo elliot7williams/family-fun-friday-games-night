@@ -1,0 +1,5 @@
+Preview window inventory: modal=True; managedOwner=True; managedEnabled=True; nativeOwner=True; nativeEnabled=False
+Preview window inventory: modal=True; managedOwner=True; managedEnabled=True; nativeOwner=True; nativeEnabled=False
+PASS Lea browser print preview: click/hover/modal/reentrancy/Escape/detached lifetime/privacy/image and busy guards
+PASS Lea browser print command: click/hover/cancel/native-owner/reentry/changed-tab/busy/unknown guards; no queue submission
+PASS Lea boot: print-command; Show=2203 ms; initial tabs=1

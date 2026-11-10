@@ -1,0 +1,43 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Lea.Script.Win</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <LeaBuildFromSource Condition="'$(LeaBuildFromSource)' == '' And '$(TargetFrameworkVersion)' == 'v4.8' And Exists('..\Lea.Engine\Lea.Engine.csproj') And Exists('..\Lea.Win\Lea.Win.csproj')">true</LeaBuildFromSource>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <LangVersion>12.0</LangVersion>
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="Lea.Engine" Condition="'$(LeaBuildFromSource)' != 'true'">
+      <HintPath>..\bin\$(Configuration)\Lea.Engine.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Lea.Win" Condition="'$(LeaBuildFromSource)' != 'true'">
+      <HintPath>..\bin\$(Configuration)\Lea.Win.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <ProjectReference Include="..\Lea.Engine\Lea.Engine.csproj" Condition="'$(LeaBuildFromSource)' == 'true'">
+      <Name>Lea.Engine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Lea.Win\Lea.Win.csproj" Condition="'$(LeaBuildFromSource)' == 'true'">
+      <Name>Lea.Win</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Lea.Script\Lea.Script.csproj">
+      <Name>Lea.Script</Name>
+    </ProjectReference>
+    <Compile Include="W.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="RequireSourceFramework" BeforeTargets="ResolveProjectReferences" Condition="'$(LeaBuildFromSource)' == 'true'">
+    <Error Condition="'$(TargetFrameworkVersion)' != 'v4.8'" Text="The mature source graph requires matching .NET Framework 4.8 projects. Export with the net48 projection or use the explicit binary-reference mode." />
+  </Target>
+</Project>

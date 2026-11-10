@@ -1,0 +1,2 @@
+LEA_BOOT_ENTRY_PATH: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\current-source-package-extraction-v1\runtime\Lea.Firespider.Boot.exe
+LEA_BOOT_SETTINGS_PATH: C:\Users\Elliot\AppData\Local\Lea\Lea.Firespider.Boot.exe_Url_crnluzatu54aa5r2eqljvwl3uptmks2t\0.0.0.0\user.config

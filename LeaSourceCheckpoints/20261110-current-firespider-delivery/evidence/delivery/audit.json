@@ -1,0 +1,98 @@
+{
+  "allOwnedProcessesRetired": true,
+  "cleanMachineQualified": false,
+  "limitsChanged": false,
+  "archiveSha256": "81CBAC6F685EC65DF45DF069C99F03FC263340683CB94F5908C5D1E9C0CE7482",
+  "verified": true,
+  "physicalPrintingQualified": false,
+  "actualExeResponsive": true,
+  "extractionSha256": "1327468C868BFF04677642472BDCA95CE81C07BC55787DF2E07F93F43D3C1199",
+  "legacyEngine": false,
+  "assertionsChanged": false,
+  "all402ArchiveMembersReadBack": true,
+  "runtimeBytesAndAclsUnchanged": true,
+  "releaseQualified": false,
+  "ownedRuns": 4,
+  "copies": [
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-host-print-v1\\result.json",
+      "sha256": "5C8963D350EB55A7D9B71303949699AAF626C07E95DF35F11F3451A5802EAFB2",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\01-result.json"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-package-extraction-v1\\result.json",
+      "sha256": "1327468C868BFF04677642472BDCA95CE81C07BC55787DF2E07F93F43D3C1199",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\02-result.json"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-package-extraction-v1\\clean.json",
+      "sha256": "74FFE0883B86A30159948EA268A824C272282183A694676FE783F5F1068BA1AD",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\03-clean.json"
+    },
+    {
+      "source": "I:\\LeaBuildStorage\\current-firespider-package-20261110-v1\\result.json",
+      "sha256": "099D3347BCC7BD882FA4398F6E7455396BD10EEEA94E069D59978B5F295F3A5A",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\04-result.json"
+    },
+    {
+      "source": "I:\\LeaBuildStorage\\current-firespider-print-audit-20261110-v1\\audit.json",
+      "sha256": "A0974C0A8265963359B0A3FE93358CAB53C05692267E1CB4F8D0BE6890F0CCE6",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\05-audit.json"
+    },
+    {
+      "source": "I:\\LeaBuildStorage\\current-firespider-extraction-source-20261110-v1\\source.json",
+      "sha256": "5C960582EB29FA85731C02E7CD474664A630DC15E2A268F1AE7E3FD00CA0FDA7",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\06-source.json"
+    },
+    {
+      "source": "I:\\LeaBuildStorage\\current-firespider-extraction-source-20261110-v1\\Test-CurrentFirespiderExtraction.ps1",
+      "sha256": "037E1F65AD848236FF8BE79E30E2DDC1451FAC53DA78FFA727563DCD35BDAB05",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\07-Test-CurrentFirespiderExtraction.ps1"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Audit-CurrentFirespiderDelivery.ps1",
+      "sha256": "6ECCA1BCD17CDC91AB535BD587BFA81C900E4EACACE24203E33FAFEB23D8AEA4",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\08-Audit-CurrentFirespiderDelivery.ps1"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-host-print-v1\\print-command-preview.stdout.txt",
+      "sha256": "323119DB49F62FB103B78DB533B4361D102C77CB54331614966616A42E8BFA64",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\09-print-command-preview.stdout.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-host-print-v1\\print-command-preview.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\10-print-command-preview.stderr.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-package-extraction-v1\\settings-path.stdout.txt",
+      "sha256": "DCF15E92DF8200A1EC2C104876FD5A86B375E7C8EBD530E96F00EA96F902DCAC",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\11-settings-path.stdout.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-package-extraction-v1\\settings-path.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\12-settings-path.stderr.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-package-extraction-v1\\navigation.stdout.txt",
+      "sha256": "0F4D7AE3E7EFADC47CAC00C5EFA9AEE617E7FC6A49E094E0A25B9BE80066A807",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\13-navigation.stdout.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-package-extraction-v1\\navigation.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\14-navigation.stderr.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-package-extraction-v1\\exe-clean.stdout.txt",
+      "sha256": "F7A37265BE98D7D65321A5F3996EA409D5D6BEDBFDFC55609A124A0DC7F2F491",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\15-exe-clean.stdout.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-source-package-extraction-v1\\exe-clean.stderr.txt",
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "copy": "I:\\LeaBuildStorage\\current-firespider-delivery-audit-20261110-v1\\16-exe-clean.stderr.txt"
+    }
+  ]
+}

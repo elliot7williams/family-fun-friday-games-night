@@ -1,0 +1,12 @@
+{
+  "freeCOnRecheck": 1038397440,
+  "observedUtc": "2026-11-10T05:40:15.1310205Z",
+  "limitsChanged": false,
+  "freeCAtStopNotCaptured": true,
+  "causeProven": false,
+  "nativeChildStarted": false,
+  "runtimeCreated": false,
+  "outcome": "Original 600MiB preflight stopped before owner/runtime creation",
+  "sourceReceiptSha256": "C0B08B37A0481E8793AB4850AB79ABBD0233A726052441D24D1BDDFF7E8BD577",
+  "ownerShellGuardedExit": 0
+}
