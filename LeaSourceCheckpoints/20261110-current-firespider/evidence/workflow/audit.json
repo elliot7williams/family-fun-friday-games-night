@@ -1,0 +1,271 @@
+{
+  "smokeCases": 15,
+  "legacyEngineLoaded": false,
+  "scriptSha256": "0D3E55BCD9CBF09AC299EFAC43F1B9D13079E34595F8699D31B20942C6A29061",
+  "actualExeLea": true,
+  "actualExeResponsive": true,
+  "verified": true,
+  "ownedRuns": 16,
+  "assertionsChanged": false,
+  "runtimeBytesAndAclStable": true,
+  "printQualified": false,
+  "buildOutputs": 22,
+  "smokeSha256": "38C557C0287B6EFD9E803D438ACF216243231B1D5099D8B750E9F28BE6BB6CD6",
+  "sourceMembers": 87,
+  "hostAdopted": false,
+  "forcedCleanup": false,
+  "hostSha256": "9513A0BD7C620589F4AB332CE19F155686C01104B1E8D99A5DECAAF1814F2586",
+  "fullReleaseQualified": false,
+  "copies": [
+    {
+      "sha256": "8AC4C88EDB28D36AE1A193433588E51C73FC6CE8F75F00C217D02DDF7CE228BF",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\build-build.ps1"
+    },
+    {
+      "sha256": "F909B0C740C2A527D46D125BD7FC1C032468ABE96FF045DE8EB2FE9F193BB7BE",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\build-candidate-manifest.json"
+    },
+    {
+      "sha256": "9BBD717538215780D05C8740A1989E8560E15A4DCAA38BFB519FFA7F475FFE8C",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\build-compile-current-firespider.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\build-compile-current-firespider.stderr.txt"
+    },
+    {
+      "sha256": "C90D9444C7B67F757ED56D3DCCDFFC8EB56D3847BA2DC6CAF541D61A15E4A59B",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\build-compile-current-firespider.stdout.txt"
+    },
+    {
+      "sha256": "CD72727F31282AABB42DABBEE2F55BCA69C63A9352A3528C8EB5657A03A2B408",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\build-result.json"
+    },
+    {
+      "sha256": "2836AC6BA77C2DB096C5365EED4D7B6E48D56A82A0A4DFDBEBFD2CCE3DD6E1AB",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\runtime-runtime-manifest.json"
+    },
+    {
+      "sha256": "3A3644B1376964A0850695E904F9C9ADE978812ACE9132DA2AA02B07FCAA4B34",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\source-source.json"
+    },
+    {
+      "sha256": "38CDF43079C077876E8244149449959C6A2C0AEFD3E109C31762005D0BE79DE7",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\source-Test-CurrentFirespiderWorkflows.ps1"
+    },
+    {
+      "sha256": "C21B2358986CAEB9C3626D3EC78860588E3E6BBBEDB589B7909DA23FA2D34896",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-clean.json"
+    },
+    {
+      "sha256": "06DA5FC41C86B061531EE329B6038B4275FC652AE957AB70C54F87F8C83C8DC7",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-clean.result.json"
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-clean.stderr.txt"
+    },
+    {
+      "sha256": "2DFFA224390F944504BDDD555AE688A94EBCFE4D7C2EF0B3BDD405A1FEAF3356",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-clean.stdout.txt"
+    },
+    {
+      "sha256": "710D750203722403905663CAE9545455C65A1C8EC91CF349C8ED89BE56B626A9",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-lazy-all.result.json"
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-lazy-all.stderr.txt"
+    },
+    {
+      "sha256": "F7CECC3D8C346B1F608448A13722CB0518A57512BF4AC8745400B951533B4A85",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-lazy-all.stdout.txt"
+    },
+    {
+      "sha256": "E231F3A64AD229B89971BB8C39FA27E7CBA0B88544CE92FCEA4653DC324EAED4",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-lazy-background.result.json"
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-lazy-background.stderr.txt"
+    },
+    {
+      "sha256": "D5AC6210CF1485D38DED0CB85E2796D01381D6B0E38ABF27C31B35886FCFE88A",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-lazy-background.stdout.txt"
+    },
+    {
+      "sha256": "F79772B59527B9EB5A8BB2D8F9B84FD71732427A3B5780B5D84070A92550BBF2",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-locked.result.json"
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-locked.stderr.txt"
+    },
+    {
+      "sha256": "5E03A06325D7E2E28AB7DA8CD95ACB253F35D29F5BE0EDA5A0AEE132400497D6",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-locked.stdout.txt"
+    },
+    {
+      "sha256": "CBACC325BD9E89AB988735F9178F1161C3F64A4BA79554F31EE81AFFF668BA1E",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-oversized.result.json"
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-oversized.stderr.txt"
+    },
+    {
+      "sha256": "1F13DE65BEC62BA84C98F21F963A092D6DCCC6EC33BDBC43317119755F761125",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-oversized.stdout.txt"
+    },
+    {
+      "sha256": "B81ACF314ED16CD05A2E78F6E5A05E6192A19EE03204ABC1DACE10316F419F42",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-restored.result.json"
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-restored.stderr.txt"
+    },
+    {
+      "sha256": "B6A83A3687E89A4A5E05E1913A5E9ECCC908BAFF956B6E5B778189D80F973CCB",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-exe-restored.stdout.txt"
+    },
+    {
+      "sha256": "A621C765CF64DE663B71FCA4CF6E8FD4EB48562D60424B216DF53F82349488D2",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-clean.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-clean.stderr.txt"
+    },
+    {
+      "sha256": "1BED7E7DF3C666FAF0C39C0CC430925BDE913F13720ED0FD3A023943A307450E",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-clean.stdout.txt"
+    },
+    {
+      "sha256": "D743D75D34DA6AAFDE47C4522D2175550FE0AFBA054428BBAAF6F0A5D39DABC0",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-edit.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-edit.stderr.txt"
+    },
+    {
+      "sha256": "7BCA0880966F5BD9DBA47F2D9910D1CA3B2C9000E42320B7BD9314C2E39CD726",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-edit.stdout.txt"
+    },
+    {
+      "sha256": "D49820F47BC719E607DE6BF15A285DC141A1FC31D6D6628D21A2881BC1321AE0",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-lea.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-lea.stderr.txt"
+    },
+    {
+      "sha256": "D8BFFBE114B9C51307B1520855846095E4133105ABD37F5F13A212BB2AB6308E",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-lea.stdout.txt"
+    },
+    {
+      "sha256": "1A0470309734EF3FD747CD4AECE9A84707AAEF84247E28A94338B7C4BA29E290",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-navigation.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-navigation.stderr.txt"
+    },
+    {
+      "sha256": "B073F6F91FA949F7C6B0ED087D24C38228263F33480BB5FAFE60FED084C2415E",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-navigation.stdout.txt"
+    },
+    {
+      "sha256": "16E05AB3CDCB5F8555D62B509A9389863909CFCDF55AC1161B2A5E350220F156",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-script.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-script.stderr.txt"
+    },
+    {
+      "sha256": "175586C5137CE962E48AD9B989D71E6D04C8AF6118F72533A73B7F5C3AD84F38",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-script.stdout.txt"
+    },
+    {
+      "sha256": "2173EF2CD8B8A16CF05AFC626AE2EA77563C5C6D4A3E9CD3E73046D42FD1A7B0",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-second.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-second.stderr.txt"
+    },
+    {
+      "sha256": "CC7FDC151E35CCDBCB65618EAF343270575209D21C6CE378D350643B4ED75D7F",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-second.stdout.txt"
+    },
+    {
+      "sha256": "063A6479B1ADDDC42EE3E3F9484B46651836D2DA580C079B0E5DC13D7B92404B",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-split.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-split.stderr.txt"
+    },
+    {
+      "sha256": "F94459E2E5F6DE6825573065D9E2C24F87BC737846DD672193101EFCF909B083",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-split.stdout.txt"
+    },
+    {
+      "sha256": "8D81B42F487704F8D0EC5EC10F482B1E440A6F5D78A4469328D85CC9239C565D",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-style-start.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-style-start.stderr.txt"
+    },
+    {
+      "sha256": "53D35EE923641F73631BDDE5FD5EC70B2E53C57F5622E937BF3E61EFF8C1B68F",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-host-style-start.stdout.txt"
+    },
+    {
+      "sha256": "D1695A3485616D59E41B020D4ED8B9B7F43693650ECB9CE9B4339B9EE83FA486",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-lazy-all.json"
+    },
+    {
+      "sha256": "E051551EB8B8E51A7ED94A4CF3F750A9D418FA522EAFA6E40D8C3A756CEE75FB",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-lazy-background.json"
+    },
+    {
+      "sha256": "EE60F68B6D4D5B138901BDCBB047EE7264F2BF8EB84A158DA37BC59600F60E29",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-locked.json"
+    },
+    {
+      "sha256": "09D2930B51A401F38AB46C07F426BFB823E379F554ADF6D6BBA7B5BDF78B0B01",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-oversized.json"
+    },
+    {
+      "sha256": "F0A022F1C22CC2F3F8E63D7880BC108357A50317909CC07B42801331F5222A85",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-restored.json"
+    },
+    {
+      "sha256": "38C557C0287B6EFD9E803D438ACF216243231B1D5099D8B750E9F28BE6BB6CD6",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-result.json"
+    },
+    {
+      "sha256": "E5D71A209F619D1BE605B12263141C3AA9498460E0DF03F5B43FCE4ABC7BDE90",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-settings-path.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-settings-path.stderr.txt"
+    },
+    {
+      "sha256": "5F43E37C5557F284862BE770A111334A7DAFCE4758B3C81006F0A1A2BE3874B8",
+      "path": "I:\\LeaBuildStorage\\current-firespider-workflow-audit-20261110-v1\\smoke-settings-path.stdout.txt"
+    }
+  ],
+  "liveProjectChanged": false,
+  "startupReliabilityFixed": false,
+  "runtimeMembers": 400,
+  "scope": "Current source-built SDK/Firespider 19 original15workflows, not print/installed-profile/all-sites/reliability/release qualification.",
+  "all15WorkflowsQualified": true,
+  "installedBrowserChanged": false
+}
