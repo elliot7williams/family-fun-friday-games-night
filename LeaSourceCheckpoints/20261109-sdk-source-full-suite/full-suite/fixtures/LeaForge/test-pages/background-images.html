@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Background Image Test</title>
+  <link rel="stylesheet" href="background-images.css">
+  <style>
+    :root { --host-tile: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC"); }
+    body { width: 640px; color: #172033; background-color: #ffffff; background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXY6hTOvcfAAT+Am4zJlOdAAAAAElFTkSuQmCC"); background-repeat: no-repeat; background-position: right bottom; background-size: 24px 24px; }
+    h1 { color: #0f766e; }
+    .sample { display: block; width: 160px; height: 72px; margin: 18px; background-color: #ffffff; }
+    #repeat { background-image: var(--host-tile); background-size: 12px 12px; }
+    #no-repeat { background-image: var(--host-tile); background-repeat: no-repeat; background-position: right bottom; background-size: 30px 20px; }
+    #repeat-x { background-image: var(--host-tile); background-repeat: repeat-x; background-position: left center; background-size: 16px 18px; }
+    #repeat-y { background-image: var(--host-tile); background-repeat: repeat-y; background-position: center top; background-size: 18px 16px; }
+    #cover { background-image: var(--host-tile); background-repeat: no-repeat; background-position: center; background-size: cover; }
+    #contain { width: 160px; height: 72px; background-image: var(--host-tile); background-repeat: no-repeat; background-position: center; background-size: contain; }
+    #rounded { border-radius: 22px; background-image: var(--host-tile); background-size: 10px 10px; }
+    #field { width: 210px; height: 42px; color: #164e63; border-radius: 12px; background-image: var(--host-tile); background-repeat: no-repeat; background-position: right center; background-size: 34px 34px; }
+    #alpha { opacity: 0.5; background-image: var(--host-tile); background-size: cover; }
+    #atomic { background-image: var(--host-tile); background-image: url("javascript:blocked"); }
+    #position-atomic { background-image: var(--host-tile); background-position: 25% 75%; background-position: sideways; }
+    #size-atomic { background-image: var(--host-tile); background-size: 40% auto; background-size: -2px; }
+    #shorthand { background: #ffffff url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC") no-repeat right bottom / 26px 22px; }
+    #reset { background-image: var(--host-tile); background-image: none; }
+    #parent { background-image: var(--host-tile); }
+    #child { width: 100px; height: 22px; background-color: #ffffff; }
+    #external-image { width: 72px; height: 72px; }
+    #dynamic { background-color: #ffffff; }
+    @media screen and (max-width: 400px) { #dynamic { background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXY6hTOvcfAAT+Am4zJlOdAAAAAElFTkSuQmCC"); background-repeat: no-repeat; background-size: cover; } }
+  </style>
+</head>
+<body>
+  <h1>Bounded bitmap backgrounds</h1>
+  <a id="repeat" class="sample" href="second.html">Repeated bitmap</a>
+  <p id="no-repeat" class="sample">Positioned no-repeat bitmap</p>
+  <p id="repeat-x" class="sample">Horizontal repeat</p>
+  <p id="repeat-y" class="sample">Vertical repeat</p>
+  <p id="cover" class="sample">Cover bitmap</p>
+  <p id="contain" class="sample">Contain bitmap</p>
+  <p id="rounded" class="sample">Rounded clip</p>
+  <input id="field" value="Bitmap field">
+  <p id="alpha" class="sample">Effective opacity</p>
+  <p id="atomic">Invalid URL preserves valid state.</p>
+  <p id="position-atomic">Invalid position preserves valid state.</p>
+  <p id="size-atomic">Invalid size preserves valid state.</p>
+  <p id="shorthand" class="sample">Bounded shorthand</p>
+  <p id="reset">Reset image.</p>
+  <div id="parent"><p id="child">No inherited bitmap.</p></div>
+  <p id="external-image">Linked CSS origin.</p>
+  <p id="dynamic" class="sample">Responsive bitmap load.</p>
+</body>
+</html>

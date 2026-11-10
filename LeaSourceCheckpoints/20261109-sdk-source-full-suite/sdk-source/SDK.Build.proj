@@ -1,0 +1,30 @@
+<Project DefaultTargets="BuildLibraries" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <LeaSdkRoot Condition="'$(LeaSdkRoot)' == ''">$(MSBuildThisFileDirectory)</LeaSdkRoot>
+    <LeaWorkerIlDirectory Condition="'$(LeaWorkerIlDirectory)' == ''">$(LeaSdkRoot)worker-il\$(Configuration)</LeaWorkerIlDirectory>
+    <LeaNativeOutput Condition="'$(LeaNativeOutput)' == ''">$(LeaSdkRoot)bin\$(Configuration)\ScriptWorker</LeaNativeOutput>
+    <LeaPowerShell Condition="'$(LeaPowerShell)' == ''">pwsh</LeaPowerShell>
+  </PropertyGroup>
+  <Target Name="BuildLibraries">
+    <MSBuild Projects="Lea.Win\Lea.Win.csproj;Lea.Image\Lea.Image.csproj;Lea.Print\Lea.Print.csproj;Lea.Script.Win\Lea.Script.Win.csproj" Targets="Build" Properties="Configuration=$(Configuration);UseSharedCompilation=false" BuildInParallel="false" />
+  </Target>
+  <Target Name="BuildWorkerIl">
+    <MSBuild Projects="Lea.Script.Worker\Lea.Script.Worker.csproj" Targets="Restore;Build" Properties="Configuration=$(Configuration);UseSharedCompilation=false" BuildInParallel="false" />
+  </Target>
+  <Target Name="CompileWorkerNative">
+    <Error Condition="'$(LeaNativeToolchain)' == '' Or '$(LeaNativeToolchainSha256)' == ''" Text="Provide a verified native-toolchain manifest and its SHA256 via LeaNativeToolchain and LeaNativeToolchainSha256. No download or IL fallback is performed." />
+    <Exec Command="&quot;$(LeaPowerShell)&quot; -NoProfile -NonInteractive -File &quot;$(MSBuildThisFileDirectory)Build-NativeWorker.ps1&quot; -Toolchain &quot;$(LeaNativeToolchain)&quot; -ToolchainSha256 &quot;$(LeaNativeToolchainSha256)&quot; -IlDirectory &quot;$(LeaWorkerIlDirectory)&quot; -OutputDirectory &quot;$(LeaNativeOutput)&quot;" Timeout="120000" />
+  </Target>
+  <Target Name="BuildWorkerNative" DependsOnTargets="BuildWorkerIl;CompileWorkerNative" />
+  <Target Name="BuildAll" DependsOnTargets="BuildLibraries;BuildWorkerNative;BuildSamples" />
+  <Target Name="Bl" DependsOnTargets="BuildLibraries" />
+  <Target Name="Bi" DependsOnTargets="BuildWorkerIl" />
+  <Target Name="Bn" DependsOnTargets="BuildWorkerNative" />
+  <Target Name="Bs" DependsOnTargets="BuildSamples" />
+  <Target Name="Ba" DependsOnTargets="BuildAll" />
+  <Target Name="BuildSamples">
+    <Error Condition="!Exists('bin\$(Configuration)\ScriptWorker\Lea.Script.Worker.dll')" Text="A separately compiled and verified native worker must be staged before building script samples. IL output in worker-il is not a runtime substitute." />
+    <MSBuild Projects="Sample\EmbeddingSample.csproj;ScriptSample\ScriptEmbeddingSample.csproj" Targets="Build" Properties="Configuration=$(Configuration);UseSharedCompilation=false" BuildInParallel="false" />
+  </Target>
+</Project>

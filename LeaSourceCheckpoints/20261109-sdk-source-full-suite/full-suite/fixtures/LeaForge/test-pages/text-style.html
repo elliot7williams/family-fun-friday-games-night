@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Styles</title>
+  <style>
+    body { font-family: "No Such Lea Font", "Segoe UI", sans-serif; color: #263442; }
+    h1 { font-family: Georgia, serif; }
+    .serif { font-family: "Missing Serif", Georgia, serif; }
+    .mono { font-family: monospace; }
+    .under { text-decoration: underline; }
+    .strike { text-decoration-line: line-through; }
+    .both { text-decoration: underline line-through; }
+    .plain { text-decoration: none; }
+    .cell { font-family: "Times New Roman", serif; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Font families</h1>
+  <p class="inherited">Inherited interface family</p>
+  <p class="serif">Serif fallback family</p>
+  <p class="mono">Monospace generic family</p>
+  <p><span class="under">Underlined</span> <span class="strike">Struck</span> <span class="both">Both</span></p>
+  <p><u>Native underline</u> and <del>native deletion</del> <u class="plain">plain native</u></p>
+  <p><a class="plain" href="second.html">Plain link</a> <a href="second.html">Default link</a></p>
+  <table><tr><td class="cell">Styled table cell</td></tr></table>
+</body>
+</html>

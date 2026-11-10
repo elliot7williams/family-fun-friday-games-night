@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Align Last</title>
+  <style>
+    :root { --lea-last-align: center; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    .sample { width: 320px; margin: 10px 0; padding: 8px 12px; background: #f1f5f9; font-size: 20px; }
+    #auto { text-align: justify; text-align-last: auto; }
+    #left { text-align-last: left; }
+    #center { text-align-last: center; }
+    #right { text-align-last: right; }
+    #justify { text-align-last: justify; }
+    #start-ltr { direction: ltr; text-align-last: start; }
+    #end-ltr { direction: ltr; text-align-last: end; }
+    #start-rtl { direction: rtl; text-align-last: start; }
+    #end-rtl { direction: rtl; text-align-last: end; }
+    #inherit-parent { text-align-last: center; }
+    #explicit-inherit { text-align-last: right; text-align-last: inherit; }
+    #unset { text-align-last: unset; }
+    #match-parent { text-align-last: match-parent; }
+    #reset { text-align-last: right; text-align-last: initial; }
+    #invalid { text-align-last: right; text-align-last: middle; text-align-last: justify-all; }
+    #variable { text-align-last: var(--lea-last-align); }
+    #important { text-align-last: right !important; }
+    #wrapped { width: 180px; text-align: left; text-align-last: center; }
+    #forced { text-align: left; text-align-last: right; }
+    #cell { width: 260px; margin: 0; text-align-last: center; }
+    #dynamic { text-align-last: left; }
+    #dynamic:hover { text-align-last: right; }
+    #responsive { text-align-last: center; }
+    #command { text-align-last: auto; }
+    @media (max-width: 420px) {
+      #responsive { text-align-last: end; }
+    }
+  </style>
+</head>
+<body>
+  <p id="auto" class="sample">Auto Last</p>
+  <p id="left" class="sample">LeftLast</p>
+  <p id="center" class="sample">CenterLast</p>
+  <p id="right" class="sample">RightLast</p>
+  <p id="justify" class="sample">One Two Three</p>
+  <p id="start-ltr" class="sample">StartLTR</p>
+  <p id="end-ltr" class="sample">EndLTR</p>
+  <p id="start-rtl" class="sample">StartRTL</p>
+  <p id="end-rtl" class="sample">EndRTL</p>
+  <section id="inherit-parent">
+    <p id="inherited" class="sample">InheritedLast</p>
+    <p id="explicit-inherit" class="sample">ExplicitLast</p>
+    <p id="unset" class="sample">UnsetLast</p>
+    <p id="match-parent" class="sample">MatchLast</p>
+  </section>
+  <p id="reset" class="sample">ResetLast</p>
+  <p id="invalid" class="sample">InvalidLast</p>
+  <p id="variable" class="sample">VariableLast</p>
+  <p id="important" class="sample" style="text-align-last:left">ImportantLast</p>
+  <p id="wrapped" class="sample">FirstLine alpha beta gamma delta epsilon LastLine</p>
+  <p id="forced" class="sample">BeforeBreak words<br>AfterBreak words</p>
+  <table><tr><td><p id="cell" class="sample">CellLast</p></td></tr></table>
+  <p id="dynamic" class="sample">DynamicLast</p>
+  <p id="responsive" class="sample">ResponsiveLast</p>
+  <p id="command" class="sample">CommandLast</p>
+  <button id="set-short" data-lea="tl('command','right')">Set short</button>
+  <button id="set-readable" data-lea="textalignlast('command','left')">Set readable</button>
+  <button id="set-dom" data-lea="document.getElementById('command').style.textAlignLast='center'">Set DOM</button>
+  <button id="clear-dom" data-lea="document.getElementById('command').style.textAlignLast=''">Clear DOM</button>
+</body>
+</html>

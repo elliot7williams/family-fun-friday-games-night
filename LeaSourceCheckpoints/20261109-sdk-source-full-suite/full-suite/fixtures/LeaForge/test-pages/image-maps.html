@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea image maps</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-family: Arial; }
+    #mapped { display: block; width: 320px; height: 160px; border: 2px solid #176b4d; }
+    #mapped.narrow { width: 240px; }
+    #unmapped { display: block; width: 120px; height: 60px; }
+    map { display: none; }
+    .target { display: block; width: 260px; padding: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Compact image map regions</h1>
+  <img id="mapped" width="320" height="160" usemap="#Lea%4dap" alt="Mapped green image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+  <img id="unmapped" usemap="image-maps.html#LeaMap" alt="Unmapped green image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+
+  <map name="LeaMap" id="LeaMap">
+    <area id="dead-area" shape="rect" coords="0,0,20,20">
+    <area id="rect-area" shape="rectangle" coords="100,80,0,0,999" href="#rect-target" alt="Rectangle target">
+    <area id="circle-area" shape="circ" coords="160,40,35,999" href="#circle-target" alt="Circle target" download="circle.html">
+    <area id="poly-area" shape="polygon" coords="200,0,320,0,320,80,200,80,999" href="#poly-target" alt="Polygon target">
+    <area id="empty-circle" shape="circle" coords="80,120,0" href="#empty-target" alt="Empty circle target">
+    <area id="malformed-area" coords="bad,20,40,60" href="#malformed-target" alt="Malformed target">
+    <area id="default-area" shape="default" coords="1,2,3,4" href="#default-target" alt="Default target">
+  </map>
+  <map name="LeaMap"><area href="second.html" alt="Ignored duplicate"></map>
+  <map name="bad map"><area href="second.html" alt="Invalid map name"></map>
+  <map name="unused"><area id="unused-area" href="second.html" alt="Unused map"></map>
+
+  <button id="style-map" type="button" data-lea="ac('mapped','narrow')">Narrow mapped image</button>
+  <p class="target" id="rect-target">Rectangle destination</p>
+  <p class="target" id="circle-target">Circle destination</p>
+  <p class="target" id="poly-target">Polygon destination</p>
+  <p class="target" id="empty-target">Empty destination</p>
+  <p class="target" id="malformed-target">Malformed destination</p>
+  <p class="target" id="default-target">Default destination</p>
+</body>
+</html>

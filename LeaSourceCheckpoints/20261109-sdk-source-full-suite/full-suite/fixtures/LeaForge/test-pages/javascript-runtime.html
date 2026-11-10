@@ -1,0 +1,18 @@
+<!doctype html>
+<html><head><title>Lea JavaScript runtime experiment</title>
+<style>.active { color: #176b4d; } #result { width: 100px; }</style></head>
+<body><h1>Lea JavaScript</h1><p id="result">Waiting</p>
+<p class="item" data-count="3">Three</p><p class="item" data-count="4">Four</p>
+<input id="field" value="kept"><input id="check" type="checkbox">
+<div id="parent"><span id="child">Old child</span><input id="removed" value="old"></div>
+<script type="application/lea-test">
+const items = [...document.querySelectorAll('.item')];
+const total = items.map(item => Number(item.getAttribute('data-count'))).reduce((a, b) => a + b, 0);
+const result = document.getElementById('result');
+result.textContent = `Total: ${total}`;
+result.classList.add('active');
+result.style.width = `${total * 20}px`;
+document.getElementById('field').value = JSON.stringify({ total });
+document.getElementById('check').checked = total > 5;
+document.title = `Lea ${total}`;
+</script></body></html>

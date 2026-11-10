@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea logical box model</title>
+  <style>
+    body { color: #172033; background: #f8fafc; font-size: 16px; }
+    #geometry-shell { position: relative; width: 500px; height: 320px; margin: 0; padding: 0; background: #e8f3ff; }
+    #axis-box { position: absolute; left: 20px; top: 30px; width: 100px; height: 40px; margin-inline: 12px 18px; margin-block: 14px 16px; padding-inline: 8px 10px; padding-block: 6px 7px; background: #dff6e9; }
+    #longhand-box { margin-inline-start: 21px; margin-inline-end: 22px; margin-block-start: 23px; margin-block-end: 24px; padding-inline-start: 4px; padding-inline-end: 5px; padding-block-start: 6px; padding-block-end: 7px; }
+    #source-physical { margin-inline: 10px 11px; margin-block: 12px 13px; margin-left: 31px; margin-top: 32px; padding-inline: 3px 4px; padding-block: 5px 6px; padding-right: 9px; padding-bottom: 10px; }
+    #source-logical { margin-left: 31px; margin-right: 32px; margin-top: 33px; margin-bottom: 34px; margin-inline: 14px 15px; margin-block: 16px 17px; padding-left: 8px; padding-right: 9px; padding-top: 10px; padding-bottom: 11px; padding-inline: 2px 3px; padding-block: 4px 5px; }
+    #variables { --mi: -9px 19px; --pb: 5px 7px; margin-inline: var(--mi); padding-block: var(--pb); }
+    #important { margin-inline: 20px 21px !important; margin-left: 44px; margin-right: 55px !important; padding-block: 6px 7px !important; padding-top: 12px; padding-bottom: 13px !important; }
+    #inherit-parent { margin-inline: 30px 31px; margin-block: 32px 33px; padding-inline: 8px 9px; padding-block: 10px 11px; }
+    #inherit-child { margin-inline: inherit; margin-block: inherit; padding-inline: inherit; padding-block: inherit; }
+    #reset { margin-inline: 40px 41px; margin-inline: initial; margin-block: 42px 43px; margin-block: unset; padding-inline: 12px 13px; padding-inline: initial; padding-block: 14px 15px; padding-block: unset; }
+    #invalid { margin-inline: -12px 13px; margin-inline: 15px auto; margin-block: 14px 15px; margin-block: 16px 17px 18px; padding-inline: 8px 9px; padding-inline: 10px -11px; padding-block: 6px 7px; padding-block: bad; margin-inline-start: -22px; margin-inline-start: bad; padding-block-end: 11px; padding-block-end: -1px; }
+    #bounded { margin-inline: -9999px 9999px; padding-block: 9999px; }
+    #command { width: 120px; height: 40px; margin-inline: 4px 5px; margin-block: 6px 7px; padding-inline: 2px 3px; padding-block: 1px 2px; color: #123f8c; background: #fff4cc; }
+    button { display: block; width: 360px; margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <h1>Bounded logical margins and padding</h1>
+  <section id="geometry-shell"><p id="axis-box">Logical box geometry</p></section>
+  <p id="longhand-box">All logical edge longhands</p>
+  <p id="source-physical">Later physical edges win</p>
+  <p id="source-logical">Later logical axes win</p>
+  <p id="variables">Logical custom-property edges</p>
+  <p id="important">Physical and logical important edges</p>
+  <section id="inherit-parent"><p id="inherit-child">Inherited logical edges</p></section>
+  <p id="reset">Logical initial and unset</p>
+  <p id="invalid">Malformed declarations remain atomic</p>
+  <p id="bounded">Bounded logical edge values</p>
+  <p id="command">Logical command target</p>
+  <button id="set-axis" type="button" data-lea="mi('command','12px 18px');mb('command','14px 16px');pi('command','8px 10px');pb('command','6px 7px')">Set short logical axes</button>
+  <button id="set-edges" type="button" data-lea="mis('command','21px');mie('command','22px');mbs('command','23px');mbe('command','24px');pis('command','4px');pie('command','5px');pbs('command','6px');pbe('command','7px')">Set short logical edges</button>
+  <button id="dom-axis" type="button" onclick="document.getElementById('command').style.marginInline='9px 11px';document.getElementById('command').style.marginBlock='13px 15px';document.getElementById('command').style.paddingInline='5px 7px';document.getElementById('command').style.paddingBlock='3px 4px'">Set familiar logical axes</button>
+  <button id="dom-edges" type="button" onclick="document.getElementById('command').style.marginInlineStart='17px';document.getElementById('command').style.marginInlineEnd='19px';document.getElementById('command').style.marginBlockStart='21px';document.getElementById('command').style.marginBlockEnd='23px';document.getElementById('command').style.paddingInlineStart='6px';document.getElementById('command').style.paddingInlineEnd='8px';document.getElementById('command').style.paddingBlockStart='10px';document.getElementById('command').style.paddingBlockEnd='12px'">Set familiar logical edges</button>
+  <button id="clear-box" type="button" onclick="document.getElementById('command').style.marginInline='';document.getElementById('command').style.marginBlock='';document.getElementById('command').style.paddingInline='';document.getElementById('command').style.paddingBlock='';document.getElementById('command').style.marginInlineStart='';document.getElementById('command').style.marginInlineEnd='';document.getElementById('command').style.marginBlockStart='';document.getElementById('command').style.marginBlockEnd='';document.getElementById('command').style.paddingInlineStart='';document.getElementById('command').style.paddingInlineEnd='';document.getElementById('command').style.paddingBlockStart='';document.getElementById('command').style.paddingBlockEnd=''">Restore authored logical box</button>
+</body>
+</html>

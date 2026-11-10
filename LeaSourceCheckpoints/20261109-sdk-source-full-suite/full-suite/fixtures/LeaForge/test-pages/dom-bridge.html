@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea DOM bridge</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-size: 17px; }
+    .panel { border: 2px solid #64748b; padding: 10px; width: 340px; }
+    .ready { border-color: #0f766e; }
+    input, button { display: block; margin: 8px 0; width: 280px; }
+  </style>
+</head>
+<body>
+  <h1>Bounded DOM compatibility</h1>
+  <p id="status" class="panel">Waiting for DOM commands.</p>
+  <label for="name">Name</label>
+  <input id="name" name="name" value="Authored">
+  <label><input id="agree" name="agree" type="checkbox"> Agree</label>
+  <label for="locked">Locked</label>
+  <input id="locked" name="locked" value="Locked">
+  <section id="notice" role="region" aria-label="DOM notice">This notice starts visible.</section>
+  <details id="more">
+    <summary>More</summary>
+    <p>Bounded disclosure content.</p>
+  </details>
+  <button id="apply" type="button" onclick="document.getElementById('status').innerText = 'Clicked DOM'; document.getElementById('name').value = 'Clicked value'; document.getElementById('agree').checked = false; document.getElementById('locked').disabled = false; document.getElementById('notice').hidden = false; document.getElementById('more').open = false; document.getElementById('status').classList.toggle('ready'); document.getElementById('status').classList.remove('panel'); document.getElementById('name').focus()">Apply DOM commands</button>
+  <script>
+    document.getElementById("status").textContent = "DOM ready";
+    document.getElementById("status").style.backgroundColor = "#e0f2fe";
+    document.getElementById("status").style.color = "#164e63";
+    document.getElementById("status").style.fontSize = "19px";
+    document.getElementById("name").value = "DOM value";
+    document.getElementById("agree").checked = true;
+    document.getElementById("locked").disabled = true;
+    document.getElementById("notice").hidden = true;
+    document.getElementById("more").open = true;
+    document.getElementById("status").classList.add("ready");
+    document.getElementById("name").focus();
+  </script>
+</body>
+</html>

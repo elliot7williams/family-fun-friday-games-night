@@ -1,0 +1,18 @@
+<!doctype html>
+<html><head><title>Lea attribute editing</title><style>
+body { margin: 24px; color: #25282b; background: #ffffff; font-family: Segoe UI; }
+h1 { font-size: 24px; }
+#target { width: 120px; color: #b84235; }
+#target[data-state=ready] { width: 190px; color: #168477; }
+input { width: 160px; }
+input[data-state=ready] { width: 220px; }
+</style></head><body>
+<h1><img src="../../assets/lea.ico" width="32" height="32" alt="Lea"> Lea</h1>
+<p id="target">Attribute state</p>
+<label id="label" for="field">Original label</label>
+<input id="field" value="Lea"><input id="flag" type="checkbox" disabled>
+<details id="disclosure"><summary>Details</summary><p id="inside">Retained content</p></details>
+<p><a id="link" href="about:blank">Local link</a></p>
+<p id="echo">Ready</p>
+<div id="parent"><span id="child">Child</span></div>
+</body></html>

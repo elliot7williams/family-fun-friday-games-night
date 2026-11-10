@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Calculated Container Query Lengths</title>
+  <style>
+    .outer { container: outer / size; width: 500px; height: 300px; }
+    .outer.large { width: 600px; height: 400px; }
+    .inner { container: inner / inline-size; width: 320px; height: 120px; }
+    .probe { display: none; width: 100px; height: 20px; }
+    #field { width: 100px; }
+
+    @container inner (width > calc(50cqw + 60px)) { #relative-plus { display: block; } #field { width: 240px; } }
+    @container inner (width > calc(60cqw - 1px)) { #relative-minus { display: block; } }
+    @container inner (width: calc(50cqw + 70px)) { #exact { display: block; } }
+    @container inner (min-width: calc(50cqw + 70px)) { #legacy { display: block; } }
+    @container inner (calc(350px - 30px) = width) { #reversed { display: block; } }
+    @container inner (calc(239.99px + 10vw) < width <= calc(25vh + 170px)) { #chain { display: block; } }
+    @container inner (width > calc(10cqh + 280px)) { #block-basis { display: block; } }
+    @container inner (width > calc(1rem + 300px)) { #root-font { display: block; } }
+    @container inner (width > calc(0px + 319.99px)) { #decimal-true { display: block; } }
+    @container inner (width > calc(0px + 320.01px)) { #decimal-false { display: block; } }
+    @container inner (width > calc(10vw + 240.01px)) { #viewport-false { display: block; } }
+    @container inner (width > calc(100cqw + 1px)) { #ancestor-false { display: block; } }
+    @container inner (width > calc(0px - 1px)) { #negative-greater { display: block; } }
+    @container inner (width: calc(0px - 1px)) { #negative-equal { display: block; } }
+    @container inner (width > calc(0 + 1px)) { #invalid-unitless { display: block; } }
+    @container inner (width > calc(20vw+ 1px)) { #invalid-spacing { display: block; } }
+    @container inner (width > calc(10vw + 1.001px)) { #invalid-precision { display: block; } }
+    @container inner (width > calc(101vw + 1px)) { #invalid-limit { display: block; } }
+    @container inner (width > calc(10vw * 2)) { #invalid-product { display: block; } }
+    @container inner (width > calc(10vw + 1svw)) { #invalid-unit { display: block; } }
+  </style>
+</head>
+<body>
+  <section id="outer" class="outer">
+    <section id="inner" class="inner">
+      <p id="relative-plus" class="probe">Relative plus</p>
+      <p id="relative-minus" class="probe">Relative minus</p>
+      <p id="exact" class="probe">Exact</p>
+      <p id="legacy" class="probe">Legacy</p>
+      <p id="reversed" class="probe">Reversed</p>
+      <p id="chain" class="probe">Chain</p>
+      <p id="block-basis" class="probe">Block basis</p>
+      <p id="root-font" class="probe">Root font</p>
+      <p id="decimal-true" class="probe">Decimal true</p>
+      <p id="decimal-false" class="probe">Decimal false</p>
+      <p id="viewport-false" class="probe">Viewport false</p>
+      <p id="ancestor-false" class="probe">Ancestor false</p>
+      <p id="negative-greater" class="probe">Negative calculated threshold</p>
+      <p id="negative-equal" class="probe">Negative equality</p>
+      <p id="invalid-unitless" class="probe">Invalid unitless calculation</p>
+      <p id="invalid-spacing" class="probe">Invalid spacing</p>
+      <p id="invalid-precision" class="probe">Invalid precision</p>
+      <p id="invalid-limit" class="probe">Invalid limit</p>
+      <p id="invalid-product" class="probe">Invalid product</p>
+      <p id="invalid-unit" class="probe">Invalid unit</p>
+      <input id="field" value="Calculated query field">
+    </section>
+  </section>
+  <button id="large-outer" type="button" data-lea="ac('outer','large')">Large outer container</button>
+  <button id="small-outer" type="button" data-lea="rc('outer','large')">Small outer container</button>
+</body>
+</html>

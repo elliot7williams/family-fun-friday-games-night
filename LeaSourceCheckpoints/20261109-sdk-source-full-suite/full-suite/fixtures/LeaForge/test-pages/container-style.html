@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Container Style Queries</title>
+  <style>
+    body { font-family: sans-serif; }
+    .shell {
+      --mode: compact;
+      --tone: calm;
+      --expected: compact;
+      --names: shell frame;
+      container-name: var(--names);
+      width: 520px;
+      height: 140px;
+    }
+    .shell.wide { --mode: wide; --tone: vivid; }
+    .shell.renamed { container-name: alternate; }
+    .inner { --mode: cozy; container-name: inner; width: 480px; }
+    .probe { display: none; height: 22px; }
+    #field { width: 120px; }
+
+    @container style(--mode: cozy) {
+      #nearest { display: block; width: 171px; }
+    }
+    @container shell style(--mode: compact) {
+      #named-compact { display: block; width: 221px; }
+      #field { width: 260px; }
+      .shell { height: 333px; }
+    }
+    @container shell style(--mode: wide) {
+      #named-wide { display: block; width: 281px; }
+      #field { width: 300px; }
+    }
+    @container frame style(--mode: compact) {
+      #second-name { display: block; width: 222px; }
+    }
+    @container alternate style(--mode: compact) {
+      #renamed { display: block; width: 230px; }
+    }
+    @container shell not style(--mode: wide) {
+      #negated { display: block; width: 223px; }
+    }
+    @container shell style(--tone: calm) and style(--mode: compact) {
+      #conjunction { display: block; width: 224px; }
+    }
+    @container shell style(--missing: yes) or style(--mode: compact) {
+      #alternative { display: block; width: 225px; }
+    }
+    @container shell (style(--mode: compact) and style(--tone: calm)) {
+      #grouped { display: block; width: 226px; }
+    }
+    @container shell style(--mode: var(--expected)) {
+      #resolved { display: block; width: 227px; }
+    }
+    @container shell style(--mode: compact) {
+      @container inner style(--mode: cozy) {
+        #nested { display: block; width: 228px; }
+      }
+    }
+    @media screen and (min-width: 1px) {
+      @supports (container-name: shell) {
+        @layer container-demo {
+          @container shell style(--mode: compact) {
+            #conditional { display: block !important; width: 229px !important; }
+          }
+        }
+      }
+    }
+    @container missing style(--mode: compact) {
+      #missing-name { display: block; }
+    }
+    @container shell style(color: red) {
+      #ordinary-property { display: block; }
+    }
+    @container shell (width > 1px) {
+      #size-query { display: block; }
+    }
+    @container shell style(--mode: compact) and style(--tone: calm) or style(--tone: vivid) {
+      #mixed-logic { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <section id="shell" class="shell">
+    <div id="inner" class="inner">
+      <p id="nearest" class="probe">Nearest style container</p>
+      <p id="named-compact" class="probe">Named compact container</p>
+      <p id="named-wide" class="probe">Named wide container</p>
+      <p id="second-name" class="probe">Second container name</p>
+      <p id="renamed" class="probe">Dynamically renamed container</p>
+      <p id="negated" class="probe">Negated query</p>
+      <p id="conjunction" class="probe">Conjunction query</p>
+      <p id="alternative" class="probe">Alternative query</p>
+      <p id="grouped" class="probe">Grouped query</p>
+      <p id="resolved" class="probe">Resolved query value</p>
+      <p id="nested" class="probe">Nested containers</p>
+      <p id="conditional" class="probe">Media supports layer container</p>
+      <p id="missing-name" class="probe">Missing named container</p>
+      <p id="ordinary-property" class="probe">Unsupported ordinary property</p>
+      <p id="size-query" class="probe">Unsupported size query</p>
+      <p id="mixed-logic" class="probe">Malformed mixed logic</p>
+      <input id="field" value="container field">
+    </div>
+  </section>
+  <button id="wide" data-lea="ac('shell','wide');">Wide</button>
+  <button id="compact" data-lea="rc('shell','wide');">Compact</button>
+  <button id="rename" data-lea="ac('shell','renamed');">Rename container</button>
+  <button id="unrename" data-lea="rc('shell','renamed');">Restore container name</button>
+</body>
+</html>

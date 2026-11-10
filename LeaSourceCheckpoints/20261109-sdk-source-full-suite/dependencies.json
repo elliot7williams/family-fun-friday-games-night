@@ -1,0 +1,42 @@
+[
+  {
+    "origin": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\lib\\Acornima.dll",
+    "path": "lib/Acornima.dll",
+    "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1"
+  },
+  {
+    "origin": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\lib\\Jint.dll",
+    "path": "lib/Jint.dll",
+    "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A"
+  },
+  {
+    "origin": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\lib\\System.Buffers.dll",
+    "path": "lib/System.Buffers.dll",
+    "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB"
+  },
+  {
+    "origin": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\lib\\System.Memory.dll",
+    "path": "lib/System.Memory.dll",
+    "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F"
+  },
+  {
+    "origin": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\lib\\System.Numerics.Vectors.dll",
+    "path": "lib/System.Numerics.Vectors.dll",
+    "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183"
+  },
+  {
+    "origin": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\lib\\System.Runtime.CompilerServices.Unsafe.dll",
+    "path": "lib/System.Runtime.CompilerServices.Unsafe.dll",
+    "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF"
+  },
+  {
+    "origin": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\ScriptWorker\\Acornima.dll",
+    "path": "lib/worker/Acornima.dll",
+    "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821"
+  },
+  {
+    "origin": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v5\\runtime\\ScriptWorker\\Jint.dll",
+    "path": "lib/worker/Jint.dll",
+    "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D"
+  }
+]

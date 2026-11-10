@@ -1,0 +1,22 @@
+<!doctype html>
+<html><head><title>Lea containment</title><style>
+body { font-family: Segoe UI; background: white; color: #23272b; margin: 20px; }
+header { display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #168477; padding-bottom: 12px; }
+h1 { font-size: 28px; margin: 0; }
+button, input { margin: 4px; }
+#group { border: 1px solid #168477; padding: 12px; margin-top: 18px; }
+#result { color: #b84235; font-size: 22px; }
+</style></head><body>
+<header><img src="../../assets/lea.ico" width="40" height="40" alt="Lea"><h1>Lea</h1></header>
+<section id="group"><button id="action" type="button"><span id="child">Inside</span></button>
+<label>Name <input id="field" value="Lea"></label></section>
+<button id="outside" type="button">Outside</button><p id="result">Ready</p>
+<script>
+var group = document.getElementById('group');
+document.body.addEventListener('click', function(event) {
+  var result = group.contains(event.target) ? 'Inside' : 'Outside';
+  document.getElementById('result').textContent = result;
+  document.title = result;
+});
+window.addEventListener('load', function() { document.title = 'Contains ready'; });
+</script></body></html>

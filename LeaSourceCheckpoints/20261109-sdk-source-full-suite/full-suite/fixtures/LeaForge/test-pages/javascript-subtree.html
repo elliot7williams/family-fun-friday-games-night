@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><title>Lea scoped queries</title><style>
+body { margin: 24px; color: #25282b; background: #ffffff; font-family: Segoe UI; }
+h1 { font-size: 24px; }
+section { padding: 12px; border: 1px solid #168477; }
+button { background: #168477; color: #ffffff; padding: 8px; }
+input { width: 190px; }
+</style></head><body>
+<h1><img src="../../assets/lea.ico" width="32" height="32" alt="Lea"> Lea</h1>
+<section id="panel"><button id="action"><span>Choose Lea</span></button>
+<label for="field">Name</label><input id="field" value="Lea"><p id="echo">Ready</p></section>
+<p id="outside">Outside</p>
+<script>
+var panel = document.getElementById('panel');
+if (panel.querySelector('#outside') !== null || panel.querySelectorAll('button,input').length !== 2) throw Error('subtree');
+panel.querySelector('button').addEventListener('click', function() {
+    panel.querySelector('#echo').textContent = 'Chosen';
+});
+panel.querySelector('input').addEventListener('input', function() {
+    document.title = panel.querySelector('input').value;
+});
+</script>
+</body></html>

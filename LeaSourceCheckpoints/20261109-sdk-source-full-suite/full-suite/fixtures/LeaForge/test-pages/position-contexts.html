@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Position Contexts</title>
+  <style>
+    body { color: #26313b; background: #ffffff; font-family: Segoe UI, sans-serif; }
+    h1 { color: #176b4d; }
+    .flow { width: 260px; height: 48px; margin: 4px 0; padding: 4px; background: #edf7f2; border: 2px solid #176b4d; }
+    .filler { height: 72px; margin: 4px 0; padding: 4px; background: #f4f6f8; border: 1px solid #c7ced6; }
+    #absolute { position: absolute; top: 118px; left: 330px; width: 210px; height: 64px; padding: 6px; z-index: 4; color: #ffffff; background: #b91c1c; border: 2px solid #7f1d1d; text-decoration: none; }
+    #absolute-right { position: absolute; right: 35px; bottom: 80px; width: 160px; height: 50px; padding: 5px; z-index: 3; color: #ffffff; background: #7e22ce; border: 2px solid #581c87; text-decoration: none; }
+    #fixed { position: fixed; right: -70px; bottom: 18px; width: 220px; height: 54px; padding: 6px; z-index: 8; color: #ffffff; background: #1d4ed8; border: 2px solid #1e3a8a; text-decoration: none; }
+    #cropped-table { position: absolute; top: 250px; left: 330px; width: 190px; height: 42px; padding: 2px; overflow: hidden; z-index: 2; color: #26313b; background: #f5c542; border: 2px solid #8a6d00; }
+    #cropped-table td { height: 32px; padding: 4px; color: #ffffff; background: #176b4d; border: 1px solid #0f5137; }
+  </style>
+</head>
+<body>
+  <h1>Absolute and fixed contexts</h1>
+  <p id="flow-a" class="flow">Normal flow before the absolute layer.</p>
+  <a id="absolute" href="second.html">Absolute layer</a>
+  <p id="flow-b" class="flow">Normal flow continues without an empty slot.</p>
+  <table id="cropped-table"><tr><td>Visible table row</td></tr><tr><td>Clipped table row</td></tr></table>
+  <p class="filler">Scroll content one</p>
+  <p class="filler">Scroll content two</p>
+  <p class="filler">Scroll content three</p>
+  <p class="filler">Scroll content four</p>
+  <p class="filler">Scroll content five</p>
+  <p class="filler">Scroll content six</p>
+  <a id="absolute-right" href="second.html">Absolute right and bottom</a>
+  <a id="fixed" href="dynamic-state.html">Fixed viewport link</a>
+</body>
+</html>

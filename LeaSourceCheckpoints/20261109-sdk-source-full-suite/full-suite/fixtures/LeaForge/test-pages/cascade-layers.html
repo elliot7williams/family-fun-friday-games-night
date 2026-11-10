@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Cascade Layers</title>
+  <style>
+    @layer base {
+      #normal-order { width: 101px; }
+      #same-layer { width: 111px; height: 31px; }
+      #merged { width: 121px; }
+      #important-order { width: 131px !important; }
+      #important-unlayered { width: 141px !important; }
+      #custom-normal { --layer-width: 151px; }
+      #custom-important { --layer-color: #a13b18 !important; }
+      #layer-before::before { content: "Base"; color: #a13b18 !important; }
+      #field { width: 241px; }
+      .layer-wide, .layer-narrow { display: none; }
+    }
+
+    @layer theme {
+      .normal-order { width: 201px; }
+      .same-layer { width: 211px; }
+      #merged { width: 221px; }
+      #important-order { width: 231px !important; }
+      #important-unlayered { width: 241px !important; }
+      #custom-normal { --layer-width: 251px; }
+      #custom-important { --layer-color: #0f4c81 !important; }
+      #layer-before::before { content: "Theme"; color: #0f4c81 !important; }
+      #field { width: 242px; }
+      #unlayered-normal { width: 261px; }
+      #inline-normal { width: 271px; }
+      #inline-important { width: 281px !important; }
+    }
+
+    @layer base {
+      #merged { height: 32px; }
+      .same-layer { height: 33px; }
+    }
+
+    #unlayered-normal { width: 361px; }
+    #important-unlayered { width: 341px !important; }
+    #custom-normal { width: var(--layer-width); }
+    #custom-important { color: var(--layer-color); }
+
+    @layer framework {
+      @layer base {
+        #nested-order { width: 171px; color: #a13b18 !important; }
+      }
+      @layer theme {
+        #nested-order { width: 272px; color: #0f4c81 !important; }
+      }
+    }
+
+    @layer components {
+      #same-layer-specificity { width: 181px; }
+      .same-layer-specificity { width: 282px; }
+      .same-layer-source { width: 183px; }
+      .same-layer-source { width: 283px; }
+    }
+
+    @layer responsive {
+      @supports (display: grid) {
+        @media (width >= 800px) {
+          #layer-wide { display: block; width: 291px; }
+        }
+      }
+    }
+    @media (width <= 600px) {
+      @supports selector(:has(*)) {
+        @layer responsive {
+          #layer-narrow { display: block; width: 292px; }
+        }
+      }
+    }
+  </style>
+</head>
+<body>
+  <p id="normal-order" class="normal-order">Later layer beats earlier specificity.</p>
+  <p id="same-layer" class="same-layer">Same named layer merges.</p>
+  <p id="merged">Repeated layer block.</p>
+  <p id="important-order">Earlier important layer wins.</p>
+  <p id="important-unlayered">Layered important beats unlayered important.</p>
+  <p id="unlayered-normal">Unlayered normal beats layered normal.</p>
+  <p id="inline-normal" style="width: 371px">Inline normal stays strongest.</p>
+  <p id="inline-important" style="width: 381px !important">Inline important stays strongest.</p>
+  <p id="custom-normal">Layered normal custom property.</p>
+  <p id="custom-important">Layered important custom property.</p>
+  <p id="nested-order">Nested layer order.</p>
+  <p id="same-layer-specificity" class="same-layer-specificity">Specificity inside one layer.</p>
+  <p id="same-layer-source" class="same-layer-source">Source order inside one layer.</p>
+  <p id="layer-before">Layered generated content.</p>
+  <p id="layer-wide" class="layer-wide">Wide layered media.</p>
+  <p id="layer-narrow" class="layer-narrow">Narrow layered media.</p>
+  <p id="sheet-normal">Injected normal layer.</p>
+  <p id="sheet-important">Injected important layer.</p>
+  <input id="field" value="Retained layer field">
+</body>
+</html>
