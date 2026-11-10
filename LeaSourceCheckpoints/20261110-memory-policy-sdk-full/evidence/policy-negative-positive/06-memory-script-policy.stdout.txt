@@ -1,0 +1,3 @@
+OBSERVE automatic title=AUTO_RAN; commands=2; alerts=1
+OBSERVE manual commands=1
+OBSERVE resize scripting=True; toggle scripting=True

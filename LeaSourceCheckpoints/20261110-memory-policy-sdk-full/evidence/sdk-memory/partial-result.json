@@ -1,0 +1,283 @@
+{
+  "error": "System.Management.Automation.RuntimeException: Storage reserve required",
+  "ownerAttention": false,
+  "completed": false,
+  "runtime": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime",
+  "hostAdopted": false,
+  "passed": false,
+  "inputs": [
+    {
+      "sha256": "96BF68FB363EA7FFA1EA1E7923CA65A481C3C887411D0F428E8EF2734A801B88",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-OwnedSdkMemorySurface.ps1"
+    },
+    {
+      "sha256": "FD6BBBC7479A5F26F983E180D0C4BBA1EE75582C28F1F692F3D61C63DE52B3DC",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-audit-20261110-v1\\audit.json"
+    },
+    {
+      "sha256": "B11754880B8F767C789D1385DE2702FF15EAD92CFDBECB1CE02DC145F28F3DD5",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-source-20261110-v1\\source\\bin\\Release\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "B11754880B8F767C789D1385DE2702FF15EAD92CFDBECB1CE02DC145F28F3DD5",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "C83E47CC6787C8814E36383B83AD0D2DC5E2726ABF3086678AEA6DC0F4F19C22",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-source-20261110-v1\\source\\bin\\Release\\Lea.Win.dll"
+    },
+    {
+      "sha256": "C83E47CC6787C8814E36383B83AD0D2DC5E2726ABF3086678AEA6DC0F4F19C22",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\Lea.Win.dll"
+    },
+    {
+      "sha256": "D553F33A48B9B7DD5CF97012E6974C4B4054C315B19FD0086C05543844242AFA",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\OwnedTestProcess.cs"
+    },
+    {
+      "sha256": "E5DD42C23546F58CEF425DE5602CC39D478409A824FDBB4C19F5CB454FC0FC00",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Invoke-OwnedTestRun.ps1"
+    },
+    {
+      "sha256": "A725546BDE53F1AD533E74ABB01DD5ED5F07B171F5C284738DA88F6CE478CF5F",
+      "path": "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe"
+    },
+    {
+      "sha256": "B3A19AA1E58DE5A52B8AD210F82A4320C6C9AA6B30E1BE2C5D25DA2A6EA52EDC",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\MemoryDocumentMain.cs"
+    },
+    {
+      "sha256": "DCFCE0E36BC91AC10DAF6F16A23F55F1805FAD188B9F510650C481C9705C7548",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\SdkMemory-model.exe"
+    },
+    {
+      "sha256": "D5927941C24B101C9FB5D973A419554111E938278053CA476CFD4A1268F34439",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\MemoryDocumentViewMain.cs"
+    },
+    {
+      "sha256": "5D6FDB2DDB90740CC20DC1A3C7063FBE043156C9A7675B1F9F376CA93CC68159",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\SdkMemory-view.exe"
+    },
+    {
+      "sha256": "5FFC7BCAD830E54592F37470089E0F502F774C65E74AFCC2BB72BF7691562BED",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\MemoryScriptPolicyMain.cs"
+    },
+    {
+      "sha256": "8F66F4B175690E13B872721FC392A543B7FA8EF086F91E0D0FDC8A87FE0F4FDA",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\SdkMemory-policy.exe"
+    }
+  ],
+  "runs": [
+    {
+      "started": true,
+      "childRetirementIndependentlyAudited": true,
+      "finishedUtc": "2026-11-10T10:36:14.4448783Z",
+      "stdoutComplete": true,
+      "birthUtc": "2026-11-10T10:36:10.8189488Z",
+      "elapsedMs": 3239,
+      "outputDrained": true,
+      "stderr": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\compile-sdk-memory-model.stderr.txt",
+      "retainedForOwner": false,
+      "activeAfterRetirement": 0,
+      "stderrBytes": 0,
+      "exitCode": 0,
+      "unsafeToContinue": false,
+      "originalHandleCaptured": true,
+      "name": "compile-sdk-memory-model",
+      "stdout": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\compile-sdk-memory-model.stdout.txt",
+      "startReturned": true,
+      "retirementAndDrainElapsedMs": 481,
+      "error": null,
+      "pid": 9444,
+      "stdoutBytes": 0,
+      "captureOverflow": false,
+      "ownedJob": true,
+      "passed": true,
+      "startUnknown": false,
+      "timedOut": false,
+      "exitObserved": true,
+      "killRequested": false,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "parentBudgetMs": 60000,
+      "stdoutRetainedBytes": 0,
+      "startAttempted": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 0
+    },
+    {
+      "started": true,
+      "childRetirementIndependentlyAudited": true,
+      "finishedUtc": "2026-11-10T10:36:19.1141628Z",
+      "stdoutComplete": true,
+      "birthUtc": "2026-11-10T10:36:15.2100925Z",
+      "elapsedMs": 3873,
+      "outputDrained": true,
+      "stderr": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\compile-sdk-memory-view.stderr.txt",
+      "retainedForOwner": false,
+      "activeAfterRetirement": 0,
+      "stderrBytes": 0,
+      "exitCode": 0,
+      "unsafeToContinue": false,
+      "originalHandleCaptured": true,
+      "name": "compile-sdk-memory-view",
+      "stdout": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\compile-sdk-memory-view.stdout.txt",
+      "startReturned": true,
+      "retirementAndDrainElapsedMs": 33,
+      "error": null,
+      "pid": 3952,
+      "stdoutBytes": 0,
+      "captureOverflow": false,
+      "ownedJob": true,
+      "passed": true,
+      "startUnknown": false,
+      "timedOut": false,
+      "exitObserved": true,
+      "killRequested": false,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "parentBudgetMs": 60000,
+      "stdoutRetainedBytes": 0,
+      "startAttempted": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 0
+    },
+    {
+      "started": true,
+      "childRetirementIndependentlyAudited": true,
+      "finishedUtc": "2026-11-10T10:36:24.6195612Z",
+      "stdoutComplete": true,
+      "birthUtc": "2026-11-10T10:36:21.6961574Z",
+      "elapsedMs": 2926,
+      "outputDrained": true,
+      "stderr": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\compile-sdk-memory-policy.stderr.txt",
+      "retainedForOwner": false,
+      "activeAfterRetirement": 0,
+      "stderrBytes": 0,
+      "exitCode": 0,
+      "unsafeToContinue": false,
+      "originalHandleCaptured": true,
+      "name": "compile-sdk-memory-policy",
+      "stdout": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\compile-sdk-memory-policy.stdout.txt",
+      "startReturned": true,
+      "retirementAndDrainElapsedMs": 6,
+      "error": null,
+      "pid": 7520,
+      "stdoutBytes": 0,
+      "captureOverflow": false,
+      "ownedJob": true,
+      "passed": true,
+      "startUnknown": false,
+      "timedOut": false,
+      "exitObserved": true,
+      "killRequested": false,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "parentBudgetMs": 60000,
+      "stdoutRetainedBytes": 0,
+      "startAttempted": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 0
+    },
+    {
+      "started": true,
+      "childRetirementIndependentlyAudited": true,
+      "finishedUtc": "2026-11-10T10:36:30.0859499Z",
+      "stdoutComplete": true,
+      "birthUtc": "2026-11-10T10:36:26.0971820Z",
+      "elapsedMs": 2532,
+      "outputDrained": true,
+      "stderr": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\sdk-memory-model.stderr.txt",
+      "retainedForOwner": false,
+      "activeAfterRetirement": 0,
+      "stderrBytes": 0,
+      "exitCode": 0,
+      "unsafeToContinue": false,
+      "originalHandleCaptured": true,
+      "name": "sdk-memory-model",
+      "stdout": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\sdk-memory-model.stdout.txt",
+      "startReturned": true,
+      "retirementAndDrainElapsedMs": 1762,
+      "error": null,
+      "pid": 10416,
+      "stdoutBytes": 44,
+      "captureOverflow": false,
+      "ownedJob": true,
+      "passed": true,
+      "startUnknown": false,
+      "timedOut": false,
+      "exitObserved": true,
+      "killRequested": false,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "parentBudgetMs": 30000,
+      "stdoutRetainedBytes": 44,
+      "startAttempted": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 0
+    },
+    {
+      "started": true,
+      "childRetirementIndependentlyAudited": true,
+      "finishedUtc": "2026-11-10T10:36:37.1996279Z",
+      "stdoutComplete": true,
+      "birthUtc": "2026-11-10T10:36:30.9894480Z",
+      "elapsedMs": 3858,
+      "outputDrained": true,
+      "stderr": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\sdk-memory-view.stderr.txt",
+      "retainedForOwner": false,
+      "activeAfterRetirement": 0,
+      "stderrBytes": 0,
+      "exitCode": 0,
+      "unsafeToContinue": false,
+      "originalHandleCaptured": true,
+      "name": "sdk-memory-view",
+      "stdout": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-20261110-v1\\sdk-memory-view.stdout.txt",
+      "startReturned": true,
+      "retirementAndDrainElapsedMs": 2802,
+      "error": null,
+      "pid": 13536,
+      "stdoutBytes": 69,
+      "captureOverflow": false,
+      "ownedJob": true,
+      "passed": true,
+      "startUnknown": false,
+      "timedOut": false,
+      "exitObserved": true,
+      "killRequested": false,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "parentBudgetMs": 30000,
+      "stdoutRetainedBytes": 69,
+      "startAttempted": true,
+      "stderrComplete": true,
+      "stderrRetainedBytes": 0
+    }
+  ],
+  "globalSecurityQualified": false,
+  "inputsUnchanged": true,
+  "byteChanges": [],
+  "aclChanges": [],
+  "before": [
+    {
+      "sha256": "B11754880B8F767C789D1385DE2702FF15EAD92CFDBECB1CE02DC145F28F3DD5",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "C83E47CC6787C8814E36383B83AD0D2DC5E2726ABF3086678AEA6DC0F4F19C22",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\Lea.Win.dll"
+    },
+    {
+      "sha256": "DCFCE0E36BC91AC10DAF6F16A23F55F1805FAD188B9F510650C481C9705C7548",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\SdkMemory-model.exe"
+    },
+    {
+      "sha256": "8F66F4B175690E13B872721FC392A543B7FA8EF086F91E0D0FDC8A87FE0F4FDA",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\SdkMemory-policy.exe"
+    },
+    {
+      "sha256": "5D6FDB2DDB90740CC20DC1A3C7063FBE043156C9A7675B1F9F376CA93CC68159",
+      "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-sdk-memory-v1\\runtime\\SdkMemory-view.exe"
+    }
+  ]
+}

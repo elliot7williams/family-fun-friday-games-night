@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea SVG stroke and winding styles</title>
+  <style>
+    body { background: #f6f8fb; color: #172554; font-family: Segoe UI; }
+    svg { display: block; background: #ffffff; border: 2px solid #cbd5e1; }
+    .clip-ring { clip-rule: evenodd; }
+    .dash-style {
+      --dash-gap: 4;
+      fill: none;
+      stroke: #0f766e;
+      stroke-width: 5px;
+      stroke-linecap: round;
+      stroke-dasharray: 8 var(--dash-gap) 2px;
+      stroke-dashoffset: 3;
+    }
+    .important-style {
+      fill: #fde047;
+      fill-rule: evenodd;
+      stroke: #7c3aed !important;
+      stroke-width: 3;
+      stroke-linejoin: bevel;
+    }
+  </style>
+</head>
+<body>
+  <h1>SVG stroke and winding styles</h1>
+  <svg id="stroke-vector" width="360" height="260" viewBox="0 0 180 130">
+    <title>Stroke and winding samples</title>
+    <defs>
+      <clipPath id="ring-clip">
+        <path class="clip-ring" d="M125 5 H175 V35 H125 Z M138 13 H162 V27 H138 Z"></path>
+      </clipPath>
+    </defs>
+
+    <path id="even-fill" d="M5 5 H50 V35 H5 Z M17 13 H38 V27 H17 Z" fill="#dc2626" fill-rule="evenodd"></path>
+    <path id="nonzero-fill" d="M65 5 H110 V35 H65 Z M77 13 H98 V27 H77 Z" fill="#16a34a" fill-rule="nonzero"></path>
+    <rect id="clip-fill" x="125" y="5" width="50" height="30" fill="#f59e0b" clip-path="url(#ring-clip)"></rect>
+
+    <line id="butt-cap" x1="10" y1="52" x2="45" y2="52" stroke="#2563eb" stroke-width="8" stroke-linecap="butt"></line>
+    <line id="round-cap" x1="65" y1="52" x2="100" y2="52" stroke="#db2777" stroke-width="8" stroke-linecap="round"></line>
+    <a href="#stroke-target">
+      <line id="square-cap" x1="125" y1="52" x2="160" y2="52" stroke="#7c3aed" stroke-width="8" stroke-linecap="square"></line>
+    </a>
+
+    <polyline id="miter-join" points="10 84 27 66 44 84" fill="none" stroke="#ea580c" stroke-width="6" stroke-linejoin="miter" stroke-miterlimit="999"></polyline>
+    <polyline id="round-join" points="68 84 85 66 102 84" fill="none" stroke="#0284c7" stroke-width="6" stroke-linejoin="round"></polyline>
+    <polyline id="bevel-join" points="126 84 143 66 160 84" fill="none" stroke="#65a30d" stroke-width="6" stroke-linejoin="bevel"></polyline>
+
+    <path id="dash-line" class="dash-style" d="M10 98 H170"></path>
+    <path id="important-ring" class="important-style" d="M5 106 H45 V126 H5 Z M15 111 H35 V121 H15 Z" style="fill:#f97316;stroke:#dc2626;stroke-width:2"></path>
+    <g fill="none" stroke="#0369a1" stroke-width="4" stroke-dasharray="5 3">
+      <line id="inherited-dash" x1="60" y1="116" x2="105" y2="116" stroke-dasharray="1 2 3 4 5 6 7 8 9"></line>
+      <line id="clear-dash" x1="125" y1="116" x2="170" y2="116" stroke-dasharray="none"></line>
+    </g>
+  </svg>
+  <p id="stroke-target">Square cap link target</p>
+</body>
+</html>

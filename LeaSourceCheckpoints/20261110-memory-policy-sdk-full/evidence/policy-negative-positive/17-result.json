@@ -1,0 +1,116 @@
+{
+  "runs": [
+    {
+      "startUnknown": false,
+      "elapsedMs": 1067,
+      "pid": 14228,
+      "startAttempted": true,
+      "parentBudgetMs": 60000,
+      "error": null,
+      "startReturned": true,
+      "stdoutBytes": 0,
+      "stderr": "I:\\LeaBuildStorage\\memory-script-policy-patched-20261110-v1\\compile-memory-script-policy.stderr.txt",
+      "sharedRetirementDrainBudgetMs": 5000,
+      "stdoutComplete": true,
+      "retirementAndDrainElapsedMs": 182,
+      "stdoutRetainedBytes": 0,
+      "ownedJob": true,
+      "stdout": "I:\\LeaBuildStorage\\memory-script-policy-patched-20261110-v1\\compile-memory-script-policy.stdout.txt",
+      "birthUtc": "2026-11-10T10:19:42.3029020Z",
+      "captureOverflow": false,
+      "timedOut": false,
+      "stderrRetainedBytes": 0,
+      "retainedForOwner": false,
+      "activeAfterRetirement": 0,
+      "unsafeToContinue": false,
+      "originalHandleCaptured": true,
+      "name": "compile-memory-script-policy",
+      "outputDrained": true,
+      "stderrComplete": true,
+      "exitCode": 0,
+      "exitObserved": true,
+      "passed": true,
+      "childRetirementIndependentlyAudited": true,
+      "started": true,
+      "stderrBytes": 0,
+      "killRequested": false,
+      "finishedUtc": "2026-11-10T10:19:43.5188369Z"
+    },
+    {
+      "startUnknown": false,
+      "elapsedMs": 869,
+      "pid": 7104,
+      "startAttempted": true,
+      "parentBudgetMs": 30000,
+      "error": null,
+      "startReturned": true,
+      "stdoutBytes": 183,
+      "stderr": "I:\\LeaBuildStorage\\memory-script-policy-patched-20261110-v1\\memory-script-policy.stderr.txt",
+      "sharedRetirementDrainBudgetMs": 5000,
+      "stdoutComplete": true,
+      "retirementAndDrainElapsedMs": 68,
+      "stdoutRetainedBytes": 183,
+      "ownedJob": true,
+      "stdout": "I:\\LeaBuildStorage\\memory-script-policy-patched-20261110-v1\\memory-script-policy.stdout.txt",
+      "birthUtc": "2026-11-10T10:19:43.8773729Z",
+      "captureOverflow": false,
+      "timedOut": false,
+      "stderrRetainedBytes": 0,
+      "retainedForOwner": false,
+      "activeAfterRetirement": 0,
+      "unsafeToContinue": false,
+      "originalHandleCaptured": true,
+      "name": "memory-script-policy",
+      "outputDrained": true,
+      "stderrComplete": true,
+      "exitCode": 0,
+      "exitObserved": true,
+      "passed": true,
+      "childRetirementIndependentlyAudited": true,
+      "started": true,
+      "stderrBytes": 0,
+      "killRequested": false,
+      "finishedUtc": "2026-11-10T10:19:44.7024819Z"
+    }
+  ],
+  "ownerAttention": false,
+  "completeSecurityQualified": false,
+  "coreSha256": "11E2190C797233789BCEC1830382881563CD55C62378F57D1E639E4791F203DD",
+  "inputsUnchanged": true,
+  "passed": true,
+  "inputs": [
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-OwnedMemoryScriptPolicy.ps1",
+      "sha256": "63EEEFA8E32D2ECBA0A073273C3622E64F6C4277175315FCC4862FAD59C865EA"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\memory-document-policy-view-20261110-v1\\source\\bin\\Release\\Lea.Engine.dll",
+      "sha256": "11E2190C797233789BCEC1830382881563CD55C62378F57D1E639E4791F203DD"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\MemoryScriptPolicyMain.cs",
+      "sha256": "5FFC7BCAD830E54592F37470089E0F502F774C65E74AFCC2BB72BF7691562BED"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\memory-script-policy-patched-20261110-v1\\Lea.Engine.dll",
+      "sha256": "11E2190C797233789BCEC1830382881563CD55C62378F57D1E639E4791F203DD"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\OwnedTestProcess.cs",
+      "sha256": "D553F33A48B9B7DD5CF97012E6974C4B4054C315B19FD0086C05543844242AFA"
+    },
+    {
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Invoke-OwnedTestRun.ps1",
+      "sha256": "E5DD42C23546F58CEF425DE5602CC39D478409A824FDBB4C19F5CB454FC0FC00"
+    },
+    {
+      "path": "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe",
+      "sha256": "A725546BDE53F1AD533E74ABB01DD5ED5F07B171F5C284738DA88F6CE478CF5F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\memory-script-policy-patched-20261110-v1\\MemoryScriptPolicy.exe",
+      "sha256": "4861E7D770D655809591D31E1D082A167700334DC9032ED529170A27E74F4F64"
+    }
+  ],
+  "hostAdopted": false
+}

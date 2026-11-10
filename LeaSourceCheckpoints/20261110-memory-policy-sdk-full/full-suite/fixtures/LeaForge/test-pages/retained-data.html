@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Retained Data</title>
+  <style>
+    body { font-family: Arial; color: #20242a; background: white; padding: 16px; }
+    input, textarea, select { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Retained fields</h1>
+  <form>
+    <label>Text <input id="text" name="text" accesskey="t"></label>
+    <label>Secret <input id="secret" type="password" name="secret"></label>
+    <label>Notes <textarea id="notes" name="notes"></textarea></label>
+    <label>Choice <select id="choice" name="choice"><option value="one" selected>One</option><option value="two">Two</option></select></label>
+    <label><input id="check" type="checkbox" name="check" checked> Check</label>
+    <label><input id="radio" type="radio" name="radio" checked> Radio</label>
+    <label>Range <input id="range" type="range" name="range"></label>
+    <label>Color <input id="color" type="color" name="color"></label>
+    <label>File <input id="file" type="file" name="file"></label>
+    <input id="readonly" readonly value="Read only">
+    <input id="disabled" disabled value="Disabled">
+    <button id="submit" type="submit">Send</button>
+    <button id="reset" type="reset">Reset</button>
+  </form>
+</body>
+</html>

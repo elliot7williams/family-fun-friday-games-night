@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea generated alternatives</title>
+  <style>
+    :root { --visual-token: "VAR "; --speech-token: "Variable "; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    p, li, td, a { line-height: 1.5; }
+    #basic::before { content: "[!] " / "Featured "; color: #dc2626; }
+    #decorative::before { content: "* " / ""; color: #2563eb; }
+    #attribute::before { content: attr(data-visual) / attr(data-speech); }
+    #fallback::before { content: attr(data-missing, "FALL ") / attr(data-speech-missing, "Fallback "); }
+    #counter { counter-reset: notice 6; }
+    #counter::before { content: counter(notice) ". " / "Notice " counter(notice) ": "; }
+    #variable::before { content: var(--visual-token) / var(--speech-token); }
+    #quote::before { content: "<" / "Opening "; }
+    #quote::after { content: ">" / " closing"; }
+    #empty-visual::before { content: "" / "Alternative only "; }
+    #eight::before { content: "EIGHT " / "1" "2" "3" "4" "5" "6" "7" "8"; }
+    #nine::before { content: "KEEP " / "Preserved "; content: "NINE " / "1" "2" "3" "4" "5" "6" "7" "8" "9"; }
+    #boundary::before { content: "BOUND " / "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; }
+    #over::before { content: "KEEP " / "Preserved "; content: "OVER " / "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; }
+    #missing-alt::before { content: "KEEP " / "Preserved "; content: "BROKEN " /; }
+    #extra-slash::before { content: "KEEP " / "Preserved "; content: "BROKEN " / "No" / "More"; }
+    #quote-alt::before { content: "KEEP " / "Preserved "; content: "BROKEN " / open-quote; }
+    #link::before { content: "[open] " / "Open "; }
+    #link::after { content: " ->" / " now"; }
+    #labelled::before { content: "[visual] " / "Generated "; }
+    #cell::before { content: "CELL " / "Accessible "; }
+    #dynamic::before { content: "IDLE " / "Idle "; }
+    #dynamic:hover::before { content: "HOT " / "Hovered "; }
+    #responsive::before { content: "WIDE " / "Wide "; }
+    #command::before { content: "CSS " / "Authored "; }
+    #command-after::after { content: " END" / " complete"; }
+    #marker::marker { content: "! " / "Important item: "; color: #dc2626; }
+    #marker-command::marker { content: "C " / "CSS marker: "; }
+    @media screen and (max-width: 400px) {
+      #responsive::before { content: "NARROW " / "Narrow "; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Generated alternatives</h1>
+  <p id="basic">Basic content</p>
+  <p id="decorative">Decorative content</p>
+  <p id="attribute" data-visual="ATTR " data-speech="Attribute ">Attribute content</p>
+  <p id="fallback">Fallback content</p>
+  <p id="counter">Counter content</p>
+  <p id="variable">Variable content</p>
+  <p id="quote">Quote content</p>
+  <p id="empty-visual">Alternative-only content</p>
+  <p id="eight">Eight items</p>
+  <p id="nine">Nine items rejected</p>
+  <p id="boundary">Boundary content</p>
+  <p id="over">Over-bound content</p>
+  <p id="missing-alt">Missing alternative</p>
+  <p id="extra-slash">Extra slash</p>
+  <p id="quote-alt">Quote alternative rejection</p>
+  <a id="link" href="second.html">destination</a>
+  <a id="labelled" href="second.html" aria-label="Explicit destination">labelled destination</a>
+  <table><tr><td id="cell">Table content</td></tr></table>
+  <p id="dynamic">Dynamic content</p>
+  <p id="responsive">Responsive content <input id="alt-field" value="Retained alternative field"></p>
+  <p id="command">Command content</p>
+  <p id="command-after">After command</p>
+  <ol>
+    <li id="marker">Marker content</li>
+    <li id="marker-command">Marker command</li>
+  </ol>
+</body>
+</html>

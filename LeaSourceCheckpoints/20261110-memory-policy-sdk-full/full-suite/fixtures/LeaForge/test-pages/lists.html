@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea List Markers</title>
+  <style>
+    body { background: #f7fbff; color: #1d2939; font-family: "Segoe UI", sans-serif; }
+    h1 { color: #0f5f4c; }
+    li { margin-left: 14px; padding: 2px; }
+    ol ol li { margin-left: 42px; color: #8a3b12; }
+    #wrap { word-break: break-word; }
+  </style>
+</head>
+<body>
+  <h1>List markers</h1>
+  <ul id="plain">
+    <li id="bullet-one">Unordered one</li>
+    <li id="bullet-two"><strong>Unordered inline</strong> content</li>
+  </ul>
+  <ol id="ordered" start="3">
+    <li id="three">Starts at three</li>
+    <li id="four"><strong>Four with inline</strong> <a href="second.html">link</a> content</li>
+    <li id="seven" value="7">Value jumps to seven</li>
+    <li id="eight">Continues at eight</li>
+    <li id="parent">Outer item keeps its own scope
+      <ol id="nested" start="-2">
+        <li id="minus-two">Nested negative two</li>
+        <li id="minus-ten" value="-10"><em>Nested value override</em></li>
+        <li id="minus-nine">Nested continuation</li>
+      </ol>
+    </li>
+    <li id="ten">Outer scope continues</li>
+  </ol>
+  <ol id="malformed" start="1000000">
+    <li id="bad-start">Oversized start falls back safely</li>
+    <li id="bad-value" value="not-a-number">Malformed value is ignored</li>
+    <li id="max-value" value="999999">Largest accepted marker</li>
+    <li id="max-next">Marker increment stays bounded</li>
+  </ol>
+  <ol start="-999999">
+    <li id="min-value">Smallest accepted marker</li>
+    <li id="min-next">Negative marker increments safely</li>
+  </ol>
+  <ul><li id="wrap">This deliberately long unordered list item wraps onto more than one painted line when the view becomes narrow.</li></ul>
+  <table>
+    <tr><td><ol start="4"><li id="cell-list">List marker inside a structured cell</li></ol></td></tr>
+  </table>
+</body>
+</html>

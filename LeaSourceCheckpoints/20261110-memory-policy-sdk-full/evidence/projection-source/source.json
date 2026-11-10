@@ -1,0 +1,70 @@
+{
+  "requiredPhases": 89,
+  "requiredChecks": 3412,
+  "fullBudgetMs": 300000,
+  "executed": false,
+  "verified": true,
+  "scripts": [
+    {
+      "pairs": [
+        [
+          "$root=Split-Path $PSScriptRoot -Parent",
+          "$root='C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy'"
+        ],
+        [
+          "I:\\LeaBuildStorage\\sdk-worker-source-graph-20261109-v1\\source",
+          "I:\\LeaBuildStorage\\memory-policy-sdk-source-20261110-v1\\source"
+        ],
+        [
+          "I:\\LeaBuildStorage\\sdk-source-full-preparation-20261109-v1",
+          "I:\\LeaBuildStorage\\memory-policy-full-preparation-20261110-v1"
+        ],
+        [
+          "continuity-evidence/sdk-source-full-suite-v1",
+          "continuity-evidence/memory-policy-full-suite-v1"
+        ],
+        [
+          "I:\\LeaBuildStorage\\sdk-worker-source-graph-audit-20261109-v1\\audit.json",
+          "I:\\LeaBuildStorage\\memory-policy-sdk-audit-20261110-v1\\audit.json"
+        ],
+        [
+          "BBE9F917F32EE3B2B5162B1644FA157B1735BA343F5A943168358D7600D522E7",
+          "FD6BBBC7479A5F26F983E180D0C4BBA1EE75582C28F1F692F3D61C63DE52B3DC"
+        ]
+      ],
+      "assertionsChanged": false,
+      "limitsChanged": false,
+      "templateSha256": "E37EA2ADE09EFF2B6E196E18E390653F0D6066F0CDDE78A5D5C25373B4E96139",
+      "sha256": "6AFE18FC5F0B4A3701917989C5D8230CF17568D1D642DD1CF4EB20B59D9D291D",
+      "source": "I:\\LeaBuildStorage\\memory-policy-full-source-20261110-v2\\Prepare-MemoryPolicyFullSuite.ps1",
+      "template": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Prepare-CurrentSdkFullSuite.ps1",
+      "inverseVerified": true
+    },
+    {
+      "pairs": [
+        [
+          "$root=Split-Path $PSScriptRoot -Parent",
+          "$root='C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy'"
+        ],
+        [
+          "continuity-evidence/sdk-source-full-suite-v1",
+          "continuity-evidence/memory-policy-full-suite-v1"
+        ],
+        [
+          "continuity-evidence/sdk-source-full-owned-v1",
+          "continuity-evidence/memory-policy-full-owned-v1"
+        ]
+      ],
+      "assertionsChanged": false,
+      "limitsChanged": false,
+      "templateSha256": "A82747AC69A04A9386BF574D4C60BD7232DFA7BBF8648724B3F60FE2EFFDB061",
+      "sha256": "24A734FB2DE9CE489B41164FFBA4A7E475CFC0B2CCC865E327481ADAEFE9937A",
+      "source": "I:\\LeaBuildStorage\\memory-policy-full-source-20261110-v2\\Test-MemoryPolicyFullScript.ps1",
+      "template": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-OwnedSdkFullScript.ps1",
+      "inverseVerified": true
+    }
+  ],
+  "retirementBudgetMs": 5000,
+  "compiledSources": 60,
+  "references": 193
+}

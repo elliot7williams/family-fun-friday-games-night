@@ -1,0 +1,6 @@
+  Lea.Engine -> I:\LeaBuildStorage\memory-policy-sdk-source-20261110-v1\source\bin\Release\Lea.Engine.dll
+  Lea.Win -> I:\LeaBuildStorage\memory-policy-sdk-source-20261110-v1\source\bin\Release\Lea.Win.dll
+  Lea.Image -> I:\LeaBuildStorage\memory-policy-sdk-source-20261110-v1\source\bin\Release\Lea.Image.exe
+  Lea.Print -> I:\LeaBuildStorage\memory-policy-sdk-source-20261110-v1\source\bin\Release\Lea.Print.dll
+  Lea.Script -> I:\LeaBuildStorage\memory-policy-sdk-source-20261110-v1\source\bin\Release\Lea.Script.dll
+  Lea.Script.Win -> I:\LeaBuildStorage\memory-policy-sdk-source-20261110-v1\source\bin\Release\Lea.Script.Win.dll

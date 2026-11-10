@@ -1,0 +1,3 @@
+  Determining projects to restore...
+  Restored I:\LeaBuildStorage\memory-policy-sdk-source-20261110-v1\source\Lea.Script.Worker\Lea.Script.Worker.csproj (in 250 ms).
+  Lea.Script.Worker -> I:\LeaBuildStorage\memory-policy-sdk-source-20261110-v1\source\worker-il\Release\Lea.Script.Worker.dll

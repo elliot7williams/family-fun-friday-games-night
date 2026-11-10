@@ -1,0 +1,118 @@
+{
+  "ownedRuns": 6,
+  "policyChecks": 7,
+  "copies": [
+    {
+      "sha256": "FB9756DEB15C9295AD3AB43186DE04749FC0340739744690FB58F075FACFAD46",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-compile-sdk-memory-model.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-compile-sdk-memory-model.stderr.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-compile-sdk-memory-model.stdout.txt"
+    },
+    {
+      "sha256": "5F78C69234E46E4FC9D00A132613FEB066072FD13EBBDF99DEB6B47BE152E3D5",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-compile-sdk-memory-policy.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-compile-sdk-memory-policy.stderr.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-compile-sdk-memory-policy.stdout.txt"
+    },
+    {
+      "sha256": "499F14150D53887333FA2E340CA4D403FE74474C7CC4B661E914FAE3BDBAE232",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-compile-sdk-memory-view.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-compile-sdk-memory-view.stderr.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-compile-sdk-memory-view.stdout.txt"
+    },
+    {
+      "sha256": "B3A19AA1E58DE5A52B8AD210F82A4320C6C9AA6B30E1BE2C5D25DA2A6EA52EDC",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-MemoryDocumentMain.cs"
+    },
+    {
+      "sha256": "D5927941C24B101C9FB5D973A419554111E938278053CA476CFD4A1268F34439",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-MemoryDocumentViewMain.cs"
+    },
+    {
+      "sha256": "5FFC7BCAD830E54592F37470089E0F502F774C65E74AFCC2BB72BF7691562BED",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-MemoryScriptPolicyMain.cs"
+    },
+    {
+      "sha256": "859E8E8910AEEEC4559050DA6323239E365E82130E2FCF59880950BCF5108CDA",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-result.json"
+    },
+    {
+      "sha256": "8E9048F70A41135A5EC8C00CD8FAA9834E197DDC0BD5C19F07631537AA3A9145",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-sdk-memory-model.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-sdk-memory-model.stderr.txt"
+    },
+    {
+      "sha256": "8EFC40C99055A0FD429DEDC9F1831EED152B838907AA4412874379961867E187",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-sdk-memory-model.stdout.txt"
+    },
+    {
+      "sha256": "694137D2E93DB7CBC32E17BBDB15BEB35FF493ECE57D93B12F7D8766DCEA035C",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-sdk-memory-view.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-sdk-memory-view.stderr.txt"
+    },
+    {
+      "sha256": "D6C21C323980189DB33E51168AF718200456E6535364B9E91FF506C8F8DFA431",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-sdk-memory-view.stdout.txt"
+    },
+    {
+      "sha256": "96BF68FB363EA7FFA1EA1E7923CA65A481C3C887411D0F428E8EF2734A801B88",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\partial-Test-OwnedSdkMemorySurface.ps1"
+    },
+    {
+      "sha256": "FF94C29F1F28DABD0861FE6CA477188EC6CAABDA5FA80AC0091BA9A415E6987B",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\resume-result.json"
+    },
+    {
+      "sha256": "4E990A5BFE9F1763238E377EFDCBD31EA7840E3763A7C2B7DC782B77E320657E",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\resume-Resume-OwnedSdkMemoryPolicy.ps1"
+    },
+    {
+      "sha256": "999B6596484746B4E55FD4F5E361EFB2C4D4A73CA0980C0017F7CA75BD3852FF",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\resume-sdk-memory-policy.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\resume-sdk-memory-policy.stderr.txt"
+    },
+    {
+      "sha256": "6850F2A0DF9F0C6EFA41FEA727D4694C8BE9F85F0ADF96764B959DD69A3A1D63",
+      "path": "I:\\LeaBuildStorage\\memory-policy-sdk-memory-audit-20261110-v1\\resume-sdk-memory-policy.stdout.txt"
+    }
+  ],
+  "modelChecks": 12,
+  "runtimeBytesAndAclsStable": true,
+  "hostAdopted": false,
+  "verified": true,
+  "coreSha256": "B11754880B8F767C789D1385DE2702FF15EAD92CFDBECB1CE02DC145F28F3DD5",
+  "scriptSha256": "C0993C892A34E73FE1428CB0076046E781BB884A97805E90E1176EF10A5DE271",
+  "viewSha256": "C83E47CC6787C8814E36383B83AD0D2DC5E2726ABF3086678AEA6DC0F4F19C22",
+  "originalPartialRewritten": false,
+  "completedAcrossStorageResume": true,
+  "viewChecks": 17,
+  "globalSecurityQualified": false,
+  "fullScriptSuiteQualified": false
+}

@@ -1,0 +1,13 @@
+{
+  "embeddedFixtureReadWithoutLoadingHost": true,
+  "stagingReceiptSha256": "D24C23D321402EE25393887F3E2CD7903954AC3FAB445DB7BF30A2BF18BC6031",
+  "limitsChanged": false,
+  "selectedFiles": 247,
+  "diagnosticOnly": false,
+  "currentSdkSourceCandidate": true,
+  "embeddedDirectory": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-policy-full-suite-v1\\runtime\\WorkerEntryFixture",
+  "verified": true,
+  "testBinarySha256": "7A04E6F4698BD892E90F8DD3918B873656990EF8B2A0D7568346914E999FB619",
+  "assertionsChanged": false,
+  "embeddedFiles": 7
+}

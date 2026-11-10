@@ -1,0 +1,34 @@
+[
+  {
+    "path": "I:\\LeaBuildStorage\\memory-script-policy-audit-20261110-v1\\PROJECT_CONTEXT.md",
+    "sha256": "81FC293673BF94448D89FB7BE23CF469B77881B7AEC631C307AE994E9C6B2CF5"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-script-policy-audit-20261110-v1\\MEMORY_SCRIPT_POLICY.md",
+    "sha256": "E9697C6C4E0CCA12D39CFE4A2360B867BECCF73CB0ABE9B5D49536ABE41024FC"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-script-policy-audit-20261110-v1\\MEMORY_DOCUMENTS.md",
+    "sha256": "C2D1D12EEC5897E85774E54EEC5FD118A407873AF8FED7C8FEBD96143CCF389E"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-script-policy-audit-20261110-v1\\PROGRESS.md",
+    "sha256": "6702FA40620869E5FDA0E116D6FD45D41D139FBB639E12410EABCEDC0B931A3A"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-script-policy-audit-20261110-v1\\MemoryScriptPolicyMain.cs",
+    "sha256": "5FFC7BCAD830E54592F37470089E0F502F774C65E74AFCC2BB72BF7691562BED"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-script-policy-audit-20261110-v1\\Test-OwnedMemoryScriptPolicy.ps1",
+    "sha256": "63EEEFA8E32D2ECBA0A073273C3622E64F6C4277175315FCC4862FAD59C865EA"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-script-policy-audit-20261110-v1\\Test-OwnedMemoryDocument.ps1",
+    "sha256": "C96DAB6603B23D3943A341BEE9DD550121C46EBA28C9F2670EB1A731C547D5DE"
+  },
+  {
+    "path": "I:\\LeaBuildStorage\\memory-script-policy-audit-20261110-v1\\Audit-MemoryScriptPolicy.ps1",
+    "sha256": "57B88FCCA7ED8B1677415D378C35CAB23A29CE1B5DC3189263DB2E4A399DA7D7"
+  }
+]

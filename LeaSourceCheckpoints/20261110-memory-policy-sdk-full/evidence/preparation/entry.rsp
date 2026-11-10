@@ -1,0 +1,16 @@
+/nologo
+/noconfig
+/nostdlib+
+/target:exe
+/platform:x64
+/langversion:12.0
+/optimize+
+/deterministic+
+/warnaserror+
+/out:"I:\LeaBuildStorage\memory-policy-full-preparation-20261110-v1\WorkerEntryNativeHost.exe"
+/resource:"I:\LeaBuildStorage\memory-policy-full-preparation-20261110-v1\entry-fixture.json",Lea.EntryFixture.json
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\mscorlib.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Core.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Web.Extensions.dll"
+"I:\LeaBuildStorage\memory-policy-full-preparation-20261110-v1\WorkerEntryNativeHost.cs"

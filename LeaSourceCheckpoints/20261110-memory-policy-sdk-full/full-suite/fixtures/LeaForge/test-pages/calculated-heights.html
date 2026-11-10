@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea calculated heights</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-size: 16px; }
+    #viewport { height: 50%; background: #e8f3ff; }
+    #viewport-child { height: 50%; background: #dff6e9; }
+    #outer { height: 400px; background: #eef2ff; }
+    #half { height: 50%; background: #dff6e9; }
+    #minus { height: calc(100% - 80px); background: #fee9d8; }
+    #plus { height: calc(50% + 20px); background: #f3e8ff; }
+    #minimum { height: 20%; min-height: calc(50% - 10px); background: #fff4cc; }
+    #maximum { height: 100%; max-height: calc(75% + 5px); background: #e5e7eb; }
+    #invalid { height: 140px; height: calc(100% * 2); }
+    #variable { --panel-height: calc(75% - 15px); height: var(--panel-height); }
+    #inherit-parent { height: 60%; }
+    #inherit-child { height: inherit; }
+    #auto-parent { background: #edf2f7; }
+    #auto-child { height: 50%; }
+    #flex-row { display: flex; height: 240px; gap: 10px; }
+    #flex-row-a { height: 50%; }
+    #flex-row-b { height: calc(100% - 30px); }
+    #flex-column { display: flex; flex-direction: column; height: 300px; gap: 10px; }
+    #flex-column-a { height: 25%; }
+    #flex-column-b { height: calc(50% - 10px); }
+    #grid { display: grid; height: 300px; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
+    #grid-a { height: 50%; }
+    #sized-table { height: calc(50% - 20px); }
+    #ratio { height: 50%; aspect-ratio: 2 / 1; }
+    #position-shell { position: relative; height: 300px; }
+    #absolute-height { position: absolute; top: 0; left: 0; width: 120px; height: 50%; }
+    #fixed-height { position: fixed; top: 0; right: 0; width: 8px; height: 25%; opacity: 0; }
+    #height-field { display: block; width: 220px; height: 25%; }
+    #height-image { display: block; width: 120px; height: 25%; }
+    #border-box { box-sizing: border-box; height: calc(50% + 20px); padding: 10px; border: 2px solid #176b4d; }
+    #command { height: 180px; }
+    #legacy-height-cap { position: fixed; top: 0; right: 0; width: 1px; height: 2400px; opacity: 0; }
+    button { display: block; width: 300px; margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <h1>Bounded percentage and calculated heights</h1>
+  <section id="viewport"><p id="viewport-child">Nested viewport percentage</p></section>
+  <main id="outer">
+    <section id="half">Half height</section>
+    <section id="minus">Full height minus pixels</section>
+    <section id="plus">Half height plus pixels</section>
+    <section id="minimum">Calculated minimum</section>
+    <section id="maximum">Calculated maximum</section>
+    <section id="invalid">Invalid expression keeps 140 pixels</section>
+    <section id="variable">Calculated custom property</section>
+    <section id="inherit-parent"><p id="inherit-child">Explicit inherited height</p></section>
+    <section id="auto-parent"><p id="auto-child">Unresolved percentage uses natural height</p></section>
+    <section id="flex-row"><p id="flex-row-a">Row A</p><p id="flex-row-b">Row B</p></section>
+    <section id="flex-column"><p id="flex-column-a">Column A</p><p id="flex-column-b">Column B</p></section>
+    <section id="grid"><p id="grid-a">Grid A</p><p id="grid-b">Grid B</p><p id="grid-c">Grid C</p></section>
+    <table id="sized-table"><tr><td>Calculated table height</td><td>Second cell</td></tr></table>
+    <section id="ratio">Aspect-ratio width from calculated height</section>
+    <section id="position-shell"><p id="absolute-height">Absolute percentage height</p></section>
+    <p id="fixed-height">Fixed percentage height</p>
+    <input id="height-field" aria-label="Calculated height field" value="retained height value">
+    <img id="height-image" alt="Calculated height image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+    <section id="border-box">Calculated border-box height</section>
+    <section id="command" style="color:#123f8c">Command height</section>
+    <button id="set-height" type="button" data-lea="ht('command','calc(100% - 120px)')">Set calculated height</button>
+    <button id="dom-height" type="button" onclick="document.getElementById('command').style.height='50%'">Set DOM height</button>
+    <button id="clear-height" type="button" onclick="document.getElementById('command').style.height=''">Restore authored height</button>
+    <section id="legacy-height-cap">Legacy oversized authored height cap</section>
+  </main>
+</body>
+</html>

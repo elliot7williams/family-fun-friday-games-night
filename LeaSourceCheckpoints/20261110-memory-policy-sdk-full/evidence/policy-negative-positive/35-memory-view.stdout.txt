@@ -1,0 +1,1 @@
+PASS Lea memory view: 17 checks at720/360; no HTML in isolated TEMP

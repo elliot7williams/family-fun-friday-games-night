@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Aspect Ratio Media Queries</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    p { margin: 4px 0; padding: 4px; }
+    #four-three, #wide-ratio, #tall-ratio, #square, #combined, #either,
+    #nested, #style-media, #zero, #decimal, #unknown, #impossible {
+      display: none;
+    }
+    #field { width: 210px; height: 30px; }
+
+    @media (aspect-ratio: 8/6) {
+      #four-three { display: block; width: 143px; }
+      #field { width: 243px; }
+    }
+
+    @media screen and (min-aspect-ratio: 16/9) {
+      #wide-ratio { display: block; width: 169px; }
+    }
+
+    @media (max-aspect-ratio: 3/4) {
+      #tall-ratio { display: block; width: 175px; }
+    }
+
+    @media (aspect-ratio: 1/1) {
+      #square { display: block; width: 151px; }
+    }
+
+    @media (min-aspect-ratio: 4/3) and (orientation: landscape) {
+      #combined { display: block; width: 213px; }
+    }
+
+    @media (max-aspect-ratio: 2/3), screen and (min-aspect-ratio: 15/8) {
+      #either { display: block; width: 188px; }
+    }
+
+    @media (min-aspect-ratio: 4/3) {
+      @media (max-aspect-ratio: 16/9) and (min-width: 700px) {
+        #nested { display: block; width: 176px; }
+      }
+    }
+
+    @media (aspect-ratio: 1/0) { #zero { display: block; } }
+    @media (aspect-ratio: 1.5/1) { #decimal { display: block; } }
+    @media (device-aspect-ratio: 4/3) { #unknown { display: block; } }
+    @media (min-aspect-ratio: 2/1) {
+      @media (max-aspect-ratio: 1/1) { #impossible { display: block; } }
+    }
+  </style>
+  <style media="screen and (min-aspect-ratio: 16/9)">
+    #style-media { display: block; width: 196px; }
+  </style>
+</head>
+<body>
+  <h1>Aspect ratio media queries</h1>
+  <p id="four-three">Four by three</p>
+  <p id="wide-ratio">Wide ratio</p>
+  <p id="tall-ratio">Tall ratio</p>
+  <p id="square">Square ratio</p>
+  <p id="combined">Ratio and orientation</p>
+  <p id="either">Ratio alternative</p>
+  <p id="nested">Nested ratio range</p>
+  <p id="style-media">Style media ratio</p>
+  <p id="zero">Zero denominator</p>
+  <p id="decimal">Decimal ratio</p>
+  <p id="unknown">Unknown ratio feature</p>
+  <p id="impossible">Impossible ratio range</p>
+  <label for="field">Persistent field</label>
+  <input id="field" name="field" value="Initial value">
+</body>
+</html>

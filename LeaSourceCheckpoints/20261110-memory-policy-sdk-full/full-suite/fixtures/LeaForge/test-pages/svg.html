@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded inline SVG</title>
+  <style>
+    body { background: #f6f8fb; color: #172554; font-family: Segoe UI; }
+    h1 { color: #134e4a; }
+    svg { background: #ffffff; border: 2px solid #cbd5e1; }
+    .blue { color: #2563eb; }
+  </style>
+</head>
+<body>
+  <h1>Inline vector status</h1>
+  <svg id="vector" width="320" height="180" viewBox="0 0 160 90">
+    <title>Inline SVG status chart</title>
+    <desc>A bounded vector compatibility fixture.</desc>
+    <rect id="svg-rect" x="5" y="5" width="30" height="20" rx="4" fill="#d7263d"></rect>
+    <circle id="svg-circle" cx="55" cy="15" r="10" fill="rgb(16,185,129)"></circle>
+    <g class="blue" fill="currentColor" opacity="80%">
+      <ellipse id="svg-ellipse" cx="85" cy="15" rx="12" ry="8"></ellipse>
+    </g>
+    <line id="svg-line" x1="105" y1="5" x2="150" y2="25" stroke="#7c3aed" stroke-width="3"></line>
+    <polygon id="svg-polygon" points="5,35 25,30 35,50 15,55" fill="#0f766e"></polygon>
+    <polyline id="svg-polyline" points="42 54,52 32,62 54" fill="none" stroke="#be123c" stroke-width="2"></polyline>
+    <path id="svg-path" d="M70 35 h20 v20 H70 z" fill="#f59e0b"></path>
+    <a id="svg-link" href="#svg-target">
+      <rect id="svg-link-shape" x="110" y="35" width="40" height="20" fill="#0369a1" style="fill-opacity:.85"></rect>
+    </a>
+    <text id="svg-text" x="80" y="78" text-anchor="middle" font-size="9" fill="currentColor">Lea vector</text>
+    <path id="svg-curve-rejected" d="M1 1 C2 2 3 3 4 4" fill="#000000"></path>
+    <circle id="svg-negative-rejected" cx="1" cy="1" r="-2"></circle>
+  </svg>
+  <p id="svg-target">SVG linked fragment target</p>
+  <p id="after-svg">Normal flow continues after the vector.</p>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "nativeFallbackAllowed": false,
+  "runner": "I:\\LeaBuildStorage\\memory-policy-sdk-source-20261110-v1\\Test-MemoryPolicySdk.ps1",
+  "deadlinesChanged": false,
+  "executed": false,
+  "verified": true,
+  "templateSha256": "71770E309E23BC8BC360CFB8531AE04E298935A8AF401508C7E59D287F39172A",
+  "inverseVerified": true,
+  "runnerSha256": "636C1CDB700333686C37A399A14C5C0F376EC65F615DDBECC9CF2376E988781C",
+  "sourceSha256": "21414F48C7A32E6B2ED0865CBA79A8DE3018A4B581075A7244E5ED534AB7E183",
+  "assertionsChanged": false
+}

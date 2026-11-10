@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lea direction and logical flow</title>
+  <style>
+    :root { --flow: rtl; }
+    body { margin: 0; direction: ltr; color: #123f8c; }
+    div { display: block; width: 120px; min-height: 20px; }
+    #order { margin-inline-start: 11px; padding-inline-end: 13px; border-inline-start: 3px solid #a13b18; border-start-end-radius: 17px 19px; direction: rtl; }
+    #attribute { margin-inline-start: 21px; padding-inline-end: 23px; }
+    #attribute-override { direction: ltr; margin-inline-start: 25px; }
+    #variable { direction: var(--flow); margin-inline-start: 27px; text-align: start; }
+    #important { direction: rtl; direction: ltr !important; margin-inline-start: 29px; text-align: end; }
+    #inset { position: absolute; direction: rtl; inset-inline: 12px 18px; inset-block: 14px 16px; }
+    #inset-long { position: absolute; direction: rtl; inset-inline-start: 23px; inset-inline-end: 25px; inset-block-start: 27px; inset-block-end: 29px; }
+    #boxes { direction: rtl; margin-inline: 31px 33px; margin-block: 32px 34px; padding-inline: 41px 43px; padding-block: 42px 44px; }
+    #borders { direction: rtl; border-inline-width: 51px 53px; border-inline-style: dashed dotted; border-inline-color: #123f8c #a13b18; border-block-width: 52px 54px; border-block-style: solid double; border-block-color: #176b4d #b7791f; }
+    #radii { direction: rtl; border-start-start-radius: 61px 71px; border-start-end-radius: 62px 72px; border-end-start-radius: 63px 73px; border-end-end-radius: 64px 74px; }
+    #parent { direction: rtl; margin: 32px 31px 34px 33px; padding: 42px 41px 44px 43px; border-width: 2px 51px 4px 53px; border-style: solid dashed double dotted; border-color: #111111 #123f8c #333333 #a13b18; border-radius: 61px 62px 63px 64px / 71px 72px 73px 74px; }
+    #child { direction: ltr; margin-inline: inherit; padding-inline: inherit; border-inline: inherit; border-start-start-radius: inherit; border-start-end-radius: inherit; border-end-start-radius: inherit; border-end-end-radius: inherit; }
+    #align-start { direction: rtl; text-align: start; }
+    #align-end { direction: rtl; text-align: end; }
+    #inherit-direction { direction: rtl; }
+    #unset-direction { direction: unset; margin-inline-start: 35px; }
+    #initial-direction { direction: initial; margin-inline-start: 37px; }
+    #revert-direction { direction: revert; margin-inline-start: 39px; }
+    #command { direction: ltr; margin-inline-start: 5px; border-start-start-radius: 6px 7px; color: #123f8c; }
+    #body-probe { margin-inline-start: 9px; }
+  </style>
+</head>
+<body>
+  <div id="order">Order</div>
+  <div id="attribute" dir="rtl">Attribute</div>
+  <div id="attribute-override" dir="rtl">Override</div>
+  <div id="variable">Variable</div>
+  <div id="important">Important</div>
+  <div id="inset">Inset</div>
+  <div id="inset-long">Long inset</div>
+  <div id="boxes">Boxes</div>
+  <div id="borders">Borders</div>
+  <div id="radii">Radii</div>
+  <div id="parent"><div id="child">Inherited logical values</div></div>
+  <div id="align-start">Start</div>
+  <div id="align-end">End</div>
+  <div id="inherit-direction"><div id="unset-direction">Unset</div><div id="initial-direction">Initial</div></div>
+  <div id="revert-direction" dir="rtl">Revert</div>
+  <div id="command">Command</div>
+  <div id="body-probe">Body probe</div>
+  <button id="set-short" type="button" onclick="dr('command','rtl')">Set RTL</button>
+  <button id="set-readable" type="button" onclick="direction('command','ltr')">Set LTR</button>
+  <button id="set-dom" type="button" onclick="document.getElementById('command').style.direction='rtl'">Set DOM RTL</button>
+  <button id="clear-dom" type="button" onclick="document.getElementById('command').style.direction=''">Clear direction</button>
+</body>
+</html>

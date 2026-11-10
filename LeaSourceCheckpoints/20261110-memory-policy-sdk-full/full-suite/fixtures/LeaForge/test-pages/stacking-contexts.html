@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Stacking Contexts</title>
+  <style>
+    body { color: #26313b; background: #ffffff; font-family: Segoe UI, sans-serif; }
+    h1 { color: #176b4d; }
+    .pair { position: absolute; left: 20px; width: 220px; height: 80px; background: #edf2f7; }
+    .child, .cover { position: absolute; width: 150px; height: 44px; margin: 0; padding: 4px; color: #ffffff; }
+    #opacity-parent { top: 100px; opacity: 75%; }
+    #opacity-child { top: 18px; left: 30px; z-index: 90; background: #b91c1c; }
+    #opacity-cover { top: 118px; left: 50px; z-index: 1; background: #7e22ce; }
+    #isolation-parent { top: 200px; isolation: isolate; }
+    #isolation-child { top: 18px; left: 30px; z-index: 90; background: #b45309; }
+    #isolation-cover { top: 218px; left: 50px; z-index: 1; background: #176b4d; }
+    #auto-parent { top: 300px; isolation: isolate; isolation: auto; z-index: auto; }
+    #auto-child { top: 18px; left: 30px; z-index: 90; background: #1d4ed8; }
+    #auto-cover { top: 318px; left: 50px; z-index: 1; background: #c2410c; }
+    #zero-parent { top: 400px; z-index: 0; }
+    #zero-child { top: 18px; left: 30px; z-index: 90; background: #be123c; }
+    #zero-cover { top: 418px; left: 50px; z-index: 1; background: #0f766e; }
+    #auto-sized { position: relative; width: 360px; margin-top: 430px; padding: 10px; overflow: hidden; border: 2px solid #1e3a8a; background: #e6efff; z-index: 3; }
+    #normal-child { margin: 0; padding: 6px; background: #c9dcff; }
+    #bottom-child { position: absolute; right: 8px; bottom: -12px; width: 170px; height: 32px; margin: 0; padding: 4px; z-index: 2; color: #ffffff; background: #1d4ed8; }
+    #after-context { margin-top: 10px; padding: 6px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+    a { color: #ffffff; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>Compact stacking contexts</h1>
+  <div id="opacity-parent" class="pair"><p id="opacity-child" class="child"><a href="forms.html">Opacity child z90</a></p></div>
+  <p id="opacity-cover" class="cover"><a href="dynamic-state.html">Root cover z1</a></p>
+  <div id="isolation-parent" class="pair"><p id="isolation-child" class="child"><a href="form-result.html">Isolation child z90</a></p></div>
+  <p id="isolation-cover" class="cover"><a href="second.html">Root cover z1</a></p>
+  <div id="auto-parent" class="pair"><p id="auto-child" class="child"><a href="form-validation.html">Auto parent child z90</a></p></div>
+  <p id="auto-cover" class="cover"><a href="form-widgets.html">Root cover z1</a></p>
+  <div id="zero-parent" class="pair"><p id="zero-child" class="child"><a href="responsive-media.html">Zero parent child z90</a></p></div>
+  <p id="zero-cover" class="cover"><a href="images.html">Root cover z1</a></p>
+  <section id="auto-sized">
+    <p id="normal-child">Normal flow establishes this positioned parent's automatic height across two compact layout passes.</p>
+    <p id="bottom-child"><a href="short.html">Bottom anchored link</a></p>
+  </section>
+  <p id="after-context">Root flow continues after the finalized positioned context.</p>
+</body>
+</html>

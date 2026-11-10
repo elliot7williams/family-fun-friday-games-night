@@ -1,0 +1,4 @@
+OBSERVE automatic title=Safe memory; commands=0; alerts=0
+OBSERVE manual commands=0
+OBSERVE resize scripting=False; toggle scripting=False
+PASS Lea memory script policy: 7 checks

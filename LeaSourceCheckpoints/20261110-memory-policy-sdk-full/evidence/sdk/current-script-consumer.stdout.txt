@@ -1,0 +1,18 @@
+PASS sample scripting defaults off
+PASS sample navigation guard rejects HTTP HTTPS and UNC before access
+PASS script-off navigation preserves initial title: actual=Lea script sample; navigation=C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\memory-policy-sdk-v1\script\script-embedding.html
+PASS script-off page creates no script session
+PASS sample automatic script activation: ok; 
+PASS sample inline script updates title
+PASS sample script updates rendered document
+PASS sample uses isolated native worker
+PASS sample native isolation flags
+PASS sample original execution budgets
+PASS sample original worker handle alive
+PASS sample consumer API reaches DOM
+PASS sample rendered output is nonblank
+PASS sample opt-out disables permission and detaches adapter
+PASS sample opt-out retires original worker
+PASS sample opt-out rejects supplied code
+PASS sample opt-out restores exact worker ACLs
+PASS LEA SDK SCRIPT SAMPLE 17

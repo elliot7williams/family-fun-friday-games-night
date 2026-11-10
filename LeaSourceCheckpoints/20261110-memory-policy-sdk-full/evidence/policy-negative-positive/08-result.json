@@ -1,0 +1,117 @@
+{
+  "inputs": [
+    {
+      "sha256": "63EEEFA8E32D2ECBA0A073273C3622E64F6C4277175315FCC4862FAD59C865EA",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-OwnedMemoryScriptPolicy.ps1"
+    },
+    {
+      "sha256": "F05E474C73BAAE19278EE4C80D9D617BD361432B3AADCD472BEA680280E9CBFD",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\memory-document-view-v1\\runtime\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "5FFC7BCAD830E54592F37470089E0F502F774C65E74AFCC2BB72BF7691562BED",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\MemoryScriptPolicyMain.cs"
+    },
+    {
+      "sha256": "F05E474C73BAAE19278EE4C80D9D617BD361432B3AADCD472BEA680280E9CBFD",
+      "path": "I:\\LeaBuildStorage\\memory-script-policy-negative-20261110-v1\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "D553F33A48B9B7DD5CF97012E6974C4B4054C315B19FD0086C05543844242AFA",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\OwnedTestProcess.cs"
+    },
+    {
+      "sha256": "E5DD42C23546F58CEF425DE5602CC39D478409A824FDBB4C19F5CB454FC0FC00",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Invoke-OwnedTestRun.ps1"
+    },
+    {
+      "sha256": "A725546BDE53F1AD533E74ABB01DD5ED5F07B171F5C284738DA88F6CE478CF5F",
+      "path": "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe"
+    },
+    {
+      "sha256": "7DB4E3ACDEED365D32AA61D97B771413205973A46ADCD12E9BF34FE535A60F85",
+      "path": "I:\\LeaBuildStorage\\memory-script-policy-negative-20261110-v1\\MemoryScriptPolicy.exe"
+    }
+  ],
+  "runs": [
+    {
+      "elapsedMs": 874,
+      "stdoutComplete": true,
+      "stderrBytes": 0,
+      "stdout": "I:\\LeaBuildStorage\\memory-script-policy-negative-20261110-v1\\compile-memory-script-policy.stdout.txt",
+      "outputDrained": true,
+      "birthUtc": "2026-11-10T10:16:10.3097173Z",
+      "originalHandleCaptured": true,
+      "retirementAndDrainElapsedMs": 121,
+      "pid": 1660,
+      "startUnknown": false,
+      "startAttempted": true,
+      "stderrRetainedBytes": 0,
+      "startReturned": true,
+      "passed": true,
+      "ownedJob": true,
+      "stdoutRetainedBytes": 0,
+      "activeAfterRetirement": 0,
+      "name": "compile-memory-script-policy",
+      "parentBudgetMs": 60000,
+      "stderr": "I:\\LeaBuildStorage\\memory-script-policy-negative-20261110-v1\\compile-memory-script-policy.stderr.txt",
+      "exitObserved": true,
+      "retainedForOwner": false,
+      "killRequested": false,
+      "childRetirementIndependentlyAudited": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "error": null,
+      "unsafeToContinue": false,
+      "timedOut": false,
+      "started": true,
+      "stderrComplete": true,
+      "finishedUtc": "2026-11-10T10:16:11.2725985Z",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "captureOverflow": false
+    },
+    {
+      "elapsedMs": 784,
+      "stdoutComplete": true,
+      "stderrBytes": 156,
+      "stdout": "I:\\LeaBuildStorage\\memory-script-policy-negative-20261110-v1\\memory-script-policy.stdout.txt",
+      "outputDrained": true,
+      "birthUtc": "2026-11-10T10:16:11.5315713Z",
+      "originalHandleCaptured": true,
+      "retirementAndDrainElapsedMs": 97,
+      "pid": 3784,
+      "startUnknown": false,
+      "startAttempted": true,
+      "stderrRetainedBytes": 156,
+      "startReturned": true,
+      "passed": false,
+      "ownedJob": true,
+      "stdoutRetainedBytes": 137,
+      "activeAfterRetirement": 0,
+      "name": "memory-script-policy",
+      "parentBudgetMs": 30000,
+      "stderr": "I:\\LeaBuildStorage\\memory-script-policy-negative-20261110-v1\\memory-script-policy.stderr.txt",
+      "exitObserved": true,
+      "retainedForOwner": false,
+      "killRequested": false,
+      "childRetirementIndependentlyAudited": true,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "error": null,
+      "unsafeToContinue": false,
+      "timedOut": false,
+      "started": true,
+      "stderrComplete": true,
+      "finishedUtc": "2026-11-10T10:16:12.3269374Z",
+      "exitCode": 1,
+      "stdoutBytes": 137,
+      "captureOverflow": false
+    }
+  ],
+  "ownerAttention": false,
+  "inputsUnchanged": true,
+  "completeSecurityQualified": false,
+  "passed": false,
+  "error": "System.Management.Automation.RuntimeException: Memory script policy regression failed",
+  "hostAdopted": false,
+  "coreSha256": "F05E474C73BAAE19278EE4C80D9D617BD361432B3AADCD472BEA680280E9CBFD"
+}

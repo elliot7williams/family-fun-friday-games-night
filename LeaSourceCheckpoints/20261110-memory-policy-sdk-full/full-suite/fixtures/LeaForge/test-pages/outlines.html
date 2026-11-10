@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Outline Test</title>
+  <style>
+    body { background: #ffffff; color: #123047; }
+    .item { display: block; width: 160px; height: 50px; margin: 16px; background: #dff6e9; }
+    #solid { outline: 4px solid #a13b18; outline-offset: 3px; }
+    #dashed { outline: 3px dashed #176b4d; outline-offset: 2px; }
+    #dotted { border-radius: 16px; outline: 4px dotted #2563eb; outline-offset: 4px; }
+    #negative { outline: 4px solid #7c3aed; outline-offset: -6px; }
+    #atomic { outline: 2px solid #176b4d; outline: 40px dotted #dc2626; }
+    #longhand { outline-width: 5px; outline-style: solid; outline-color: rgb(37 99 235 / 75%); outline-offset: 6px; outline-offset: 100px; }
+    #reset { outline: 4px solid #dc2626; outline: unset; }
+    #outline-parent { width: 200px; height: 80px; margin: 16px; background: #edf7f2; outline: 3px solid #a13b18; outline-offset: 2px; }
+    #outline-child { width: 100px; height: 30px; background: #bfdbfe; }
+    #variable { --lea-outline: 3px dashed #0f766e; --lea-offset: 4px; outline: var(--lea-outline); outline-offset: var(--lea-offset); }
+    #priority { outline: 5px solid #176b4d !important; outline-offset: 2px; }
+    #layout-plain { background: #e0f2fe; }
+    #focus-field { width: 160px; height: 36px; margin: 16px; outline: none; }
+    #focus-field:focus { outline: 4px solid #dc2626; outline-offset: 5px; }
+    #clipper { width: 170px; height: 80px; margin: 16px; padding: 10px; overflow: hidden; background: #bfdbfe; }
+    #clip-child { display: block; width: 170px; height: 40px; margin-top: 18px; background: #dff6e9; outline: 6px solid #dc2626; outline-offset: 5px; }
+    #responsive { outline: 2px solid #176b4d; outline-offset: 2px; }
+    @media screen and (max-width: 400px) {
+      #responsive { outline: 6px dotted #2563eb; outline-offset: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="solid" class="item">Solid outline</div>
+  <div id="dashed" class="item">Dashed outline</div>
+  <div id="dotted" class="item">Rounded dotted outline</div>
+  <div id="negative" class="item">Negative offset</div>
+  <div id="atomic" class="item">Atomic invalid preservation</div>
+  <div id="longhand" class="item">Longhand alpha outline</div>
+  <div id="reset" class="item">Reset outline</div>
+  <section id="outline-parent"><div id="outline-child">Child default</div></section>
+  <div id="variable" class="item">Variable outline</div>
+  <div id="priority" class="item" style="outline: 2px dotted #dc2626">Important outline</div>
+  <div id="layout-plain" class="item">Plain layout peer</div>
+  <input id="focus-field" value="Retained outline field">
+  <section id="clipper"><div id="clip-child">Clipped outline</div></section>
+  <div id="responsive" class="item">Responsive outline</div>
+  <p id="after-outline">Following flow remains stable.</p>
+</body>
+</html>

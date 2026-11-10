@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded grid auto flow</title>
+  <style>
+    body { background: #f7faf8; color: #18372f; font-family: Segoe UI; }
+    h1 { color: #134e4a; }
+    .flow { display: grid; margin-bottom: 12px; background: #edf6f2; }
+    .flow-item { height: 20px; margin: 0; background: #dce9ff; }
+    #row-sparse, #row-dense {
+      width: 300px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    #row-dense { grid-auto-flow: row dense; }
+    #row-sparse-a, #row-sparse-b, #row-dense-a, #row-dense-b { grid-column: span 2; }
+    #row-sparse-a, #row-dense-a { background: #d8f1e5; }
+    #row-sparse-b, #row-dense-b { background: #c7e9ff; }
+    #column-flow {
+      width: 300px;
+      height: 100px;
+      grid-template-rows: repeat(2, 1fr);
+      grid-auto-flow: column;
+      gap: 5px 10px;
+    }
+    #column-flow .flow-item { height: auto; }
+    #column-one { background: #d8f1e5; }
+    #column-three { background: #c7e9ff; }
+    #column-five { background: #fde3c5; }
+    #column-sparse, #column-dense {
+      width: 300px;
+      height: 90px;
+      grid-template-rows: repeat(3, 1fr);
+      grid-auto-flow: column;
+      gap: 5px 10px;
+    }
+    #column-dense { grid-auto-flow: dense column; }
+    #column-sparse-a, #column-sparse-b, #column-dense-a, #column-dense-b { grid-row: span 2; }
+    #column-sparse .flow-item, #column-dense .flow-item { height: auto; }
+    #column-sparse-a, #column-dense-a { background: #d8f1e5; }
+    #column-sparse-b, #column-dense-b { background: #c7e9ff; }
+    #column-ceiling {
+      width: 320px;
+      height: 40px;
+      grid-template-rows: 1fr;
+      grid-auto-flow: column;
+      column-gap: 4px;
+    }
+    #column-ceiling .flow-item { height: auto; }
+    #flow-reset { grid-template-columns: 1fr; grid-auto-flow: dense; grid-auto-flow: initial; }
+    #flow-invalid { grid-template-rows: 1fr; grid-auto-flow: column; grid-auto-flow: diagonal; }
+    #after-flow { width: 320px; padding: 5px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Bounded grid auto flow</h1>
+  <section id="row-sparse" class="flow">
+    <p id="row-sparse-a" class="flow-item">Sparse wide A</p>
+    <p id="row-sparse-b" class="flow-item">Sparse wide B</p>
+    <p id="row-sparse-c" class="flow-item">Sparse small C</p>
+  </section>
+  <section id="row-dense" class="flow">
+    <p id="row-dense-a" class="flow-item">Dense wide A</p>
+    <p id="row-dense-b" class="flow-item">Dense wide B</p>
+    <p id="row-dense-c" class="flow-item">Dense small C</p>
+  </section>
+  <section id="column-flow" class="flow">
+    <p id="column-one" class="flow-item">Column one</p>
+    <p id="column-two" class="flow-item">Column two</p>
+    <p id="column-three" class="flow-item">Column three</p>
+    <p id="column-four" class="flow-item">Column four</p>
+    <a id="column-five" class="flow-item" href="#flow-target">Column five link</a>
+  </section>
+  <section id="column-sparse" class="flow">
+    <p id="column-sparse-a" class="flow-item">Column sparse A</p>
+    <p id="column-sparse-b" class="flow-item">Column sparse B</p>
+    <p id="column-sparse-c" class="flow-item">Column sparse C</p>
+  </section>
+  <section id="column-dense" class="flow">
+    <p id="column-dense-a" class="flow-item">Column dense A</p>
+    <p id="column-dense-b" class="flow-item">Column dense B</p>
+    <p id="column-dense-c" class="flow-item">Column dense C</p>
+  </section>
+  <section id="column-ceiling" class="flow">
+    <p id="ceiling-one" class="flow-item">1</p><p id="ceiling-two" class="flow-item">2</p>
+    <p id="ceiling-three" class="flow-item">3</p><p id="ceiling-four" class="flow-item">4</p>
+    <p id="ceiling-five" class="flow-item">5</p><p id="ceiling-six" class="flow-item">6</p>
+    <p id="ceiling-seven" class="flow-item">7</p><p id="ceiling-eight" class="flow-item">8</p>
+    <p id="ceiling-nine" class="flow-item">9</p>
+  </section>
+  <section id="flow-reset" class="flow"><p class="flow-item">Reset flow.</p></section>
+  <section id="flow-invalid" class="flow"><p class="flow-item">Invalid flow is ignored.</p></section>
+  <p id="flow-target">Grid flow fragment target</p>
+  <p id="after-flow">Normal document flow continues below auto-flow grids.</p>
+</body>
+</html>

@@ -1,0 +1,3 @@
+System.Exception: memory automatic Lea commands executed
+   at MemoryScriptPolicyMain.Check(Boolean ok, String name)
+   at MemoryScriptPolicyMain.Main()
