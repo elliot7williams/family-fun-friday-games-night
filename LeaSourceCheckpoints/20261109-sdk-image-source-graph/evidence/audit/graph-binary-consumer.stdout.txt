@@ -1,0 +1,1 @@
+  EmbeddingSample -> I:\LeaBuildStorage\sdk-image-source-graph-20261109-v1\binary-consumer\Sample\bin\Release\Lea.EmbeddingSample.exe

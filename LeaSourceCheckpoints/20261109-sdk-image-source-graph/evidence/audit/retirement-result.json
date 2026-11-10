@@ -1,0 +1,187 @@
+{
+  "currentFullNativeQualified": false,
+  "runs": [
+    {
+      "retirementAndDrainElapsedMs": 284,
+      "parentBudgetMs": 120000,
+      "passed": true,
+      "childRetirementIndependentlyAudited": true,
+      "startReturned": true,
+      "stdoutBytes": 0,
+      "exitCode": 0,
+      "timedOut": false,
+      "killRequested": false,
+      "stdout": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-image-source-decoder-retirement-v1\\compile-retirement.stdout.txt",
+      "startAttempted": true,
+      "started": true,
+      "retainedForOwner": false,
+      "stdoutRetainedBytes": 0,
+      "stderr": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-image-source-decoder-retirement-v1\\compile-retirement.stderr.txt",
+      "activeAfterRetirement": 0,
+      "originalHandleCaptured": true,
+      "birthUtc": "2026-11-10T00:23:42.2298156Z",
+      "pid": 2964,
+      "name": "compile-retirement",
+      "startUnknown": false,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "stderrBytes": 0,
+      "exitObserved": true,
+      "error": null,
+      "stdoutComplete": true,
+      "ownedJob": true,
+      "stderrComplete": true,
+      "outputDrained": true,
+      "stderrRetainedBytes": 0,
+      "unsafeToContinue": false,
+      "captureOverflow": false,
+      "elapsedMs": 586,
+      "finishedUtc": "2026-11-10T00:23:43.0589877Z"
+    },
+    {
+      "retirementAndDrainElapsedMs": 61,
+      "parentBudgetMs": 30000,
+      "passed": true,
+      "childRetirementIndependentlyAudited": true,
+      "startReturned": true,
+      "stdoutBytes": 543,
+      "exitCode": 0,
+      "timedOut": false,
+      "killRequested": false,
+      "stdout": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-image-source-decoder-retirement-v1\\decoder-retirement.stdout.txt",
+      "startAttempted": true,
+      "started": true,
+      "retainedForOwner": false,
+      "stdoutRetainedBytes": 543,
+      "stderr": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-image-source-decoder-retirement-v1\\decoder-retirement.stderr.txt",
+      "activeAfterRetirement": 0,
+      "originalHandleCaptured": true,
+      "birthUtc": "2026-11-10T00:23:44.1738594Z",
+      "pid": 7816,
+      "name": "decoder-retirement",
+      "startUnknown": false,
+      "sharedRetirementDrainBudgetMs": 5000,
+      "stderrBytes": 0,
+      "exitObserved": true,
+      "error": null,
+      "stdoutComplete": true,
+      "ownedJob": true,
+      "stderrComplete": true,
+      "outputDrained": true,
+      "stderrRetainedBytes": 0,
+      "unsafeToContinue": false,
+      "captureOverflow": false,
+      "elapsedMs": 2508,
+      "finishedUtc": "2026-11-10T00:23:46.3221063Z"
+    }
+  ],
+  "fullSdkPair": false,
+  "inputsUnchanged": true,
+  "printSdk": false,
+  "legacyUiAUnresolved": true,
+  "decoderAclRestored": true,
+  "decoderProfileChanged": true,
+  "decoderAclBefore": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+  "ownerAttention": false,
+  "sdkPair": true,
+  "aggregateSdkPair": true,
+  "passed": true,
+  "inputs": [
+    {
+      "sha256": "91171997691CB24833622914E604CD37A9D8FBA83C52CD65EACA91F744885DFD",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Test-DecoderRetirement.ps1"
+    },
+    {
+      "sha256": "D553F33A48B9B7DD5CF97012E6974C4B4054C315B19FD0086C05543844242AFA",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\OwnedTestProcess.cs"
+    },
+    {
+      "sha256": "E5DD42C23546F58CEF425DE5602CC39D478409A824FDBB4C19F5CB454FC0FC00",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Invoke-OwnedTestRun.ps1"
+    },
+    {
+      "sha256": "177FDA95290C6AEC605325072AEB598CC7A39A5F552910BA3FD1083DD093648F",
+      "path": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\result.json"
+    },
+    {
+      "sha256": "11B154A135F6A1B455080A384AF281759EF09DB18347C15C805149153A8C362A",
+      "path": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "61DA2736DB46AE97B2D2D42DD141AEF2A691693CEE7013547BEFCEDD7562813F",
+      "path": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Win.dll"
+    },
+    {
+      "sha256": "DA3BFA671C54EEFD78092A9B91CB080189D8681BF6433C2F9C75AC40118D4E91",
+      "path": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Image.exe"
+    },
+    {
+      "sha256": "406C5634638D75C66892BD95429760CB4A5C74C94277913D1DF467147E30E75F",
+      "path": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Script.dll"
+    },
+    {
+      "sha256": "58E4D8D8D2CB32A0A5791198FD7635554A579A5625A10AF3D542A51513268FDA",
+      "path": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Script.Win.dll"
+    },
+    {
+      "sha256": "11B154A135F6A1B455080A384AF281759EF09DB18347C15C805149153A8C362A",
+      "path": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "11B154A135F6A1B455080A384AF281759EF09DB18347C15C805149153A8C362A",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-image-source-decoder-retirement-v1\\Lea.Engine.dll"
+    },
+    {
+      "sha256": "61DA2736DB46AE97B2D2D42DD141AEF2A691693CEE7013547BEFCEDD7562813F",
+      "path": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Win.dll"
+    },
+    {
+      "sha256": "61DA2736DB46AE97B2D2D42DD141AEF2A691693CEE7013547BEFCEDD7562813F",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-image-source-decoder-retirement-v1\\Lea.Win.dll"
+    },
+    {
+      "sha256": "DA3BFA671C54EEFD78092A9B91CB080189D8681BF6433C2F9C75AC40118D4E91",
+      "path": "I:\\LeaBuildStorage\\sdk-image-source-graph-20261109-v1\\source\\bin\\Release\\Lea.Image.exe"
+    },
+    {
+      "sha256": "DA3BFA671C54EEFD78092A9B91CB080189D8681BF6433C2F9C75AC40118D4E91",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-image-source-decoder-retirement-v1\\Lea.Image.exe"
+    },
+    {
+      "sha256": "A725546BDE53F1AD533E74ABB01DD5ED5F07B171F5C284738DA88F6CE478CF5F",
+      "path": "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe"
+    },
+    {
+      "sha256": "5DCF2B7B18483C094F206A6B93558692ABF1BEAF507AD8AA076040E98DE72B6C",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\mscorlib.dll"
+    },
+    {
+      "sha256": "C5E2E638FF819616C8B30DBA5927D60F4E0251B2CFA0E9C5A6D67C7898BCBC9F",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.dll"
+    },
+    {
+      "sha256": "860278D7437CAAA95C988ABC910A92DB130ED1EE88841747BFED974EF1C95CC1",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Core.dll"
+    },
+    {
+      "sha256": "5543CE5B5A2A9003E3930C29A134A955A188F8147A9786FDE93EAA23494FF0E8",
+      "path": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Drawing.dll"
+    },
+    {
+      "sha256": "AAF21189D72DE01B7C46D74B4812CDA868019E3E6780E3F8428617152B14AD11",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Tests\\DecoderRetirementMain.cs"
+    },
+    {
+      "sha256": "AAF21189D72DE01B7C46D74B4812CDA868019E3E6780E3F8428617152B14AD11",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-image-source-decoder-retirement-v1\\DecoderRetirementMain.cs"
+    },
+    {
+      "sha256": "EBD375F0D5102B5256F9CA2957309928F76A3495522DC3C93932A0340127667B",
+      "path": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\current-image-source-decoder-retirement-v1\\DecoderRetirementChecks.exe"
+    }
+  ],
+  "imageSourceGraph": true,
+  "securityQualified": false,
+  "browserAdopted": false,
+  "decoderAclAfter": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+  "realWorkerCampaign": true
+}

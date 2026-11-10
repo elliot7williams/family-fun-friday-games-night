@@ -1,0 +1,15 @@
+/nologo
+/noconfig
+/nostdlib+
+/target:exe
+/platform:x64
+/warnaserror+
+/out:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-image-source-graph-v1\runtime\Lea.Sdk.ImageProbe.exe"
+"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\Lea.Tests\SdkImageViewMain.cs"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\mscorlib.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Core.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Drawing.dll"
+/reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Windows.Forms.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-image-source-graph-v1\runtime\Lea.Engine.dll"
+/reference:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\sdk-image-source-graph-v1\runtime\Lea.Win.dll"

@@ -1,0 +1,7 @@
+DECODER_OWNERS first=S-1-15-2-645120174-1527885198-4274907840-2417324642-345446537-3828554344-2893708100 second=S-1-15-2-249168571-1300300697-344882479-997437622-2894406793-3648064279-1654234269
+DECODER_OWNERS acl-restored; both cleanup callbacks completed
+DECODER_STARTUP invalid-image failure cleaned
+DECODER_POST_CREATE stages=sid,sid-ok,acl,pipe,attrs,create,token,job; acl-restored
+DECODER_RETRY real missing-sidecar failure retained; retry completed
+DECODER_PIXELS red-blue PNG decoded; acl-restored
+Decoder retirement passed: 81

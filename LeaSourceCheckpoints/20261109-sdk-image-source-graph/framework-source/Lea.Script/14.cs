@@ -1,0 +1,8 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.8", FrameworkDisplayName=".NET Framework 4.8")]
+[assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+[assembly: System.Reflection.AssemblyFileVersion("1.0.0.0")]
+[assembly: System.Reflection.AssemblyCompany("Lea.Script")]
+[assembly: System.Reflection.AssemblyProduct("Lea.Script")]
+[assembly: System.Reflection.AssemblyTitle("Lea.Script")]
+[assembly: System.Reflection.AssemblyConfiguration("Release")]
+[assembly: System.Reflection.AssemblyInformationalVersion("1.0.0+157cae4.event-route-candidate-experimental")]
