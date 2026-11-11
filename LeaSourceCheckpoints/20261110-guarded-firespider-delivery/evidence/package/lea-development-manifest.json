@@ -1,0 +1,2032 @@
+{
+  "limitations": [
+    "Fresh ZIP extraction execution not yet verified at package creation",
+    "Historical startup failures unresolved",
+    "No all-sites, clean-PC or physical-print qualification",
+    "Third-party notices/redistribution review incomplete",
+    "Not a final release"
+  ],
+  "hostSha256": "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606",
+  "workflowAuditSha256": "E93FAD1B11B256FC24AAD01145CB6A241DDC89D3A3033648EA5FDA8B6275CDE2",
+  "sourceIncluded": false,
+  "sourceReferences": {
+    "sourceReceiptSha256": "21414F48C7A32E6B2ED0865CBA79A8DE3018A4B581075A7244E5ED534AB7E183",
+    "githubCommit": "c870b8b581e2118fcfc1d074f8b2ded077152c5e",
+    "githubScope": "LeaSourceCheckpoints/20261110-guarded-firespider",
+    "hostBuildSha256": "1399CDED2BB6634A2B339F3B1BDC9FEFC68580F840BD2A866AAAE968A3BC83A2"
+  },
+  "workflowSha256": "5C4EB30217D1D48061BAD5E4443C6F6B5F3541C2CFC3B33125DBBC7346B15846",
+  "files": [
+    {
+      "path": "Acornima.dll",
+      "sha256": "1B8EB7E9A88B29C8CDF88E9F0182851E9724B1D64BA13E1808AFEB01DEAAE2D1",
+      "bytes": 366592
+    },
+    {
+      "path": "Firespider Internet 19.exe",
+      "sha256": "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606",
+      "bytes": 1143808
+    },
+    {
+      "path": "Firespider Internet 19.exe.config",
+      "sha256": "E91AC2CC41148E4F9F2FA181E5B17C8A4A35E07A56055A9BA6567A6EEC92BFAF",
+      "bytes": 16049
+    },
+    {
+      "path": "Firespider Internet 3.xml",
+      "sha256": "CB4B030C0ECB0AC4E3FC4555D72FFBB89F8AAFED5724CFD3B8715C3946E2FBA3",
+      "bytes": 3881
+    },
+    {
+      "path": "Jint.dll",
+      "sha256": "B54618A4E3FFE33344D478D3A1580658C4D91819B3B97A24326CB3626CB7FD1A",
+      "bytes": 2627072
+    },
+    {
+      "path": "Lea.Engine.dll",
+      "sha256": "B11754880B8F767C789D1385DE2702FF15EAD92CFDBECB1CE02DC145F28F3DD5",
+      "bytes": 480256
+    },
+    {
+      "path": "Lea.Firespider.Boot.exe",
+      "sha256": "2C44FB4A92088FBF9B548B426B267163E5900A1BD04794BF9843EA869E9532D4",
+      "bytes": 297984
+    },
+    {
+      "path": "Lea.Image.exe",
+      "sha256": "DA3BFA671C54EEFD78092A9B91CB080189D8681BF6433C2F9C75AC40118D4E91",
+      "bytes": 9216
+    },
+    {
+      "path": "Lea.Image.Handshake.exe",
+      "sha256": "79EAE62C778644F11468C079C8B2E7DCFEAE9643CDA55383E7EB7F76D2742C5E",
+      "bytes": 4608
+    },
+    {
+      "path": "Lea.NativeCpu.Worker.exe",
+      "sha256": "8B57402F145A16F08B9FD8EFEF66F5B0D7C8549B091F9C8F2BBBB6451CC976D7",
+      "bytes": 8192
+    },
+    {
+      "path": "Lea.Print.dll",
+      "sha256": "414E1CD817F060758978C049595CC7E7BB15EF5270DC4053B40AFCCC2D47923B",
+      "bytes": 75264
+    },
+    {
+      "path": "Lea.Script.dll",
+      "sha256": "406C5634638D75C66892BD95429760CB4A5C74C94277913D1DF467147E30E75F",
+      "bytes": 101376
+    },
+    {
+      "path": "Lea.Script.pdb",
+      "sha256": "CF1CB6277F4989F1308D13B4192DCF148ADA2AB9E9BB9C5594C427504BB61860",
+      "bytes": 33448
+    },
+    {
+      "path": "Lea.Script.README.md",
+      "sha256": "FF4BEC19E0CCF7D0F149E9B9C855DD59EE0E1D952E3AA469778F16F10F7AFAEB",
+      "bytes": 46943
+    },
+    {
+      "path": "Lea.Script.Tests.exe",
+      "sha256": "1C64F667D6933E400CB5F0DE6C67B4DEED02330C4F22AE9F33A4A450732CECD4",
+      "bytes": 843776
+    },
+    {
+      "path": "Lea.Script.Tests.exe.config",
+      "sha256": "BBBBB19D16CE7AE2715A07FC065A55FAA0BB8DE5BC46E4F243D496320C9FC2EC",
+      "bytes": 553
+    },
+    {
+      "path": "Lea.Script.Tests.pdb",
+      "sha256": "3B83526484BF8E156D17FB25DB4A301517F6CDDF05F39E965B12FAA41E266C25",
+      "bytes": 113076
+    },
+    {
+      "path": "Lea.Script.Win.dll",
+      "sha256": "58E4D8D8D2CB32A0A5791198FD7635554A579A5625A10AF3D542A51513268FDA",
+      "bytes": 13312
+    },
+    {
+      "path": "Lea.Tests.exe",
+      "sha256": "320CBE05BB91190B6069E2EC779EF7FF8416C2DC8D45EBBA47515B02573B09F8",
+      "bytes": 1154048
+    },
+    {
+      "path": "Lea.Win.dll",
+      "sha256": "C83E47CC6787C8814E36383B83AD0D2DC5E2726ABF3086678AEA6DC0F4F19C22",
+      "bytes": 337920
+    },
+    {
+      "path": "Lea.Win.Test.exe",
+      "sha256": "8D9294DB2415F85AF95E99D1964F57FDB2677FADEC9DFC34A41EA867A1F6B680",
+      "bytes": 396800
+    },
+    {
+      "path": "System.Buffers.dll",
+      "sha256": "ACCCCFBE45D9F08FFEED9916E37B33E98C65BE012CFFF6E7FA7B67210CE1FEFB",
+      "bytes": 20856
+    },
+    {
+      "path": "System.Memory.dll",
+      "sha256": "BF3FB84664F4097F1A8A9BC71A51DCF8CF1A905D4080A4D290DA1730866E856F",
+      "bytes": 142240
+    },
+    {
+      "path": "System.Numerics.Vectors.dll",
+      "sha256": "1D3EF8698281E7CF7371D1554AFEF5872B39F96C26DA772210A33DA041BA1183",
+      "bytes": 115856
+    },
+    {
+      "path": "System.Runtime.CompilerServices.Unsafe.dll",
+      "sha256": "37768488E8EF45729BC7D9A2677633C6450042975BB96516E186DA6CB9CD0DCF",
+      "bytes": 18024
+    },
+    {
+      "path": "assets/lea-icon.svg",
+      "sha256": "FD35E848194BA1F5916C6474236F2AC3EA2B9EB8F122011B4393D91116A90886",
+      "bytes": 1225
+    },
+    {
+      "path": "assets/lea.ico",
+      "sha256": "972E5E4C207C82527D88243EF758ADDB7334CB72AB736C823C758716D0DE7D72",
+      "bytes": 370070
+    },
+    {
+      "path": "Lea/start.html",
+      "sha256": "DD1D8ABB38C1051FA28FE953C6C27978E332C7AE37CB10C2286C0581E4A59FFA",
+      "bytes": 637
+    },
+    {
+      "path": "LeaForge/test-pages/accessibility.html",
+      "sha256": "7D4C1916D6F9F8EAAEDB866C34C9BDBD279223F14E73189B7A0226D9764470FE",
+      "bytes": 3207
+    },
+    {
+      "path": "LeaForge/test-pages/aspect-ratio.html",
+      "sha256": "1B1F5DE2BC0743CDE72E3E5632158EFB525BA39B89B13EF08CA42F007409DB50",
+      "bytes": 5720
+    },
+    {
+      "path": "LeaForge/test-pages/background-gradients.html",
+      "sha256": "CE6837B83DB8C77ED768DFDDDBA4E6B905226D2A3DE012D4F08D0FF22C77911D",
+      "bytes": 2988
+    },
+    {
+      "path": "LeaForge/test-pages/background-images.css",
+      "sha256": "6F0A4EB210355A95C1BEE1A45F3C39B79A7324210BEA7508863D74D83815C272",
+      "bytes": 166
+    },
+    {
+      "path": "LeaForge/test-pages/background-images.html",
+      "sha256": "9025D981E5472D8FFC3CAD0C769F0B8BD34D8D2CC75AA8ABCE5D64BD519D129B",
+      "bytes": 4379
+    },
+    {
+      "path": "LeaForge/test-pages/base-url.html",
+      "sha256": "7AC56F60C8A501B2359997B08C1EB174CE1F9E6117A2E399E688EBC1C987F6D5",
+      "bytes": 841
+    },
+    {
+      "path": "LeaForge/test-pages/border-radius.html",
+      "sha256": "1DC0E0ED210019A7AEB6A63635DE9705A6767F77EE948D68A9875040BC883501",
+      "bytes": 1727
+    },
+    {
+      "path": "LeaForge/test-pages/box-shadows.html",
+      "sha256": "90525C28577FD4567BA2E0212E93008AB919ACEAB3BB3E3D01ADBE73CDE65890",
+      "bytes": 2489
+    },
+    {
+      "path": "LeaForge/test-pages/box-sizing.html",
+      "sha256": "D9F145A8C36EE03D5AF9BA8E0E51B82D7FF03814B83A1F688622CF592C83EC31",
+      "bytes": 2782
+    },
+    {
+      "path": "LeaForge/test-pages/boxes.html",
+      "sha256": "A093C81DAA0D63AF5F62DB851549A742D6CE7E06FDA2AEA2D2CEC63D7ABEF9B5",
+      "bytes": 872
+    },
+    {
+      "path": "LeaForge/test-pages/cache-identity.html",
+      "sha256": "6646862C8DDA4CF64764DE3FDC59C0D22B44764BB1C4D4BAB9C09FE416406221",
+      "bytes": 628
+    },
+    {
+      "path": "LeaForge/test-pages/calculated-heights.html",
+      "sha256": "66B5561676AAD32DB007AF3CEC28435D49CD1F424EE6D25B67F72216A280A9F8",
+      "bytes": 4671
+    },
+    {
+      "path": "LeaForge/test-pages/calculated-widths.html",
+      "sha256": "BDD5407AA53008DE2E46FB413FA1F5ABACA320F19C6EBC73E934FC87DB042A49",
+      "bytes": 3087
+    },
+    {
+      "path": "LeaForge/test-pages/cascade-layer-limits.html",
+      "sha256": "1B6C46E524AB8B0EA9032C7D816A555EE58231673334279F8582DA73546A0526",
+      "bytes": 2256
+    },
+    {
+      "path": "LeaForge/test-pages/cascade-layers.html",
+      "sha256": "F77729AF344F50AF7CB2F43B1B6DCC1C24F087DEB909B311654BA7B2764699E9",
+      "bytes": 3717
+    },
+    {
+      "path": "LeaForge/test-pages/class-commands.html",
+      "sha256": "6992F97AB26DE311ACC53FD084838C5F10BB442704F81FE4AA6C6A8403528B55",
+      "bytes": 1201
+    },
+    {
+      "path": "LeaForge/test-pages/color-mix.html",
+      "sha256": "AC21D53468197E10AEB36C08CE7A17AAA982473BA8C78A3303FF5E2A2B134CE9",
+      "bytes": 5974
+    },
+    {
+      "path": "LeaForge/test-pages/container-features.html",
+      "sha256": "90BA2F5ADA924F5DF835C542D8F24B765773ACC36C3572DBBB755DFD40A0CF1F",
+      "bytes": 5546
+    },
+    {
+      "path": "LeaForge/test-pages/container-query-calc.html",
+      "sha256": "F4D92108189D61531E8FC92C2201A19EABC23E28252E84A757AA7D05668EDDAD",
+      "bytes": 3870
+    },
+    {
+      "path": "LeaForge/test-pages/container-query-lengths.html",
+      "sha256": "AD5A58A161558557B060EF4E141044E7BCF83ECED399F2A7FDDEF94E4C473CD1",
+      "bytes": 4103
+    },
+    {
+      "path": "LeaForge/test-pages/container-query-viewport.html",
+      "sha256": "D6DF2BD404C43B03ABB9F0736AE87CE654F267F74F7E2ACBCBA9B6E3E8E3EF77",
+      "bytes": 4495
+    },
+    {
+      "path": "LeaForge/test-pages/container-size.html",
+      "sha256": "1C923CA2828A45DDCEE3E6F745AA8B8F4B1CDC51C3746B5074FF1B0FA5F10FFE",
+      "bytes": 3786
+    },
+    {
+      "path": "LeaForge/test-pages/container-style.html",
+      "sha256": "9F80B400D6A0C19D33BC7D539EA3F22704C8E7EABE56BC79CBA7E3510B79F54E",
+      "bytes": 4275
+    },
+    {
+      "path": "LeaForge/test-pages/container-units.html",
+      "sha256": "76D87DCC91E64F066D9CD1FD36917A23A22BC2EBC263C9C47E322C645A6946A1",
+      "bytes": 3791
+    },
+    {
+      "path": "LeaForge/test-pages/css-counters.html",
+      "sha256": "41E3C0477B41D3346CCF75347AFED93AD5C6F1D22EECFD4AE1C5421825AD6C62",
+      "bytes": 10819
+    },
+    {
+      "path": "LeaForge/test-pages/css-supports-script.html",
+      "sha256": "79A3793B225019F814BC1BED3D50D56279EF3396322E073BB1390624B188409A",
+      "bytes": 1847
+    },
+    {
+      "path": "LeaForge/test-pages/css.html",
+      "sha256": "50BBC1677AC6A8EF22D5394721B6F8A6AD25A709F5850FFBEF91F6B34C7E6CF6",
+      "bytes": 588
+    },
+    {
+      "path": "LeaForge/test-pages/custom-properties.html",
+      "sha256": "BDD028AF82E8BD7A52F07F57A40E5EA67C14752658C0A0E0AC4C3B679C09C33A",
+      "bytes": 2961
+    },
+    {
+      "path": "LeaForge/test-pages/direction-inline.html",
+      "sha256": "47D0ABCDF12F11C212555DA5FF148510DDA915D80EB97B5315827CD9DD41FA1B",
+      "bytes": 3608
+    },
+    {
+      "path": "LeaForge/test-pages/direction-layout.html",
+      "sha256": "AC11224EC13168726A2EAE3D04FF15EE24F03D290128BFBFF9BDAB2B69DCB537",
+      "bytes": 4510
+    },
+    {
+      "path": "LeaForge/test-pages/direction-logical.html",
+      "sha256": "D30BC372E2F1185D153F82BDD4428A511F2951681AE91662ED9794BFC8B30C76",
+      "bytes": 3888
+    },
+    {
+      "path": "LeaForge/test-pages/direction-overflow.html",
+      "sha256": "CB8DB90BC7E9443E041E2FB278DCECB19B5A6FE8C2D262D62546DEDE57001616",
+      "bytes": 2282
+    },
+    {
+      "path": "LeaForge/test-pages/disclosure.html",
+      "sha256": "33DF1BBA8ACD9B863D41E73BB03F76A21DFCAAC43DBF7528F17213D782845132",
+      "bytes": 2320
+    },
+    {
+      "path": "LeaForge/test-pages/display-navigation.html",
+      "sha256": "B517A2AB363007989965318C6414928D08DCFA2C22DF5540155B8CBA500B61C8",
+      "bytes": 1581
+    },
+    {
+      "path": "LeaForge/test-pages/dom-bridge.html",
+      "sha256": "902C345458069BD127B3A3E97B8253365DED2CB2CACAEE8855259355B73714FD",
+      "bytes": 2175
+    },
+    {
+      "path": "LeaForge/test-pages/download-sample.txt",
+      "sha256": "970919D61860D1173E3FD854C3D75308D9C2862DCD3C631F56B4738FED4AA40A",
+      "bytes": 31
+    },
+    {
+      "path": "LeaForge/test-pages/dynamic-state.html",
+      "sha256": "82D1EF43049D2A58B02C7D3EEC7F97A27AB862A925A5A986115466EA9EB9E5C1",
+      "bytes": 1640
+    },
+    {
+      "path": "LeaForge/test-pages/editing.html",
+      "sha256": "2B3EC9427FEBCD896C6188B1ECFD3C7B03355FB0C198858BA0BA1D995184FB81",
+      "bytes": 895
+    },
+    {
+      "path": "LeaForge/test-pages/events-vars.html",
+      "sha256": "70A1C865A0D9BA2D42980D17C6027F9E65E9E9000D35E1973B80696B2ADD5F23",
+      "bytes": 1160
+    },
+    {
+      "path": "LeaForge/test-pages/external.css",
+      "sha256": "91F0E0DCB11666FBC09C65FB2430EAA68BA7BEC0AA00769CCB440EE529210BD6",
+      "bytes": 206
+    },
+    {
+      "path": "LeaForge/test-pages/external.html",
+      "sha256": "6BCF9060493CDEE597552DFD8CF86075B72A86925C4310B32685B7601A5195A5",
+      "bytes": 518
+    },
+    {
+      "path": "LeaForge/test-pages/find-download.html",
+      "sha256": "E8AD680798DC825E7846B1A4F07D76A504FDF9B07381CD2606E3AD367F7E8EAF",
+      "bytes": 641
+    },
+    {
+      "path": "LeaForge/test-pages/flex.html",
+      "sha256": "9D5DF6B6D6020CEE6AF0D5114320DCEC8B385E57CF08A27AA1E61A60CEC72342",
+      "bytes": 7068
+    },
+    {
+      "path": "LeaForge/test-pages/focus-shortcuts.html",
+      "sha256": "D4CA9920CDDF8E5F39C77729399D68E5FAA30C753CEE07E6242E2118CDE6D49B",
+      "bytes": 1874
+    },
+    {
+      "path": "LeaForge/test-pages/font-relative-units.html",
+      "sha256": "B91833E92C6AC8B6F366BAC36624DFEE7A3B18615714D5B1C5EF7586E719AA28",
+      "bytes": 5516
+    },
+    {
+      "path": "LeaForge/test-pages/form-result.html",
+      "sha256": "6DFE8F90FEA932C760E1A38C6E44C52F9A22253F30E873F6FBB56126CE919C08",
+      "bytes": 414
+    },
+    {
+      "path": "LeaForge/test-pages/form-validation.html",
+      "sha256": "916C3E5CA773D9E4271D7075B217E0E7877994C42C9F30AB131C169757802FE6",
+      "bytes": 1979
+    },
+    {
+      "path": "LeaForge/test-pages/form-widgets.html",
+      "sha256": "F8A6A77511D0924C88D6C83E6F5CAA717552149BC9E4E304CC499405E5ED632A",
+      "bytes": 1512
+    },
+    {
+      "path": "LeaForge/test-pages/forms.html",
+      "sha256": "125B4E030D7BD893A98ECDE5B9D709A6D880A656638CF34D48480B3B613DFAEC",
+      "bytes": 1603
+    },
+    {
+      "path": "LeaForge/test-pages/fragment-stability.html",
+      "sha256": "3E3BF3148ED91AFC9A72703A6C06E30B58FA31FCD3D07EDA4D54F4B43DFCD79B",
+      "bytes": 1549
+    },
+    {
+      "path": "LeaForge/test-pages/fragments.html",
+      "sha256": "55E86B8DBBC5868B6DF84195F1163F28F73A1805B992E69ABEA7D19DA5727CC7",
+      "bytes": 2281
+    },
+    {
+      "path": "LeaForge/test-pages/gauges.html",
+      "sha256": "A6E0E9FE6C80385DB3DE1D4EB5D0D6821FB81FB74506843A6D5603129E77FBB9",
+      "bytes": 2158
+    },
+    {
+      "path": "LeaForge/test-pages/generated-alt.html",
+      "sha256": "C9DCD076FC245252628CDFC96D159277CE2BABD84AB2DCB1B53AE16125239D1D",
+      "bytes": 3936
+    },
+    {
+      "path": "LeaForge/test-pages/generated-content.html",
+      "sha256": "FF9975287BB578F6C2AE75F3B74C184FB5064B4D065B9A099C8085B58FD08438",
+      "bytes": 8512
+    },
+    {
+      "path": "LeaForge/test-pages/generated-images.html",
+      "sha256": "48B1557EE8231A6854122AB33537400B20E7416FAE879BAF8C8F48055A36E3B3",
+      "bytes": 4047
+    },
+    {
+      "path": "LeaForge/test-pages/generated-quotes.html",
+      "sha256": "ADE7757BAD43580D12E6EAF6050C8D36C942C5587E87469FA9B7820373EEACCD",
+      "bytes": 4728
+    },
+    {
+      "path": "LeaForge/test-pages/go-command.html",
+      "sha256": "62236990C53CDA34FE05464E0E376F7A1C6B44B6C2CCAB53F1E9B6104615E3CD",
+      "bytes": 993
+    },
+    {
+      "path": "LeaForge/test-pages/go-target.html",
+      "sha256": "B118F15660C0C0F03B5190D34CF6640E20577E86B5BEB8D7E540792DF5A0A9C2",
+      "bytes": 264
+    },
+    {
+      "path": "LeaForge/test-pages/grid-alignment.html",
+      "sha256": "DD86E5177C32EE1298B98502EC0ABAFC941BA11D924E558164727B665C548EF0",
+      "bytes": 3220
+    },
+    {
+      "path": "LeaForge/test-pages/grid-areas.html",
+      "sha256": "2483C4F9CDD1321EF6FA8D1F5D0A5344DA2BEA6767A597B6180713A25D51FD24",
+      "bytes": 3259
+    },
+    {
+      "path": "LeaForge/test-pages/grid-auto-tracks.html",
+      "sha256": "5C9F7518A359F926CD0617EC05153E7CD22D7578F482319E48172B1DD41BE185",
+      "bytes": 4450
+    },
+    {
+      "path": "LeaForge/test-pages/grid-content-alignment.html",
+      "sha256": "610B8B9F10EC2E320BAD3B561E54535B02D30C35A3A00923BECAE02D96A2AC6F",
+      "bytes": 2782
+    },
+    {
+      "path": "LeaForge/test-pages/grid-flow.html",
+      "sha256": "8D3E41F670DCD12956F106F1E0F6F40B04CBECF7B1D39D7C58C08BD09A16E82A",
+      "bytes": 4368
+    },
+    {
+      "path": "LeaForge/test-pages/grid-lines.html",
+      "sha256": "E9272188F262CA69FD50674A81973E18DA4A1C29A525948FE087348C1EF57A18",
+      "bytes": 5437
+    },
+    {
+      "path": "LeaForge/test-pages/grid-shorthand.html",
+      "sha256": "EA90DE62DA49B7B4F634ECCB6A70F562C4FB172EF20054A8EB2398E51B86A293",
+      "bytes": 5198
+    },
+    {
+      "path": "LeaForge/test-pages/grid.html",
+      "sha256": "CFFF8E32AFB40D1D7F317F200EA9B8F8A7B9A8E9B82C916CB3118EB9EA91A504",
+      "bytes": 5805
+    },
+    {
+      "path": "LeaForge/test-pages/hsl-colors.html",
+      "sha256": "D928D8886C13DA81EDB03B4D330844B8778DCA6F55D54CF9D4DC138DB2EBC6BE",
+      "bytes": 4581
+    },
+    {
+      "path": "LeaForge/test-pages/html-tokens.html",
+      "sha256": "F57732034459A896B2C7A52855731DBE886E10DA8B52324F240BA444CA5CF150",
+      "bytes": 976
+    },
+    {
+      "path": "LeaForge/test-pages/hwb-colors.html",
+      "sha256": "74E7C3835E214E0DF4B277AFB65BE1DACC52DF6707BA604AC88897617B268528",
+      "bytes": 4953
+    },
+    {
+      "path": "LeaForge/test-pages/image-loading.html",
+      "sha256": "BD185151370213ED382B9F65E24D10FCD7C37D0C385DE09AD6868FE1D8365430",
+      "bytes": 812
+    },
+    {
+      "path": "LeaForge/test-pages/image-maps.html",
+      "sha256": "AFB4F6702CE2E39B9BAAFCC9EC846C4B8D6514702AA12D16E29596E5572085B9",
+      "bytes": 2610
+    },
+    {
+      "path": "LeaForge/test-pages/image-preflight.html",
+      "sha256": "E02FF6C4E149B0FF7CF3F2F91AB8C9ADC9C7F6603B7272D35B9860CEF781E6C5",
+      "bytes": 744
+    },
+    {
+      "path": "LeaForge/test-pages/images.html",
+      "sha256": "49956223D0EA0491AF3DD17612A953DD6286CF376FCDFAAF6D1F5E4A76A469AF",
+      "bytes": 527
+    },
+    {
+      "path": "LeaForge/test-pages/important-cascade.html",
+      "sha256": "938B24E3DEBBC452D00D41E5A775869DB1B6B353DE3AACC52CFEE1A010A398DF",
+      "bytes": 2862
+    },
+    {
+      "path": "LeaForge/test-pages/index.html",
+      "sha256": "A8F9DD98234080C68A9D3F0BA4F1ED9B0687C65B28A06B9EB4827CE92EBDF714",
+      "bytes": 1061
+    },
+    {
+      "path": "LeaForge/test-pages/inline.html",
+      "sha256": "9FAC644D3B6CF0C835A4403F682ECBD79EF9A651D87E13E4345140A73FE6DC00",
+      "bytes": 563
+    },
+    {
+      "path": "LeaForge/test-pages/input-loading.css",
+      "sha256": "7AAB33C849E2B6B988D1AC7C07DEC96D61731C84BEF2CA9B960A694C07938072",
+      "bytes": 214
+    },
+    {
+      "path": "LeaForge/test-pages/input-loading.html",
+      "sha256": "C1CF46D5E85B15E22C87E8803734E1C89DBD13E1B3DB93A5AB388B46B526CFA4",
+      "bytes": 451
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-animation.html",
+      "sha256": "9B6DD385E9F1928C1C8CBC951402F4A618645CC7A1B6B5AC2C209FC99999FFF7",
+      "bytes": 2238
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-attribute-edits.html",
+      "sha256": "144839A874167E64FD5045D6496E79DAF885658376D4B62677308B2712F76152",
+      "bytes": 851
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-attributes.html",
+      "sha256": "DFC37D26AE20C3A6BFA0BB5B091635C4F23E2C316637943AC093F9948035C234",
+      "bytes": 768
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-contains.html",
+      "sha256": "D7FB5992087CD1FDC2529C5056D0FB6A15C1640A3B01AC8FE529D82A73D7F432",
+      "bytes": 1169
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-lazy-events.html",
+      "sha256": "510DEB28B5E443FF2CB4F612934D21AB481862F01F79F5074166D85C23C3C81C",
+      "bytes": 1289
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-lazy-styles.html",
+      "sha256": "FC04CB3FBEC449444CE341067D0417322D4C741D2B5D3917900170771D831C6A",
+      "bytes": 1441
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-load-failure.html",
+      "sha256": "C227F5B6BA40845C740636BDD07DF1312E2A1F92704360191057A682421877FD",
+      "bytes": 954
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-removal.html",
+      "sha256": "3E0E53D355077FA12EE21E22896653F883FE7A82B052B13FEF731D121B6DEA8E",
+      "bytes": 945
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-runtime.html",
+      "sha256": "686B75D28DFEF81AABEB6C8863477E8C19659D3515F1BF7D197B1585769B9167",
+      "bytes": 996
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-selectors.html",
+      "sha256": "F6EE2D816D25C06B0605D55D33361D2F0E71CCB79BDD1855E2D9546240AD7243",
+      "bytes": 1184
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-subtree.html",
+      "sha256": "AB41C5EF85DE23FAAD0B888C1BA9C9191134A3702AA72EE08C665721C94D4783",
+      "bytes": 1076
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-tree.html",
+      "sha256": "DF574443CE6F4CBCC4B63D12BA73B629AB0830F79D2B53387B96F6A6263D88FE",
+      "bytes": 1098
+    },
+    {
+      "path": "LeaForge/test-pages/javascript-view.html",
+      "sha256": "C086A1420EEA66BDDD91AABBF63D3057A139ABA34747C0A573D937ABCA6B8C5C",
+      "bytes": 3344
+    },
+    {
+      "path": "LeaForge/test-pages/keyboard-focus.html",
+      "sha256": "FAE4B9FE6128234DCA4F619E3CC494760312F81758751313C2B008ED8EC92CC4",
+      "bytes": 3778
+    },
+    {
+      "path": "LeaForge/test-pages/lab-colors.html",
+      "sha256": "45A1679C82B0077673EC3C832A512960CBE833AAF25F86C1C6F2FD9DED963C0E",
+      "bytes": 6164
+    },
+    {
+      "path": "LeaForge/test-pages/layout.html",
+      "sha256": "3FDDDD8E4770DF1BEF2B7CDE6394BC86FADDFD72DF1796AEA90E882A8073444A",
+      "bytes": 635
+    },
+    {
+      "path": "LeaForge/test-pages/line-clamp.html",
+      "sha256": "2A24149A4AEF452D247F1DAB20C49FC229800787AD8C54F225F41E99304C35F9",
+      "bytes": 5411
+    },
+    {
+      "path": "LeaForge/test-pages/list-image.html",
+      "sha256": "E3BC2D5E9A51062D63A0E61AE2F6F108E0D71C26FDE74CC841B35D46226A0DE6",
+      "bytes": 5926
+    },
+    {
+      "path": "LeaForge/test-pages/list-position.html",
+      "sha256": "EC02502CA21A964B25B56973F04063FB1AA360C3C335ADA01957C5BC8C98D9E3",
+      "bytes": 5713
+    },
+    {
+      "path": "LeaForge/test-pages/list-style.html",
+      "sha256": "8F457060A62416B6489729F57E15E48ADE9FB710098A129A1F2591606542C6D2",
+      "bytes": 5888
+    },
+    {
+      "path": "LeaForge/test-pages/lists.html",
+      "sha256": "FA65CF7C6B6483AEA87D9344DD689707DEC6BFDF9649319EC2CD9F9B1EAB57D1",
+      "bytes": 1897
+    },
+    {
+      "path": "LeaForge/test-pages/load-lifecycle.html",
+      "sha256": "F87D6DBA2C957241765424A6DCE2BBCD6A56D70E2CACF0A9C4AC2ABBAB5218B7",
+      "bytes": 458
+    },
+    {
+      "path": "LeaForge/test-pages/logical-borders.html",
+      "sha256": "A702FC79137007E5DD648298BE6F1E94C0B6E4B7E1E3CBB35AD43295B7E9A329",
+      "bytes": 7948
+    },
+    {
+      "path": "LeaForge/test-pages/logical-box-model.html",
+      "sha256": "EE70D23B1216EBA8F317E7D4AD270CA1FF20A4166262B5AAEABD88FFDB75AACC",
+      "bytes": 5565
+    },
+    {
+      "path": "LeaForge/test-pages/logical-radii.html",
+      "sha256": "E44A6F099F8A59069081A6271BAD58CE5DC7ACCECA9BF7607FF0D10CD2896F1B",
+      "bytes": 4793
+    },
+    {
+      "path": "LeaForge/test-pages/logical-sizing-insets.html",
+      "sha256": "579FBD1F782D43C2454E1990AD1EEEA98BA7565DEADCB1C246E12A8BE9B23833",
+      "bytes": 3267
+    },
+    {
+      "path": "LeaForge/test-pages/marker-content.html",
+      "sha256": "99CE882E01A0194D50E97F59523DAA737AD1C832DE20D215554AF73D8A3AF5D1",
+      "bytes": 6733
+    },
+    {
+      "path": "LeaForge/test-pages/marker-counters.html",
+      "sha256": "853F5CBD43F8E76E7DEBBBB6A22148883E6DC55FFB1AFD3F2017E16C3FD40FB7",
+      "bytes": 6539
+    },
+    {
+      "path": "LeaForge/test-pages/marker.html",
+      "sha256": "63B97E0F349CDFE4B8BBE75C028E9930A658E9AC585C87793048ABE912853B51",
+      "bytes": 4174
+    },
+    {
+      "path": "LeaForge/test-pages/match-media-script.html",
+      "sha256": "59B09BF1962832F824C94B0CF0F7F7D73C775CBF2BDC89A3BC0314F7FBAF78C0",
+      "bytes": 2018
+    },
+    {
+      "path": "LeaForge/test-pages/media-aspect-ratio.html",
+      "sha256": "0FC837773FDA73C2B973249F062FA6CBC882E474178EC65F4041C14BE70F2DE9",
+      "bytes": 2408
+    },
+    {
+      "path": "LeaForge/test-pages/media-color-scheme.html",
+      "sha256": "3308FA900A1B4F0CB916CEE76A6B16F035F0901C73EFF08CC1E049F9EBD65D21",
+      "bytes": 2916
+    },
+    {
+      "path": "LeaForge/test-pages/media-contrast.html",
+      "sha256": "39BB1ECFA10B7E8FD7426E388C50E0097101ADC29F1A0BBFA3CF1D6BD30F61CF",
+      "bytes": 3711
+    },
+    {
+      "path": "LeaForge/test-pages/media-features.html",
+      "sha256": "FA87B4A226DB79A67C969A0B6CA994507406B3D460ABEEECADF516CE054709C9",
+      "bytes": 2522
+    },
+    {
+      "path": "LeaForge/test-pages/media-interaction.html",
+      "sha256": "BC1FFE8196FFFE368D75E50B876203AF5A35F9C92679EBC2B240E961BC4FF202",
+      "bytes": 2757
+    },
+    {
+      "path": "LeaForge/test-pages/media-modifiers.html",
+      "sha256": "AC86141E82E6C368E9D7A92D3B48192375D247093E1E26936970681C9EB444A9",
+      "bytes": 2802
+    },
+    {
+      "path": "LeaForge/test-pages/media-queries.html",
+      "sha256": "A0BF9C517434B59F833BFF2CA8A77B80CB2B0C4742B319609A3B5C375B32F6A3",
+      "bytes": 2292
+    },
+    {
+      "path": "LeaForge/test-pages/media-ranges.html",
+      "sha256": "0AFE02D5D877066EFCEBAB7BCB4D8B9898DBDAC37DE0DD1720D762F1C4A20E61",
+      "bytes": 3981
+    },
+    {
+      "path": "LeaForge/test-pages/media-reduced-data.html",
+      "sha256": "A424EB1A0142A1811531770BF6DA642D80B8F0E793A44D0C755CF1B7F84FF693",
+      "bytes": 2854
+    },
+    {
+      "path": "LeaForge/test-pages/media-reduced-motion.html",
+      "sha256": "DC15E698FEA530E3C7D92EFBD3F0137163B5483AE92DC0E33F87950F379A428C",
+      "bytes": 2898
+    },
+    {
+      "path": "LeaForge/test-pages/media-resolution.html",
+      "sha256": "3AF4C732064DA0F8815D0E98BC3BCEDA6CCFE8039CF32D8D72F725D7F01ADBE3",
+      "bytes": 4880
+    },
+    {
+      "path": "LeaForge/test-pages/media-scripting.html",
+      "sha256": "92BB93FC7DC85F31A24D523C669B0794A9A4877EDAD18D0432098C78FF5A5056",
+      "bytes": 3170
+    },
+    {
+      "path": "LeaForge/test-pages/nested-content.html",
+      "sha256": "C98B980971D4791EF24407DF37E5AC956857A08299D13BBEEBD045E8FBC2A79F",
+      "bytes": 2221
+    },
+    {
+      "path": "LeaForge/test-pages/nested-flow.html",
+      "sha256": "483F36D5FCE61EF0C0AC8C42B300E46111B04AD153A4BB1CDAA0D6237322719F",
+      "bytes": 1860
+    },
+    {
+      "path": "LeaForge/test-pages/nested-positioning.html",
+      "sha256": "BA3E054BE65BECC8D93EC578A1D11D2B6FA57697886D542CAB215B8266D2B6E7",
+      "bytes": 2352
+    },
+    {
+      "path": "LeaForge/test-pages/object-fit.html",
+      "sha256": "4730D12910CCAE7513805739FF571B2283B15B2E5D823F2D863FACEF03A2A970",
+      "bytes": 5877
+    },
+    {
+      "path": "LeaForge/test-pages/oklab-colors.html",
+      "sha256": "CFF9538F6A2E303536F164CB397673DDAF7DF8DBF0D017AC9AE7922F3FE0908A",
+      "bytes": 6637
+    },
+    {
+      "path": "LeaForge/test-pages/outlines.html",
+      "sha256": "DC9D891F8B707D0B3D0C64B5D0ADA0CD03AE38463F0DF683BE2662E3BD50B3D2",
+      "bytes": 2919
+    },
+    {
+      "path": "LeaForge/test-pages/pointer-interaction.html",
+      "sha256": "E0840A93BE1A604577CF4774C169C1075BEDF924DDB395EC68DC9266421D0B2B",
+      "bytes": 3537
+    },
+    {
+      "path": "LeaForge/test-pages/position-contexts.html",
+      "sha256": "FDE1516A85F80E3D059F8182C85D39F2EDD75ECD235E471B58189F6736631AAF",
+      "bytes": 2213
+    },
+    {
+      "path": "LeaForge/test-pages/position-values.html",
+      "sha256": "AE43DB389B884D7667BDB4C745B04D79A2007C58EF3F2E0679D54D8795B9B6C6",
+      "bytes": 2327
+    },
+    {
+      "path": "LeaForge/test-pages/positioning.html",
+      "sha256": "99B299F19E6308518459E7AACABED7DF57973C26509CD0287B736EAC0297BF85",
+      "bytes": 1258
+    },
+    {
+      "path": "LeaForge/test-pages/predefined-colors.html",
+      "sha256": "6AAF3968B551A030F2B71A54AF1AE4B3F7E896BDFA1B000D3F9DEDC51E9937AA",
+      "bytes": 6841
+    },
+    {
+      "path": "LeaForge/test-pages/recovery.html",
+      "sha256": "72BD56B1CCA84AE89990F9B5407DDF1163BDF071A3A8E93E638461E3F1CA9F2F",
+      "bytes": 1077
+    },
+    {
+      "path": "LeaForge/test-pages/responsive-media.html",
+      "sha256": "C4E6D7E415A269704A45195F46C467750FE8C6016C3048FEF197D3EB97EEE286",
+      "bytes": 2607
+    },
+    {
+      "path": "LeaForge/test-pages/retained-data.html",
+      "sha256": "E98C332609876C18BCC2B53CDC68587AE71D55AE1A0D72A7F572409FCD9B0784",
+      "bytes": 1283
+    },
+    {
+      "path": "LeaForge/test-pages/script-bridge.html",
+      "sha256": "498DF638CD88EA475A333BE30239DEE14DCC28FAEBBCD45F6877686F7F36370F",
+      "bytes": 943
+    },
+    {
+      "path": "LeaForge/test-pages/scroll.html",
+      "sha256": "4C5D95A85395F4A423AB900304191EFE53B7B3F06A91FCF0CEA70B3FB0940BDE",
+      "bytes": 1783
+    },
+    {
+      "path": "LeaForge/test-pages/second.html",
+      "sha256": "0336FF66991E889BC63F3458AD2D5E7B4E22D6772B8E1B6A4003A8B513319F92",
+      "bytes": 510
+    },
+    {
+      "path": "LeaForge/test-pages/selector-arithmetic.html",
+      "sha256": "CA5159886EFD78906A9B9279AD45E6EF046F34DA1005FC94CDE418E6608876A0",
+      "bytes": 2011
+    },
+    {
+      "path": "LeaForge/test-pages/selector-filtered-position.html",
+      "sha256": "AD5718312EA22B3D31664C172C09B0D89C3BD6340481D170E384E33F03180E24",
+      "bytes": 2432
+    },
+    {
+      "path": "LeaForge/test-pages/selector-functions.html",
+      "sha256": "B61BDC00FF40F1C4273490427B55053A843290E8F6303D29EDCE3ADC35FDF5F7",
+      "bytes": 2657
+    },
+    {
+      "path": "LeaForge/test-pages/selector-negation.html",
+      "sha256": "AB0AFF845DFF56E0FCB6EAA68A11B487E9924A92893A11D0E349B3EE2517370D",
+      "bytes": 1356
+    },
+    {
+      "path": "LeaForge/test-pages/selector-relational.html",
+      "sha256": "CF7ED1578A5EFDA8F2F397B93A206DB79E13EEA126227D1C8EB32F2320789DF2",
+      "bytes": 2082
+    },
+    {
+      "path": "LeaForge/test-pages/selector-states.html",
+      "sha256": "8F3D3CB8E0262BC237A453ADA31995FD7DB67C9FCD2C58AA447D750C8013BF71",
+      "bytes": 2486
+    },
+    {
+      "path": "LeaForge/test-pages/selectors.html",
+      "sha256": "3048FC7889D63324B5491A7B46E7B9BFD98284FD3B3809E58498E1D43690C41B",
+      "bytes": 1052
+    },
+    {
+      "path": "LeaForge/test-pages/short.html",
+      "sha256": "E5329D4C9F4CF93F220B10870253F7FBB3ACC717CEEDCFD49D141826A4FDB254",
+      "bytes": 473
+    },
+    {
+      "path": "LeaForge/test-pages/size-functions.html",
+      "sha256": "2C20B0AC26FC8DAD8F154EB0B4CFC63EF372F2191496E3B3B2318DD0FAF57808",
+      "bytes": 6996
+    },
+    {
+      "path": "LeaForge/test-pages/sizing-breaks.html",
+      "sha256": "EA44F0581E1EE1C7568C5577E693225BD21639EEA6A220127481D176CD140D5E",
+      "bytes": 1766
+    },
+    {
+      "path": "LeaForge/test-pages/stacking-contexts.html",
+      "sha256": "2599D3EFC0B78BCC661D4766ADD9B747AE98DDD3710E5174D536FDBE16462998",
+      "bytes": 3195
+    },
+    {
+      "path": "LeaForge/test-pages/state-commands.html",
+      "sha256": "D5831F4776162EC981C73EC3697F5E0EDF76FD8AD962BE687E128EAE610F7FC4",
+      "bytes": 2776
+    },
+    {
+      "path": "LeaForge/test-pages/sticky-positioning.html",
+      "sha256": "7A067C9085CA5C63F09C2BD0942608A1ECF5355CDCC21EF08362168F566A17DF",
+      "bytes": 1821
+    },
+    {
+      "path": "LeaForge/test-pages/stylesheets.html",
+      "sha256": "20F5A2C5D76E86FA7D2901A859B63C0900F2A8711C833EE3AEE9B3D47F1F4DA7",
+      "bytes": 852
+    },
+    {
+      "path": "LeaForge/test-pages/supports-queries.html",
+      "sha256": "DB8959E726A1873AD654D3F3C9814CC8CB9125A43DC927238BD279DDB75F3085",
+      "bytes": 4580
+    },
+    {
+      "path": "LeaForge/test-pages/svg-geometry.html",
+      "sha256": "38E0685601BB18F223C5664A72BE287C93868362D24025910C357340962568FD",
+      "bytes": 2516
+    },
+    {
+      "path": "LeaForge/test-pages/svg-gradients.html",
+      "sha256": "BC52D3ABB05CF062973C735A357024AB5CAAC3EAD119C6B7E6091AD9B82AE7FA",
+      "bytes": 3296
+    },
+    {
+      "path": "LeaForge/test-pages/svg-strokes.html",
+      "sha256": "2418D4A2F83DB37C0329CA6226F54769D7778500F48A894F0C1BE70C265C638E",
+      "bytes": 2893
+    },
+    {
+      "path": "LeaForge/test-pages/svg-use-clips.html",
+      "sha256": "E7CCB6090691937EBC1459673F5C5E382E5354CF2157A5AC54EFA689822CD051",
+      "bytes": 3014
+    },
+    {
+      "path": "LeaForge/test-pages/svg.html",
+      "sha256": "28391BCC9079DAC142AF8A349C565AC049E169345CC83B844A36CF8D621B99AA",
+      "bytes": 1812
+    },
+    {
+      "path": "LeaForge/test-pages/tables.html",
+      "sha256": "8B76DF3F294BDEFFD10B8D8C90DDFBB95A0CCBB819022E41FC0AA0AC274F2CAC",
+      "bytes": 923
+    },
+    {
+      "path": "LeaForge/test-pages/text-align-last.html",
+      "sha256": "4042D20639454478DA7AC279D50B31FAF4FC432234983370BFF8621149BD6AFA",
+      "bytes": 3535
+    },
+    {
+      "path": "LeaForge/test-pages/text-align.html",
+      "sha256": "E7255267A3D7448D46BD1CEF0C60443B2A87706A4B71A06D11D0C7295E69968B",
+      "bytes": 4478
+    },
+    {
+      "path": "LeaForge/test-pages/text-decoration.html",
+      "sha256": "A9F097E0BE492FA93A641B35422CE8835FFB0E4A48D8AD7022DE257988CCCBE5",
+      "bytes": 3890
+    },
+    {
+      "path": "LeaForge/test-pages/text-indent.html",
+      "sha256": "F371FFB781C89B5D6A3E2E7E71F044D8891F834C7CF0DEC13015EFBA7944FA6A",
+      "bytes": 2999
+    },
+    {
+      "path": "LeaForge/test-pages/text-layout.html",
+      "sha256": "6BC12B72E70E2BF8F545AE5789CD149C9E0E393ECCA796B29B7E1C0031F7D953",
+      "bytes": 955
+    },
+    {
+      "path": "LeaForge/test-pages/text-overflow.html",
+      "sha256": "C926AC08842560591F147D91AAA7A2848F1EFFCA977BE9DB7AFD388980FAF44F",
+      "bytes": 3943
+    },
+    {
+      "path": "LeaForge/test-pages/text-shadow.html",
+      "sha256": "904DE8F34D3D877AD19E6AF4BF36B26773C8D96DD5DDF7D61232D296F14225A3",
+      "bytes": 2690
+    },
+    {
+      "path": "LeaForge/test-pages/text-spacing.html",
+      "sha256": "D5F572C5B7CFD7B33D6D44E410FE622EDD1AD20FD6BD469626ACAB7C25E28436",
+      "bytes": 4004
+    },
+    {
+      "path": "LeaForge/test-pages/text-style.html",
+      "sha256": "0EF42D3D1FE3A91E6E5B45D0D0557AF7BFF9F2787C0C410A55414886588BFEB7",
+      "bytes": 1209
+    },
+    {
+      "path": "LeaForge/test-pages/text-transform.html",
+      "sha256": "5FF7D9E297E674E6B7867FA7F39AB0A9E9162C46577494A40DED1DAB6F1AA1DE",
+      "bytes": 3209
+    },
+    {
+      "path": "LeaForge/test-pages/text-underline-offset.html",
+      "sha256": "8C37E677224DC4865D6756AD49131CDA3CB2D8D5DA9EE4B71E0332DCC84878A6",
+      "bytes": 4758
+    },
+    {
+      "path": "LeaForge/test-pages/text-wrap.html",
+      "sha256": "62874686C1121FAA072E022D4732F357C6B8B10C7A74AD85DA51A34AB738E438",
+      "bytes": 5462
+    },
+    {
+      "path": "LeaForge/test-pages/time-edits.html",
+      "sha256": "18A642F791892D363ED5811298A85D2631CF0913F56F1A32901E1F1A1F4CD783",
+      "bytes": 1999
+    },
+    {
+      "path": "LeaForge/test-pages/tree.html",
+      "sha256": "2AE3584986A661DA7571CA39E28ED2003E3AFBF4DC6153B9337E3C8C466918A8",
+      "bytes": 317
+    },
+    {
+      "path": "LeaForge/test-pages/values.html",
+      "sha256": "CE49D882F5158B4CF46129A34DF4A2CE26A186D2A4AAA11071B8E71F3389FC66",
+      "bytes": 1766
+    },
+    {
+      "path": "LeaForge/test-pages/viewport-units.html",
+      "sha256": "60C8A43CC8F5FEF15E8E5FB5CDF0DEA2475C15C840B141AAD07EEB0A275DA385",
+      "bytes": 5995
+    },
+    {
+      "path": "LeaForge/test-pages/visibility-opacity.html",
+      "sha256": "3648E8621949768C28D39B138AD4E056297635B8E43335BD3D6A0103BFEF67F0",
+      "bytes": 2394
+    },
+    {
+      "path": "LeaForge/test-pages/white-space.html",
+      "sha256": "506EEDB7E2DC64D6610D9E49D7822AA32067AF663AE637FDA92F260A17EBD407",
+      "bytes": 1681
+    },
+    {
+      "path": "LeaForge/test-pages/wide-gamut-colors.html",
+      "sha256": "0BE529F7393BB4717B884391769B2ADD3F6D8D6E363D8C0B3665673488E5647C",
+      "bytes": 6733
+    },
+    {
+      "path": "licenses/Acornima-BSD-3-Clause.txt",
+      "sha256": "F1FE31F9A4F8222579BE2D1F7F39A21C96665AC13679A41F5501840A08D39B32",
+      "bytes": 1566
+    },
+    {
+      "path": "licenses/Jint-BSD-2-Clause.txt",
+      "sha256": "8626F0B8F39A9AE2BFD4ACA1DA667076A781E4AE07312BC2F880ACCCB57ABDF4",
+      "bytes": 1324
+    },
+    {
+      "path": "licenses/Microsoft-MIT.txt",
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "bytes": 1139
+    },
+    {
+      "path": "licenses/Microsoft-Third-Party-Notices.txt",
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "bytes": 15835
+    },
+    {
+      "path": "licenses/system.buffers/LICENSE.TXT",
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "bytes": 1139
+    },
+    {
+      "path": "licenses/system.buffers/THIRD-PARTY-NOTICES.TXT",
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "bytes": 15835
+    },
+    {
+      "path": "licenses/system.memory/LICENSE.TXT",
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "bytes": 1139
+    },
+    {
+      "path": "licenses/system.memory/THIRD-PARTY-NOTICES.TXT",
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "bytes": 15835
+    },
+    {
+      "path": "licenses/system.numerics.vectors/LICENSE.TXT",
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "bytes": 1139
+    },
+    {
+      "path": "licenses/system.numerics.vectors/THIRD-PARTY-NOTICES.TXT",
+      "sha256": "7864A01E2FDEF7E8FDF81B906EFB1466F083206AFFEA7BA7E6DADEA429754765",
+      "bytes": 15835
+    },
+    {
+      "path": "licenses/system.runtime.compilerservices.unsafe/LICENSE.TXT",
+      "sha256": "D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B",
+      "bytes": 1139
+    },
+    {
+      "path": "licenses/system.runtime.compilerservices.unsafe/THIRD-PARTY-NOTICES.TXT",
+      "sha256": "A6344BFB229BC08D1071CEC400EEA216E307439F961C5943EC1B56D2245ACB95",
+      "bytes": 46990
+    },
+    {
+      "path": "ScriptWorker/Acornima.dll",
+      "sha256": "CE23BFEFCDD287E0DE38CD818DF643287CD4C6CDCAACB20C46C379631D5C8821",
+      "bytes": 942080
+    },
+    {
+      "path": "ScriptWorker/Jint.dll",
+      "sha256": "67F3E7D75EDADCBC0110FD6BB7AC26E56784D3650A83C2AE0AA23DD67EB03E6D",
+      "bytes": 7946240
+    },
+    {
+      "path": "ScriptWorker/Lea.Script.Worker.deps.json",
+      "sha256": "5EA5A12AF460F1221290A3031D6D4478A03903CE1F9C54D8D663AF8FB27F929A",
+      "bytes": 1204
+    },
+    {
+      "path": "ScriptWorker/Lea.Script.Worker.dll",
+      "sha256": "F61B6858822F8F7BB0350B91D21862C6D22EC955EE94E2E4F4060FA01FB344F0",
+      "bytes": 135168
+    },
+    {
+      "path": "ScriptWorker/Lea.Script.Worker.exe",
+      "sha256": "B867A3C0EBBEFD300EA67F6FA30A3DA8C26ED19C657F26A3EE4DAEB055A43EF6",
+      "bytes": 151552
+    },
+    {
+      "path": "ScriptWorker/Lea.Script.Worker.runtimeconfig.json",
+      "sha256": "D091805CC8FE421027B4F66A2E37957738D3F738B609C62897E834DBF9182CA0",
+      "bytes": 372
+    },
+    {
+      "path": "test-pages/accessibility.html",
+      "sha256": "7D4C1916D6F9F8EAAEDB866C34C9BDBD279223F14E73189B7A0226D9764470FE",
+      "bytes": 3207
+    },
+    {
+      "path": "test-pages/aspect-ratio.html",
+      "sha256": "1B1F5DE2BC0743CDE72E3E5632158EFB525BA39B89B13EF08CA42F007409DB50",
+      "bytes": 5720
+    },
+    {
+      "path": "test-pages/background-gradients.html",
+      "sha256": "CE6837B83DB8C77ED768DFDDDBA4E6B905226D2A3DE012D4F08D0FF22C77911D",
+      "bytes": 2988
+    },
+    {
+      "path": "test-pages/background-images.css",
+      "sha256": "6F0A4EB210355A95C1BEE1A45F3C39B79A7324210BEA7508863D74D83815C272",
+      "bytes": 166
+    },
+    {
+      "path": "test-pages/background-images.html",
+      "sha256": "9025D981E5472D8FFC3CAD0C769F0B8BD34D8D2CC75AA8ABCE5D64BD519D129B",
+      "bytes": 4379
+    },
+    {
+      "path": "test-pages/base-url.html",
+      "sha256": "7AC56F60C8A501B2359997B08C1EB174CE1F9E6117A2E399E688EBC1C987F6D5",
+      "bytes": 841
+    },
+    {
+      "path": "test-pages/border-radius.html",
+      "sha256": "1DC0E0ED210019A7AEB6A63635DE9705A6767F77EE948D68A9875040BC883501",
+      "bytes": 1727
+    },
+    {
+      "path": "test-pages/box-shadows.html",
+      "sha256": "90525C28577FD4567BA2E0212E93008AB919ACEAB3BB3E3D01ADBE73CDE65890",
+      "bytes": 2489
+    },
+    {
+      "path": "test-pages/box-sizing.html",
+      "sha256": "D9F145A8C36EE03D5AF9BA8E0E51B82D7FF03814B83A1F688622CF592C83EC31",
+      "bytes": 2782
+    },
+    {
+      "path": "test-pages/boxes.html",
+      "sha256": "A093C81DAA0D63AF5F62DB851549A742D6CE7E06FDA2AEA2D2CEC63D7ABEF9B5",
+      "bytes": 872
+    },
+    {
+      "path": "test-pages/cache-identity.html",
+      "sha256": "6646862C8DDA4CF64764DE3FDC59C0D22B44764BB1C4D4BAB9C09FE416406221",
+      "bytes": 628
+    },
+    {
+      "path": "test-pages/calculated-heights.html",
+      "sha256": "66B5561676AAD32DB007AF3CEC28435D49CD1F424EE6D25B67F72216A280A9F8",
+      "bytes": 4671
+    },
+    {
+      "path": "test-pages/calculated-widths.html",
+      "sha256": "BDD5407AA53008DE2E46FB413FA1F5ABACA320F19C6EBC73E934FC87DB042A49",
+      "bytes": 3087
+    },
+    {
+      "path": "test-pages/cascade-layer-limits.html",
+      "sha256": "1B6C46E524AB8B0EA9032C7D816A555EE58231673334279F8582DA73546A0526",
+      "bytes": 2256
+    },
+    {
+      "path": "test-pages/cascade-layers.html",
+      "sha256": "F77729AF344F50AF7CB2F43B1B6DCC1C24F087DEB909B311654BA7B2764699E9",
+      "bytes": 3717
+    },
+    {
+      "path": "test-pages/class-commands.html",
+      "sha256": "6992F97AB26DE311ACC53FD084838C5F10BB442704F81FE4AA6C6A8403528B55",
+      "bytes": 1201
+    },
+    {
+      "path": "test-pages/color-mix.html",
+      "sha256": "AC21D53468197E10AEB36C08CE7A17AAA982473BA8C78A3303FF5E2A2B134CE9",
+      "bytes": 5974
+    },
+    {
+      "path": "test-pages/container-features.html",
+      "sha256": "90BA2F5ADA924F5DF835C542D8F24B765773ACC36C3572DBBB755DFD40A0CF1F",
+      "bytes": 5546
+    },
+    {
+      "path": "test-pages/container-query-calc.html",
+      "sha256": "F4D92108189D61531E8FC92C2201A19EABC23E28252E84A757AA7D05668EDDAD",
+      "bytes": 3870
+    },
+    {
+      "path": "test-pages/container-query-lengths.html",
+      "sha256": "AD5A58A161558557B060EF4E141044E7BCF83ECED399F2A7FDDEF94E4C473CD1",
+      "bytes": 4103
+    },
+    {
+      "path": "test-pages/container-query-viewport.html",
+      "sha256": "D6DF2BD404C43B03ABB9F0736AE87CE654F267F74F7E2ACBCBA9B6E3E8E3EF77",
+      "bytes": 4495
+    },
+    {
+      "path": "test-pages/container-size.html",
+      "sha256": "1C923CA2828A45DDCEE3E6F745AA8B8F4B1CDC51C3746B5074FF1B0FA5F10FFE",
+      "bytes": 3786
+    },
+    {
+      "path": "test-pages/container-style.html",
+      "sha256": "9F80B400D6A0C19D33BC7D539EA3F22704C8E7EABE56BC79CBA7E3510B79F54E",
+      "bytes": 4275
+    },
+    {
+      "path": "test-pages/container-units.html",
+      "sha256": "76D87DCC91E64F066D9CD1FD36917A23A22BC2EBC263C9C47E322C645A6946A1",
+      "bytes": 3791
+    },
+    {
+      "path": "test-pages/css-counters.html",
+      "sha256": "41E3C0477B41D3346CCF75347AFED93AD5C6F1D22EECFD4AE1C5421825AD6C62",
+      "bytes": 10819
+    },
+    {
+      "path": "test-pages/css-supports-script.html",
+      "sha256": "79A3793B225019F814BC1BED3D50D56279EF3396322E073BB1390624B188409A",
+      "bytes": 1847
+    },
+    {
+      "path": "test-pages/css.html",
+      "sha256": "50BBC1677AC6A8EF22D5394721B6F8A6AD25A709F5850FFBEF91F6B34C7E6CF6",
+      "bytes": 588
+    },
+    {
+      "path": "test-pages/custom-properties.html",
+      "sha256": "BDD028AF82E8BD7A52F07F57A40E5EA67C14752658C0A0E0AC4C3B679C09C33A",
+      "bytes": 2961
+    },
+    {
+      "path": "test-pages/direction-inline.html",
+      "sha256": "47D0ABCDF12F11C212555DA5FF148510DDA915D80EB97B5315827CD9DD41FA1B",
+      "bytes": 3608
+    },
+    {
+      "path": "test-pages/direction-layout.html",
+      "sha256": "AC11224EC13168726A2EAE3D04FF15EE24F03D290128BFBFF9BDAB2B69DCB537",
+      "bytes": 4510
+    },
+    {
+      "path": "test-pages/direction-logical.html",
+      "sha256": "D30BC372E2F1185D153F82BDD4428A511F2951681AE91662ED9794BFC8B30C76",
+      "bytes": 3888
+    },
+    {
+      "path": "test-pages/direction-overflow.html",
+      "sha256": "CB8DB90BC7E9443E041E2FB278DCECB19B5A6FE8C2D262D62546DEDE57001616",
+      "bytes": 2282
+    },
+    {
+      "path": "test-pages/disclosure.html",
+      "sha256": "33DF1BBA8ACD9B863D41E73BB03F76A21DFCAAC43DBF7528F17213D782845132",
+      "bytes": 2320
+    },
+    {
+      "path": "test-pages/display-navigation.html",
+      "sha256": "B517A2AB363007989965318C6414928D08DCFA2C22DF5540155B8CBA500B61C8",
+      "bytes": 1581
+    },
+    {
+      "path": "test-pages/dom-bridge.html",
+      "sha256": "902C345458069BD127B3A3E97B8253365DED2CB2CACAEE8855259355B73714FD",
+      "bytes": 2175
+    },
+    {
+      "path": "test-pages/download-sample.txt",
+      "sha256": "970919D61860D1173E3FD854C3D75308D9C2862DCD3C631F56B4738FED4AA40A",
+      "bytes": 31
+    },
+    {
+      "path": "test-pages/dynamic-state.html",
+      "sha256": "82D1EF43049D2A58B02C7D3EEC7F97A27AB862A925A5A986115466EA9EB9E5C1",
+      "bytes": 1640
+    },
+    {
+      "path": "test-pages/editing.html",
+      "sha256": "2B3EC9427FEBCD896C6188B1ECFD3C7B03355FB0C198858BA0BA1D995184FB81",
+      "bytes": 895
+    },
+    {
+      "path": "test-pages/events-vars.html",
+      "sha256": "70A1C865A0D9BA2D42980D17C6027F9E65E9E9000D35E1973B80696B2ADD5F23",
+      "bytes": 1160
+    },
+    {
+      "path": "test-pages/external.css",
+      "sha256": "91F0E0DCB11666FBC09C65FB2430EAA68BA7BEC0AA00769CCB440EE529210BD6",
+      "bytes": 206
+    },
+    {
+      "path": "test-pages/external.html",
+      "sha256": "6BCF9060493CDEE597552DFD8CF86075B72A86925C4310B32685B7601A5195A5",
+      "bytes": 518
+    },
+    {
+      "path": "test-pages/find-download.html",
+      "sha256": "E8AD680798DC825E7846B1A4F07D76A504FDF9B07381CD2606E3AD367F7E8EAF",
+      "bytes": 641
+    },
+    {
+      "path": "test-pages/flex.html",
+      "sha256": "9D5DF6B6D6020CEE6AF0D5114320DCEC8B385E57CF08A27AA1E61A60CEC72342",
+      "bytes": 7068
+    },
+    {
+      "path": "test-pages/focus-shortcuts.html",
+      "sha256": "D4CA9920CDDF8E5F39C77729399D68E5FAA30C753CEE07E6242E2118CDE6D49B",
+      "bytes": 1874
+    },
+    {
+      "path": "test-pages/font-relative-units.html",
+      "sha256": "B91833E92C6AC8B6F366BAC36624DFEE7A3B18615714D5B1C5EF7586E719AA28",
+      "bytes": 5516
+    },
+    {
+      "path": "test-pages/form-result.html",
+      "sha256": "6DFE8F90FEA932C760E1A38C6E44C52F9A22253F30E873F6FBB56126CE919C08",
+      "bytes": 414
+    },
+    {
+      "path": "test-pages/form-validation.html",
+      "sha256": "916C3E5CA773D9E4271D7075B217E0E7877994C42C9F30AB131C169757802FE6",
+      "bytes": 1979
+    },
+    {
+      "path": "test-pages/form-widgets.html",
+      "sha256": "F8A6A77511D0924C88D6C83E6F5CAA717552149BC9E4E304CC499405E5ED632A",
+      "bytes": 1512
+    },
+    {
+      "path": "test-pages/forms.html",
+      "sha256": "125B4E030D7BD893A98ECDE5B9D709A6D880A656638CF34D48480B3B613DFAEC",
+      "bytes": 1603
+    },
+    {
+      "path": "test-pages/fragment-stability.html",
+      "sha256": "3E3BF3148ED91AFC9A72703A6C06E30B58FA31FCD3D07EDA4D54F4B43DFCD79B",
+      "bytes": 1549
+    },
+    {
+      "path": "test-pages/fragments.html",
+      "sha256": "55E86B8DBBC5868B6DF84195F1163F28F73A1805B992E69ABEA7D19DA5727CC7",
+      "bytes": 2281
+    },
+    {
+      "path": "test-pages/gauges.html",
+      "sha256": "A6E0E9FE6C80385DB3DE1D4EB5D0D6821FB81FB74506843A6D5603129E77FBB9",
+      "bytes": 2158
+    },
+    {
+      "path": "test-pages/generated-alt.html",
+      "sha256": "C9DCD076FC245252628CDFC96D159277CE2BABD84AB2DCB1B53AE16125239D1D",
+      "bytes": 3936
+    },
+    {
+      "path": "test-pages/generated-content.html",
+      "sha256": "FF9975287BB578F6C2AE75F3B74C184FB5064B4D065B9A099C8085B58FD08438",
+      "bytes": 8512
+    },
+    {
+      "path": "test-pages/generated-images.html",
+      "sha256": "48B1557EE8231A6854122AB33537400B20E7416FAE879BAF8C8F48055A36E3B3",
+      "bytes": 4047
+    },
+    {
+      "path": "test-pages/generated-quotes.html",
+      "sha256": "ADE7757BAD43580D12E6EAF6050C8D36C942C5587E87469FA9B7820373EEACCD",
+      "bytes": 4728
+    },
+    {
+      "path": "test-pages/go-command.html",
+      "sha256": "62236990C53CDA34FE05464E0E376F7A1C6B44B6C2CCAB53F1E9B6104615E3CD",
+      "bytes": 993
+    },
+    {
+      "path": "test-pages/go-target.html",
+      "sha256": "B118F15660C0C0F03B5190D34CF6640E20577E86B5BEB8D7E540792DF5A0A9C2",
+      "bytes": 264
+    },
+    {
+      "path": "test-pages/grid-alignment.html",
+      "sha256": "DD86E5177C32EE1298B98502EC0ABAFC941BA11D924E558164727B665C548EF0",
+      "bytes": 3220
+    },
+    {
+      "path": "test-pages/grid-areas.html",
+      "sha256": "2483C4F9CDD1321EF6FA8D1F5D0A5344DA2BEA6767A597B6180713A25D51FD24",
+      "bytes": 3259
+    },
+    {
+      "path": "test-pages/grid-auto-tracks.html",
+      "sha256": "5C9F7518A359F926CD0617EC05153E7CD22D7578F482319E48172B1DD41BE185",
+      "bytes": 4450
+    },
+    {
+      "path": "test-pages/grid-content-alignment.html",
+      "sha256": "610B8B9F10EC2E320BAD3B561E54535B02D30C35A3A00923BECAE02D96A2AC6F",
+      "bytes": 2782
+    },
+    {
+      "path": "test-pages/grid-flow.html",
+      "sha256": "8D3E41F670DCD12956F106F1E0F6F40B04CBECF7B1D39D7C58C08BD09A16E82A",
+      "bytes": 4368
+    },
+    {
+      "path": "test-pages/grid-lines.html",
+      "sha256": "E9272188F262CA69FD50674A81973E18DA4A1C29A525948FE087348C1EF57A18",
+      "bytes": 5437
+    },
+    {
+      "path": "test-pages/grid-shorthand.html",
+      "sha256": "EA90DE62DA49B7B4F634ECCB6A70F562C4FB172EF20054A8EB2398E51B86A293",
+      "bytes": 5198
+    },
+    {
+      "path": "test-pages/grid.html",
+      "sha256": "CFFF8E32AFB40D1D7F317F200EA9B8F8A7B9A8E9B82C916CB3118EB9EA91A504",
+      "bytes": 5805
+    },
+    {
+      "path": "test-pages/hsl-colors.html",
+      "sha256": "D928D8886C13DA81EDB03B4D330844B8778DCA6F55D54CF9D4DC138DB2EBC6BE",
+      "bytes": 4581
+    },
+    {
+      "path": "test-pages/html-tokens.html",
+      "sha256": "F57732034459A896B2C7A52855731DBE886E10DA8B52324F240BA444CA5CF150",
+      "bytes": 976
+    },
+    {
+      "path": "test-pages/hwb-colors.html",
+      "sha256": "74E7C3835E214E0DF4B277AFB65BE1DACC52DF6707BA604AC88897617B268528",
+      "bytes": 4953
+    },
+    {
+      "path": "test-pages/image-loading.html",
+      "sha256": "BD185151370213ED382B9F65E24D10FCD7C37D0C385DE09AD6868FE1D8365430",
+      "bytes": 812
+    },
+    {
+      "path": "test-pages/image-maps.html",
+      "sha256": "AFB4F6702CE2E39B9BAAFCC9EC846C4B8D6514702AA12D16E29596E5572085B9",
+      "bytes": 2610
+    },
+    {
+      "path": "test-pages/image-preflight.html",
+      "sha256": "E02FF6C4E149B0FF7CF3F2F91AB8C9ADC9C7F6603B7272D35B9860CEF781E6C5",
+      "bytes": 744
+    },
+    {
+      "path": "test-pages/images.html",
+      "sha256": "49956223D0EA0491AF3DD17612A953DD6286CF376FCDFAAF6D1F5E4A76A469AF",
+      "bytes": 527
+    },
+    {
+      "path": "test-pages/important-cascade.html",
+      "sha256": "938B24E3DEBBC452D00D41E5A775869DB1B6B353DE3AACC52CFEE1A010A398DF",
+      "bytes": 2862
+    },
+    {
+      "path": "test-pages/index.html",
+      "sha256": "A8F9DD98234080C68A9D3F0BA4F1ED9B0687C65B28A06B9EB4827CE92EBDF714",
+      "bytes": 1061
+    },
+    {
+      "path": "test-pages/inline.html",
+      "sha256": "9FAC644D3B6CF0C835A4403F682ECBD79EF9A651D87E13E4345140A73FE6DC00",
+      "bytes": 563
+    },
+    {
+      "path": "test-pages/input-loading.css",
+      "sha256": "7AAB33C849E2B6B988D1AC7C07DEC96D61731C84BEF2CA9B960A694C07938072",
+      "bytes": 214
+    },
+    {
+      "path": "test-pages/input-loading.html",
+      "sha256": "C1CF46D5E85B15E22C87E8803734E1C89DBD13E1B3DB93A5AB388B46B526CFA4",
+      "bytes": 451
+    },
+    {
+      "path": "test-pages/javascript-animation.html",
+      "sha256": "9B6DD385E9F1928C1C8CBC951402F4A618645CC7A1B6B5AC2C209FC99999FFF7",
+      "bytes": 2238
+    },
+    {
+      "path": "test-pages/javascript-attribute-edits.html",
+      "sha256": "144839A874167E64FD5045D6496E79DAF885658376D4B62677308B2712F76152",
+      "bytes": 851
+    },
+    {
+      "path": "test-pages/javascript-attributes.html",
+      "sha256": "DFC37D26AE20C3A6BFA0BB5B091635C4F23E2C316637943AC093F9948035C234",
+      "bytes": 768
+    },
+    {
+      "path": "test-pages/javascript-contains.html",
+      "sha256": "D7FB5992087CD1FDC2529C5056D0FB6A15C1640A3B01AC8FE529D82A73D7F432",
+      "bytes": 1169
+    },
+    {
+      "path": "test-pages/javascript-lazy-events.html",
+      "sha256": "510DEB28B5E443FF2CB4F612934D21AB481862F01F79F5074166D85C23C3C81C",
+      "bytes": 1289
+    },
+    {
+      "path": "test-pages/javascript-lazy-styles.html",
+      "sha256": "FC04CB3FBEC449444CE341067D0417322D4C741D2B5D3917900170771D831C6A",
+      "bytes": 1441
+    },
+    {
+      "path": "test-pages/javascript-load-failure.html",
+      "sha256": "C227F5B6BA40845C740636BDD07DF1312E2A1F92704360191057A682421877FD",
+      "bytes": 954
+    },
+    {
+      "path": "test-pages/javascript-removal.html",
+      "sha256": "3E0E53D355077FA12EE21E22896653F883FE7A82B052B13FEF731D121B6DEA8E",
+      "bytes": 945
+    },
+    {
+      "path": "test-pages/javascript-runtime.html",
+      "sha256": "686B75D28DFEF81AABEB6C8863477E8C19659D3515F1BF7D197B1585769B9167",
+      "bytes": 996
+    },
+    {
+      "path": "test-pages/javascript-selectors.html",
+      "sha256": "F6EE2D816D25C06B0605D55D33361D2F0E71CCB79BDD1855E2D9546240AD7243",
+      "bytes": 1184
+    },
+    {
+      "path": "test-pages/javascript-subtree.html",
+      "sha256": "AB41C5EF85DE23FAAD0B888C1BA9C9191134A3702AA72EE08C665721C94D4783",
+      "bytes": 1076
+    },
+    {
+      "path": "test-pages/javascript-tree.html",
+      "sha256": "DF574443CE6F4CBCC4B63D12BA73B629AB0830F79D2B53387B96F6A6263D88FE",
+      "bytes": 1098
+    },
+    {
+      "path": "test-pages/javascript-view.html",
+      "sha256": "C086A1420EEA66BDDD91AABBF63D3057A139ABA34747C0A573D937ABCA6B8C5C",
+      "bytes": 3344
+    },
+    {
+      "path": "test-pages/keyboard-focus.html",
+      "sha256": "FAE4B9FE6128234DCA4F619E3CC494760312F81758751313C2B008ED8EC92CC4",
+      "bytes": 3778
+    },
+    {
+      "path": "test-pages/lab-colors.html",
+      "sha256": "45A1679C82B0077673EC3C832A512960CBE833AAF25F86C1C6F2FD9DED963C0E",
+      "bytes": 6164
+    },
+    {
+      "path": "test-pages/layout.html",
+      "sha256": "3FDDDD8E4770DF1BEF2B7CDE6394BC86FADDFD72DF1796AEA90E882A8073444A",
+      "bytes": 635
+    },
+    {
+      "path": "test-pages/line-clamp.html",
+      "sha256": "2A24149A4AEF452D247F1DAB20C49FC229800787AD8C54F225F41E99304C35F9",
+      "bytes": 5411
+    },
+    {
+      "path": "test-pages/list-image.html",
+      "sha256": "E3BC2D5E9A51062D63A0E61AE2F6F108E0D71C26FDE74CC841B35D46226A0DE6",
+      "bytes": 5926
+    },
+    {
+      "path": "test-pages/list-position.html",
+      "sha256": "EC02502CA21A964B25B56973F04063FB1AA360C3C335ADA01957C5BC8C98D9E3",
+      "bytes": 5713
+    },
+    {
+      "path": "test-pages/list-style.html",
+      "sha256": "8F457060A62416B6489729F57E15E48ADE9FB710098A129A1F2591606542C6D2",
+      "bytes": 5888
+    },
+    {
+      "path": "test-pages/lists.html",
+      "sha256": "FA65CF7C6B6483AEA87D9344DD689707DEC6BFDF9649319EC2CD9F9B1EAB57D1",
+      "bytes": 1897
+    },
+    {
+      "path": "test-pages/load-lifecycle.html",
+      "sha256": "F87D6DBA2C957241765424A6DCE2BBCD6A56D70E2CACF0A9C4AC2ABBAB5218B7",
+      "bytes": 458
+    },
+    {
+      "path": "test-pages/logical-borders.html",
+      "sha256": "A702FC79137007E5DD648298BE6F1E94C0B6E4B7E1E3CBB35AD43295B7E9A329",
+      "bytes": 7948
+    },
+    {
+      "path": "test-pages/logical-box-model.html",
+      "sha256": "EE70D23B1216EBA8F317E7D4AD270CA1FF20A4166262B5AAEABD88FFDB75AACC",
+      "bytes": 5565
+    },
+    {
+      "path": "test-pages/logical-radii.html",
+      "sha256": "E44A6F099F8A59069081A6271BAD58CE5DC7ACCECA9BF7607FF0D10CD2896F1B",
+      "bytes": 4793
+    },
+    {
+      "path": "test-pages/logical-sizing-insets.html",
+      "sha256": "579FBD1F782D43C2454E1990AD1EEEA98BA7565DEADCB1C246E12A8BE9B23833",
+      "bytes": 3267
+    },
+    {
+      "path": "test-pages/marker-content.html",
+      "sha256": "99CE882E01A0194D50E97F59523DAA737AD1C832DE20D215554AF73D8A3AF5D1",
+      "bytes": 6733
+    },
+    {
+      "path": "test-pages/marker-counters.html",
+      "sha256": "853F5CBD43F8E76E7DEBBBB6A22148883E6DC55FFB1AFD3F2017E16C3FD40FB7",
+      "bytes": 6539
+    },
+    {
+      "path": "test-pages/marker.html",
+      "sha256": "63B97E0F349CDFE4B8BBE75C028E9930A658E9AC585C87793048ABE912853B51",
+      "bytes": 4174
+    },
+    {
+      "path": "test-pages/match-media-script.html",
+      "sha256": "59B09BF1962832F824C94B0CF0F7F7D73C775CBF2BDC89A3BC0314F7FBAF78C0",
+      "bytes": 2018
+    },
+    {
+      "path": "test-pages/media-aspect-ratio.html",
+      "sha256": "0FC837773FDA73C2B973249F062FA6CBC882E474178EC65F4041C14BE70F2DE9",
+      "bytes": 2408
+    },
+    {
+      "path": "test-pages/media-color-scheme.html",
+      "sha256": "3308FA900A1B4F0CB916CEE76A6B16F035F0901C73EFF08CC1E049F9EBD65D21",
+      "bytes": 2916
+    },
+    {
+      "path": "test-pages/media-contrast.html",
+      "sha256": "39BB1ECFA10B7E8FD7426E388C50E0097101ADC29F1A0BBFA3CF1D6BD30F61CF",
+      "bytes": 3711
+    },
+    {
+      "path": "test-pages/media-features.html",
+      "sha256": "FA87B4A226DB79A67C969A0B6CA994507406B3D460ABEEECADF516CE054709C9",
+      "bytes": 2522
+    },
+    {
+      "path": "test-pages/media-interaction.html",
+      "sha256": "BC1FFE8196FFFE368D75E50B876203AF5A35F9C92679EBC2B240E961BC4FF202",
+      "bytes": 2757
+    },
+    {
+      "path": "test-pages/media-modifiers.html",
+      "sha256": "AC86141E82E6C368E9D7A92D3B48192375D247093E1E26936970681C9EB444A9",
+      "bytes": 2802
+    },
+    {
+      "path": "test-pages/media-queries.html",
+      "sha256": "A0BF9C517434B59F833BFF2CA8A77B80CB2B0C4742B319609A3B5C375B32F6A3",
+      "bytes": 2292
+    },
+    {
+      "path": "test-pages/media-ranges.html",
+      "sha256": "0AFE02D5D877066EFCEBAB7BCB4D8B9898DBDAC37DE0DD1720D762F1C4A20E61",
+      "bytes": 3981
+    },
+    {
+      "path": "test-pages/media-reduced-data.html",
+      "sha256": "A424EB1A0142A1811531770BF6DA642D80B8F0E793A44D0C755CF1B7F84FF693",
+      "bytes": 2854
+    },
+    {
+      "path": "test-pages/media-reduced-motion.html",
+      "sha256": "DC15E698FEA530E3C7D92EFBD3F0137163B5483AE92DC0E33F87950F379A428C",
+      "bytes": 2898
+    },
+    {
+      "path": "test-pages/media-resolution.html",
+      "sha256": "3AF4C732064DA0F8815D0E98BC3BCEDA6CCFE8039CF32D8D72F725D7F01ADBE3",
+      "bytes": 4880
+    },
+    {
+      "path": "test-pages/media-scripting.html",
+      "sha256": "92BB93FC7DC85F31A24D523C669B0794A9A4877EDAD18D0432098C78FF5A5056",
+      "bytes": 3170
+    },
+    {
+      "path": "test-pages/nested-content.html",
+      "sha256": "C98B980971D4791EF24407DF37E5AC956857A08299D13BBEEBD045E8FBC2A79F",
+      "bytes": 2221
+    },
+    {
+      "path": "test-pages/nested-flow.html",
+      "sha256": "483F36D5FCE61EF0C0AC8C42B300E46111B04AD153A4BB1CDAA0D6237322719F",
+      "bytes": 1860
+    },
+    {
+      "path": "test-pages/nested-positioning.html",
+      "sha256": "BA3E054BE65BECC8D93EC578A1D11D2B6FA57697886D542CAB215B8266D2B6E7",
+      "bytes": 2352
+    },
+    {
+      "path": "test-pages/object-fit.html",
+      "sha256": "4730D12910CCAE7513805739FF571B2283B15B2E5D823F2D863FACEF03A2A970",
+      "bytes": 5877
+    },
+    {
+      "path": "test-pages/oklab-colors.html",
+      "sha256": "CFF9538F6A2E303536F164CB397673DDAF7DF8DBF0D017AC9AE7922F3FE0908A",
+      "bytes": 6637
+    },
+    {
+      "path": "test-pages/outlines.html",
+      "sha256": "DC9D891F8B707D0B3D0C64B5D0ADA0CD03AE38463F0DF683BE2662E3BD50B3D2",
+      "bytes": 2919
+    },
+    {
+      "path": "test-pages/pointer-interaction.html",
+      "sha256": "E0840A93BE1A604577CF4774C169C1075BEDF924DDB395EC68DC9266421D0B2B",
+      "bytes": 3537
+    },
+    {
+      "path": "test-pages/position-contexts.html",
+      "sha256": "FDE1516A85F80E3D059F8182C85D39F2EDD75ECD235E471B58189F6736631AAF",
+      "bytes": 2213
+    },
+    {
+      "path": "test-pages/position-values.html",
+      "sha256": "AE43DB389B884D7667BDB4C745B04D79A2007C58EF3F2E0679D54D8795B9B6C6",
+      "bytes": 2327
+    },
+    {
+      "path": "test-pages/positioning.html",
+      "sha256": "99B299F19E6308518459E7AACABED7DF57973C26509CD0287B736EAC0297BF85",
+      "bytes": 1258
+    },
+    {
+      "path": "test-pages/predefined-colors.html",
+      "sha256": "6AAF3968B551A030F2B71A54AF1AE4B3F7E896BDFA1B000D3F9DEDC51E9937AA",
+      "bytes": 6841
+    },
+    {
+      "path": "test-pages/recovery.html",
+      "sha256": "72BD56B1CCA84AE89990F9B5407DDF1163BDF071A3A8E93E638461E3F1CA9F2F",
+      "bytes": 1077
+    },
+    {
+      "path": "test-pages/responsive-media.html",
+      "sha256": "C4E6D7E415A269704A45195F46C467750FE8C6016C3048FEF197D3EB97EEE286",
+      "bytes": 2607
+    },
+    {
+      "path": "test-pages/retained-data.html",
+      "sha256": "E98C332609876C18BCC2B53CDC68587AE71D55AE1A0D72A7F572409FCD9B0784",
+      "bytes": 1283
+    },
+    {
+      "path": "test-pages/script-bridge.html",
+      "sha256": "498DF638CD88EA475A333BE30239DEE14DCC28FAEBBCD45F6877686F7F36370F",
+      "bytes": 943
+    },
+    {
+      "path": "test-pages/scroll.html",
+      "sha256": "4C5D95A85395F4A423AB900304191EFE53B7B3F06A91FCF0CEA70B3FB0940BDE",
+      "bytes": 1783
+    },
+    {
+      "path": "test-pages/second.html",
+      "sha256": "0336FF66991E889BC63F3458AD2D5E7B4E22D6772B8E1B6A4003A8B513319F92",
+      "bytes": 510
+    },
+    {
+      "path": "test-pages/selector-arithmetic.html",
+      "sha256": "CA5159886EFD78906A9B9279AD45E6EF046F34DA1005FC94CDE418E6608876A0",
+      "bytes": 2011
+    },
+    {
+      "path": "test-pages/selector-filtered-position.html",
+      "sha256": "AD5718312EA22B3D31664C172C09B0D89C3BD6340481D170E384E33F03180E24",
+      "bytes": 2432
+    },
+    {
+      "path": "test-pages/selector-functions.html",
+      "sha256": "B61BDC00FF40F1C4273490427B55053A843290E8F6303D29EDCE3ADC35FDF5F7",
+      "bytes": 2657
+    },
+    {
+      "path": "test-pages/selector-negation.html",
+      "sha256": "AB0AFF845DFF56E0FCB6EAA68A11B487E9924A92893A11D0E349B3EE2517370D",
+      "bytes": 1356
+    },
+    {
+      "path": "test-pages/selector-relational.html",
+      "sha256": "CF7ED1578A5EFDA8F2F397B93A206DB79E13EEA126227D1C8EB32F2320789DF2",
+      "bytes": 2082
+    },
+    {
+      "path": "test-pages/selector-states.html",
+      "sha256": "8F3D3CB8E0262BC237A453ADA31995FD7DB67C9FCD2C58AA447D750C8013BF71",
+      "bytes": 2486
+    },
+    {
+      "path": "test-pages/selectors.html",
+      "sha256": "3048FC7889D63324B5491A7B46E7B9BFD98284FD3B3809E58498E1D43690C41B",
+      "bytes": 1052
+    },
+    {
+      "path": "test-pages/short.html",
+      "sha256": "E5329D4C9F4CF93F220B10870253F7FBB3ACC717CEEDCFD49D141826A4FDB254",
+      "bytes": 473
+    },
+    {
+      "path": "test-pages/size-functions.html",
+      "sha256": "2C20B0AC26FC8DAD8F154EB0B4CFC63EF372F2191496E3B3B2318DD0FAF57808",
+      "bytes": 6996
+    },
+    {
+      "path": "test-pages/sizing-breaks.html",
+      "sha256": "EA44F0581E1EE1C7568C5577E693225BD21639EEA6A220127481D176CD140D5E",
+      "bytes": 1766
+    },
+    {
+      "path": "test-pages/stacking-contexts.html",
+      "sha256": "2599D3EFC0B78BCC661D4766ADD9B747AE98DDD3710E5174D536FDBE16462998",
+      "bytes": 3195
+    },
+    {
+      "path": "test-pages/state-commands.html",
+      "sha256": "D5831F4776162EC981C73EC3697F5E0EDF76FD8AD962BE687E128EAE610F7FC4",
+      "bytes": 2776
+    },
+    {
+      "path": "test-pages/sticky-positioning.html",
+      "sha256": "7A067C9085CA5C63F09C2BD0942608A1ECF5355CDCC21EF08362168F566A17DF",
+      "bytes": 1821
+    },
+    {
+      "path": "test-pages/stylesheets.html",
+      "sha256": "20F5A2C5D76E86FA7D2901A859B63C0900F2A8711C833EE3AEE9B3D47F1F4DA7",
+      "bytes": 852
+    },
+    {
+      "path": "test-pages/supports-queries.html",
+      "sha256": "DB8959E726A1873AD654D3F3C9814CC8CB9125A43DC927238BD279DDB75F3085",
+      "bytes": 4580
+    },
+    {
+      "path": "test-pages/svg-geometry.html",
+      "sha256": "38E0685601BB18F223C5664A72BE287C93868362D24025910C357340962568FD",
+      "bytes": 2516
+    },
+    {
+      "path": "test-pages/svg-gradients.html",
+      "sha256": "BC52D3ABB05CF062973C735A357024AB5CAAC3EAD119C6B7E6091AD9B82AE7FA",
+      "bytes": 3296
+    },
+    {
+      "path": "test-pages/svg-strokes.html",
+      "sha256": "2418D4A2F83DB37C0329CA6226F54769D7778500F48A894F0C1BE70C265C638E",
+      "bytes": 2893
+    },
+    {
+      "path": "test-pages/svg-use-clips.html",
+      "sha256": "E7CCB6090691937EBC1459673F5C5E382E5354CF2157A5AC54EFA689822CD051",
+      "bytes": 3014
+    },
+    {
+      "path": "test-pages/svg.html",
+      "sha256": "28391BCC9079DAC142AF8A349C565AC049E169345CC83B844A36CF8D621B99AA",
+      "bytes": 1812
+    },
+    {
+      "path": "test-pages/tables.html",
+      "sha256": "8B76DF3F294BDEFFD10B8D8C90DDFBB95A0CCBB819022E41FC0AA0AC274F2CAC",
+      "bytes": 923
+    },
+    {
+      "path": "test-pages/text-align-last.html",
+      "sha256": "4042D20639454478DA7AC279D50B31FAF4FC432234983370BFF8621149BD6AFA",
+      "bytes": 3535
+    },
+    {
+      "path": "test-pages/text-align.html",
+      "sha256": "E7255267A3D7448D46BD1CEF0C60443B2A87706A4B71A06D11D0C7295E69968B",
+      "bytes": 4478
+    },
+    {
+      "path": "test-pages/text-decoration.html",
+      "sha256": "A9F097E0BE492FA93A641B35422CE8835FFB0E4A48D8AD7022DE257988CCCBE5",
+      "bytes": 3890
+    },
+    {
+      "path": "test-pages/text-indent.html",
+      "sha256": "F371FFB781C89B5D6A3E2E7E71F044D8891F834C7CF0DEC13015EFBA7944FA6A",
+      "bytes": 2999
+    },
+    {
+      "path": "test-pages/text-layout.html",
+      "sha256": "6BC12B72E70E2BF8F545AE5789CD149C9E0E393ECCA796B29B7E1C0031F7D953",
+      "bytes": 955
+    },
+    {
+      "path": "test-pages/text-overflow.html",
+      "sha256": "C926AC08842560591F147D91AAA7A2848F1EFFCA977BE9DB7AFD388980FAF44F",
+      "bytes": 3943
+    },
+    {
+      "path": "test-pages/text-shadow.html",
+      "sha256": "904DE8F34D3D877AD19E6AF4BF36B26773C8D96DD5DDF7D61232D296F14225A3",
+      "bytes": 2690
+    },
+    {
+      "path": "test-pages/text-spacing.html",
+      "sha256": "D5F572C5B7CFD7B33D6D44E410FE622EDD1AD20FD6BD469626ACAB7C25E28436",
+      "bytes": 4004
+    },
+    {
+      "path": "test-pages/text-style.html",
+      "sha256": "0EF42D3D1FE3A91E6E5B45D0D0557AF7BFF9F2787C0C410A55414886588BFEB7",
+      "bytes": 1209
+    },
+    {
+      "path": "test-pages/text-transform.html",
+      "sha256": "5FF7D9E297E674E6B7867FA7F39AB0A9E9162C46577494A40DED1DAB6F1AA1DE",
+      "bytes": 3209
+    },
+    {
+      "path": "test-pages/text-underline-offset.html",
+      "sha256": "8C37E677224DC4865D6756AD49131CDA3CB2D8D5DA9EE4B71E0332DCC84878A6",
+      "bytes": 4758
+    },
+    {
+      "path": "test-pages/text-wrap.html",
+      "sha256": "62874686C1121FAA072E022D4732F357C6B8B10C7A74AD85DA51A34AB738E438",
+      "bytes": 5462
+    },
+    {
+      "path": "test-pages/time-edits.html",
+      "sha256": "18A642F791892D363ED5811298A85D2631CF0913F56F1A32901E1F1A1F4CD783",
+      "bytes": 1999
+    },
+    {
+      "path": "test-pages/tree.html",
+      "sha256": "2AE3584986A661DA7571CA39E28ED2003E3AFBF4DC6153B9337E3C8C466918A8",
+      "bytes": 317
+    },
+    {
+      "path": "test-pages/values.html",
+      "sha256": "CE49D882F5158B4CF46129A34DF4A2CE26A186D2A4AAA11071B8E71F3389FC66",
+      "bytes": 1766
+    },
+    {
+      "path": "test-pages/viewport-units.html",
+      "sha256": "60C8A43CC8F5FEF15E8E5FB5CDF0DEA2475C15C840B141AAD07EEB0A275DA385",
+      "bytes": 5995
+    },
+    {
+      "path": "test-pages/visibility-opacity.html",
+      "sha256": "3648E8621949768C28D39B138AD4E056297635B8E43335BD3D6A0103BFEF67F0",
+      "bytes": 2394
+    },
+    {
+      "path": "test-pages/white-space.html",
+      "sha256": "506EEDB7E2DC64D6610D9E49D7822AA32067AF663AE637FDA92F260A17EBD407",
+      "bytes": 1681
+    },
+    {
+      "path": "test-pages/wide-gamut-colors.html",
+      "sha256": "0BE529F7393BB4717B884391769B2ADD3F6D8D6E363D8C0B3665673488E5647C",
+      "bytes": 6733
+    }
+  ],
+  "requires": [
+    ".NET Framework 4.8",
+    "Microsoft.NETCore.App 8.0.33 x64",
+    "Fresh NTFS extraction directory"
+  ],
+  "developmentOnly": true,
+  "printSha256": "DDE3C3959EDCC7ED6EFAD5D5AF0CC6F985EE5C3A7E7FF3B724C05ED3AFE6F7C6",
+  "runtimeVersion": "8.0.33",
+  "runtimeFiles": 400,
+  "rollForward": "Disable",
+  "printAuditSha256": "C5FA45642DEAB24EC17C7F07FF501D782DAC023C2AE3777EF9A31E5B9E0EDB95"
+}

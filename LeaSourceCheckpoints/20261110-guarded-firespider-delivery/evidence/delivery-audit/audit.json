@@ -1,0 +1,98 @@
+{
+  "ownedRuns": 4,
+  "verified": true,
+  "releaseQualified": false,
+  "all402ArchiveMembersReadBack": true,
+  "legacyEngine": false,
+  "copies": [
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-host-print-v1\\result.json",
+      "sha256": "DDE3C3959EDCC7ED6EFAD5D5AF0CC6F985EE5C3A7E7FF3B724C05ED3AFE6F7C6",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\01-result.json"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-package-extraction-v1\\result.json",
+      "sha256": "0E32AD5A24063888010A557785EFEE83176F96CFCDF26E1E4BB94D130CE9736A",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\02-result.json"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-package-extraction-v1\\clean.json",
+      "sha256": "847A50C496364A3CD0E85A778BB6718858CF1AC532A333DFFA02A15F580479A1",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\03-clean.json"
+    },
+    {
+      "source": "I:\\LeaBuildStorage\\guarded-sdk-host-package-20261110-v1\\result.json",
+      "sha256": "AED08C6336CBF88745904F3818F464E9CD45C5B5936E946BB1ADEEAD69D52454",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\04-result.json"
+    },
+    {
+      "source": "I:\\LeaBuildStorage\\guarded-sdk-host-print-audit-20261110-v1\\audit.json",
+      "sha256": "C5FA45642DEAB24EC17C7F07FF501D782DAC023C2AE3777EF9A31E5B9E0EDB95",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\05-audit.json"
+    },
+    {
+      "source": "I:\\LeaBuildStorage\\guarded-sdk-host-extraction-source-20261110-v1\\source.json",
+      "sha256": "88EAB50D09254A01C6A0F778860AB6467B2EDCC6A24B6F30AA56331A23123756",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\06-source.json"
+    },
+    {
+      "source": "I:\\LeaBuildStorage\\guarded-sdk-host-extraction-source-20261110-v1\\Test-CurrentFirespiderExtraction.ps1",
+      "sha256": "34F16248A13B8C54853492F158B176873B02CE6C6A6CB17F474F4C5EC49A41C4",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\07-Test-CurrentFirespiderExtraction.ps1"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\Lea.Build\\Audit-CurrentFirespiderDelivery.ps1",
+      "sha256": "B77C15A2E65D5BCFCD333316DE5E2E5E705A11CEE6DC9387A567FA8171579686",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\08-Audit-CurrentFirespiderDelivery.ps1"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-host-print-v1\\print-command-preview.stdout.txt",
+      "sha256": "781233F1A9D285F69122B60AECB25A467DB724F8D8E564E6C1A9C5A926C3E0E5",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\09-print-command-preview.stdout.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-host-print-v1\\print-command-preview.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\10-print-command-preview.stderr.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-package-extraction-v1\\settings-path.stdout.txt",
+      "sha256": "EC2273EEC5BFE7B1B03C9274AF396A7B67B44F7AFAF8A82B8A29DC729FEFC6C8",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\11-settings-path.stdout.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-package-extraction-v1\\settings-path.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\12-settings-path.stderr.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-package-extraction-v1\\navigation.stdout.txt",
+      "sha256": "5453A40CCD621EEDB0EAAAB8E0032F8CFBDF45CC8B7FA220A9E1FE179F5A3E37",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\13-navigation.stdout.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-package-extraction-v1\\navigation.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\14-navigation.stderr.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-package-extraction-v1\\exe-clean.stdout.txt",
+      "sha256": "AC8312B42E45B6B15CF80B445F39D5679C11D3CB8EDD122949A9CEC60636D89F",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\15-exe-clean.stdout.txt"
+    },
+    {
+      "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\guarded-sdk-package-extraction-v1\\exe-clean.stderr.txt",
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "copy": "I:\\LeaBuildStorage\\guarded-sdk-host-delivery-audit-20261110-v1\\16-exe-clean.stderr.txt"
+    }
+  ],
+  "cleanMachineQualified": false,
+  "assertionsChanged": false,
+  "extractionSha256": "0E32AD5A24063888010A557785EFEE83176F96CFCDF26E1E4BB94D130CE9736A",
+  "archiveSha256": "708A70D7DDE0D4CF49EF5D1976C2CF261357D136275C0FA91D26B44532C6322A",
+  "runtimeBytesAndAclsUnchanged": true,
+  "limitsChanged": false,
+  "actualExeResponsive": true,
+  "physicalPrintingQualified": false,
+  "allOwnedProcessesRetired": true
+}

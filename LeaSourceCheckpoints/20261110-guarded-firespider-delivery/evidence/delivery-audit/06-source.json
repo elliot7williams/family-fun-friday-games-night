@@ -1,0 +1,44 @@
+{
+  "replacements": [
+    [
+      "continuity-evidence/private-binding-package-extraction-v1",
+      "continuity-evidence/guarded-sdk-package-extraction-v1"
+    ],
+    [
+      "I:\\LeaBuildStorage\\private-binding-firespider-package-20261103-v1",
+      "I:\\LeaBuildStorage\\guarded-sdk-host-package-20261110-v1"
+    ],
+    [
+      "AF32F7320FB74F2CBAE418E5966196D93AEFFBE278A7A41E4B72BFC4F9762E7D",
+      "AED08C6336CBF88745904F3818F464E9CD45C5B5936E946BB1ADEEAD69D52454"
+    ],
+    [
+      "Firespider-Lea-private-binding-development-20261103.zip",
+      "Firespider-Lea-guarded-development-20261110.zip"
+    ],
+    [
+      "2D684D53800618A2920E86B6051526DEB651D946EC6781A628F887CAD71B3D68",
+      "708A70D7DDE0D4CF49EF5D1976C2CF261357D136275C0FA91D26B44532C6322A"
+    ],
+    [
+      "B1A707A23CEB1DEE7FBDE13102BE24FAE7369FC21FC43F0688D35522197B1F85",
+      "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606"
+    ],
+    [
+      "Fresh private-binding ZIP extraction",
+      "Fresh guarded SDK ZIP extraction"
+    ]
+  ],
+  "inverseVerified": true,
+  "source": "I:\\LeaBuildStorage\\guarded-sdk-host-extraction-source-20261110-v1\\Test-CurrentFirespiderExtraction.ps1",
+  "executed": false,
+  "sha256": "34F16248A13B8C54853492F158B176873B02CE6C6A6CB17F474F4C5EC49A41C4",
+  "settingsBudgetMs": 30000,
+  "retirementBudgetMs": 5000,
+  "verified": true,
+  "navigationBudgetMs": 90000,
+  "assertionsChanged": false,
+  "templateSha256": "3DC6D7BF960039A18206CDC504046164C77C416AC373910E690A187C6A49DF46",
+  "hostAdopted": false,
+  "actualExeBudgetMs": 100000
+}

@@ -1,0 +1,16 @@
+Script host first demand: 1902 ms
+PASS script host exception constants: first demand; all 25 ordered own readonly values; no bridge calls or realm replacement
+PASS script host event receivers: first demand; shared non-constructible methods/accessors and bound methods, invalid receiver ordering, no argument conversion, document mutations or realm replacement
+PASS script host element receivers: first demand; shared non-constructible methods/accessors, invalid receiver ordering, stable token lists, no document mutations or realm replacement
+PASS script host attribute methods: first demand; shared non-constructible writers, receiver/conversion ordering, captured validation, bounds, four mutations and no realm replacement
+PASS script host exception constants: inline navigation; all 25 ordered own readonly values; no bridge calls or realm replacement
+PASS script host event receivers: inline navigation; shared non-constructible methods/accessors and bound methods, invalid receiver ordering, no argument conversion, document mutations or realm replacement
+PASS script host element receivers: inline navigation; shared non-constructible methods/accessors, invalid receiver ordering, stable token lists, no document mutations or realm replacement
+PASS script host attribute methods: inline navigation; shared non-constructible writers, receiver/conversion ordering, captured validation, bounds, four mutations and no realm replacement
+PASS script host callbacks: native keyboard click, function/object/DOM0 receivers, deferred operation, captured intrinsics, cancellation, and restored event state
+PASS script host event receiver dispatch: borrowed add/remove and handler accessors, nullish/detached window binding, native keyboard click, and cleanup
+PASS script host element field: borrowed class setter and attribute reads, two mutations, retained editor/value/focus/label, unchanged realm, and fixture ID/class restored
+PASS script host attribute field: generic writes/removals, literal Sa/Da aliases, presence booleans, retained editor/text/default/focus/accessibility, live width, five-write cleanup and unchanged realm
+Script host split load wait: 6386 ms
+PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, option conversion, receiver bindings and captured callbacks, bounded timers, live attributes/selectors/tree navigation, captured attribute writers and compact field edits, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal
+PASS Lea boot: script; Show=2015 ms; initial tabs=1

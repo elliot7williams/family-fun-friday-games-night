@@ -1,0 +1,1 @@
+PASS Lea boot: second; Show=2354 ms; initial tabs=2

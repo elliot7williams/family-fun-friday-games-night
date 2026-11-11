@@ -1,0 +1,57 @@
+{
+  "all15WorkflowsQualified": false,
+  "copies": [
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\accessibility-host-ui.result.json",
+      "sha256": "F5AAAB508A23E8D3E7A69942CC150A9F9854D0595897DF802F4F7749121443FF"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\accessibility-host-ui.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\accessibility-host-ui.stdout.txt",
+      "sha256": "439574E72199FECCF8ADDECA0C6F321A6BE29BD0C12326BE92C094F05DE42E00"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\accessibility-report.png",
+      "sha256": "BAC2BFEA9DA4ECCCC9378744F47557B4B812C0FF332FEA9C455FE5737D7331D1"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\Boot.generated.cs",
+      "sha256": "F5FA748619238B6D98E07E569E9604C5D9F5E9D7ADC116AA6A1A94FB19B0C83F"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\compile-accessibility-probe.result.json",
+      "sha256": "BE46E8BF593292745012D36615369EFA94957FA6CB77ED92DF60C19ACB1824A9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\compile-accessibility-probe.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\compile-accessibility-probe.stdout.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\private-report-retention.json",
+      "sha256": "50DAD1F0200CCC3E3D8246AF1A67853EBC014CFA613AED896F1F90966875B495"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-ui-audit-20261110-v1\\result.json",
+      "sha256": "E04992E17CD881C994C418427611C58AA26A10C09ED1D3CFD101F532DADFD3EE"
+    }
+  ],
+  "verified": true,
+  "originalNavigationChecksRetained": true,
+  "ownedRuns": 2,
+  "clickHoverEscapingEmptyGuard": true,
+  "releaseQualified": false,
+  "resultSha256": "E04992E17CD881C994C418427611C58AA26A10C09ED1D3CFD101F532DADFD3EE",
+  "globalPrivacyQualified": false,
+  "bytesAndAclStable": true,
+  "privateReportFileRegressionPassed": true,
+  "loadingDisposedPausedSplitQualified": false,
+  "runtimeFiles": 401,
+  "hostSha256": "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606"
+}

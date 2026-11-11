@@ -1,0 +1,67 @@
+{
+  "scriptSha256": "874EAD3CD97C03D66ED0B0D421D35A1ACDFC3883F49D9EE28705E1141E9C485D",
+  "copies": [
+    {
+      "sha256": "74D004ECA9E0332504D71556E5848B82645352174296B4B2B0CC15234164FF8F",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\clean.json"
+    },
+    {
+      "sha256": "FBEAA9F2153F78DA3CD53793AA948BAD4B19041E164DB5283D92CB4C62840864",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\exe-clean.result.json"
+    },
+    {
+      "sha256": "2CE70D6C8C9AD6726C794690C8B14A2B83673648CAC88EDF4FF1ACC50EC46348",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\exe-clean.stderr.txt"
+    },
+    {
+      "sha256": "2E2E46405D189572BDEC6965A33CF98099CA8E30D0D137480A2CCE103D167019",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\exe-clean.stdout.txt"
+    },
+    {
+      "sha256": "3F524EEE1FF9380B117EA35F9E41F0345228FC0C5D69952D2BF787182129EB4A",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\navigation.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\navigation.stderr.txt"
+    },
+    {
+      "sha256": "40ABDDED6574B92158C47E2C6277150FF75C56214688CDA30E3CB5F9BCD6CEA9",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\navigation.stdout.txt"
+    },
+    {
+      "sha256": "6EDCA54B5C24B60D3D5F24DB855FC9AC6A773017AB53B9666B892FAB3BE1CD97",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\result.json"
+    },
+    {
+      "sha256": "34F2D21AFAD9412DC53EEFD6539CBE7D15A9F9EE6A7003BD0DBA747819348B03",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\settings-path.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\settings-path.stderr.txt"
+    },
+    {
+      "sha256": "5C14CA19A7813F758D1F4425AA5CDB8B637A995869F611377FB558E4860A6452",
+      "path": "I:\\LeaBuildStorage\\guarded-sdk-host-smoke-audit-20261110-v1\\settings-path.stdout.txt"
+    }
+  ],
+  "printQualified": false,
+  "hostSha256": "1E390343125011CAA3F78582E91FAFC036E07A31F7E81B4B727ED8503FC39606",
+  "hostAdopted": false,
+  "releaseQualified": false,
+  "runtimeFiles": 400,
+  "forcedCleanup": false,
+  "sourceSha256": "A78DC818AA49F5C93C8DB6EB5E51DD95F6FC3E913C89EFF0FA801637B864185D",
+  "ownedRuns": 4,
+  "bytesAndAclStable": true,
+  "all15WorkflowsQualified": false,
+  "manifestSha256": "A566E5A5AEF6F7898D8B1DE8230D19C171FDB8F01804F58186AD96BC269FB8A0",
+  "startupReliabilityFixed": false,
+  "cases": 3,
+  "verified": true,
+  "resultSha256": "6EDCA54B5C24B60D3D5F24DB855FC9AC6A773017AB53B9666B892FAB3BE1CD97",
+  "legacyEngineLoaded": false,
+  "actualExeResponsive": true,
+  "assertionsChanged": false
+}
